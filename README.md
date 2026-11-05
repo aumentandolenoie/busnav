@@ -1,42 +1,37 @@
-# LineaPilot — prototipo PWA per autisti Busitalia Veneto
+# LineaPilot Academy — prototipo PWA per autisti Busitalia Veneto
 
-Una web app statica installabile, indipendente da Busitalia e PadoVia.
+**Prototipo indipendente, non una soluzione approvata da Busitalia Veneto. Non usare per decidere manovre durante il servizio.**
 
-## Funzionalità implementate
-- Importazione GTFS ZIP da BusOne, o da file locale (GTFS con routes/trips/stops/stop_times/shapes).
-- Visualizzazione delle linee, direzioni, corse e sequenza fermate.
-- Tracciato su OpenStreetMap/Leaflet.
-- Posizione GPS in tempo reale, distanza lungo il percorso dalla prossima fermata, annunci vocali italiani.
-- Segnali di svolta **sperimentali**, dedotti da variazioni geometriche del tracciato GTFS: non sono un routing stradale, non identificano sensi unici, corsie riservate, rotonde o restrizioni per autobus.
-- Simulazione guidata della corsa per test senza essere sul mezzo.
-- Cache locale del GTFS via IndexedDB e PWA installabile.
+## Contenuti
+- 787 tracciati GPX estratti dall'archivio `Mappe Academy -20261105T223518Z-1-001.zip`: 557 extraurbani, 201 urbani, 29 Colli.
+- Nessun PDF del pacchetto originale viene redistribuito in questo progetto.
+- Archivio GPX convertito in `official-routes.json` per navigazione mappa e selezione per categoria, linea, codice e destinazione. Ogni percorso mantiene la sequenza originaria dei punti (solo duplicati consecutivi rimossi).
+- Importazione GTFS da ZIP o endpoint BusOne; linee, corse, fermate, annunci e GPS.
+- Combinazione **manuale e controllata**: seleziona GPX Academy, carica GTFS, seleziona la *corsa GTFS esatta*, poi premi `Associa fermate GTFS`. Il controllo verifica corrispondenza del numero di linea, distanza delle fermate dal GPX (100 metri come soglia di controllo), sequenza progressiva sul tracciato e anomalie di inversione. In caso di mismatch l'associazione viene rifiutata, non forzata.
+- Indicazioni di svolta indicative, da variazioni di direzione della geometria: **non sono indicazioni attendibili per incroci o restrizioni degli autobus**.
+- Simulazione del GPX senza usare GPS reale.
 
-## Avvio
-Pubblica la cartella su un hosting statico HTTPS (Vercel, Netlify, GitHub Pages). In alternativa per test su PC:
+## Uso rapido
+1. Pubblica la cartella come sito statico su Vercel (Framework Preset: Other; senza build) o un web server HTTPS. Per prova locale: `python3 -m http.server 8000` da questa cartella.
+2. Cerca in `PERCORSI ACADEMY (GPX)` una linea o variante e premi `Mostra GPX`.
+3. Carica un file ZIP GTFS tramite `Scarica GTFS` o `Importa ZIP`.
+4. Seleziona sotto `SELEZIONA IL SERVIZIO` la linea, direzione e corsa programmata corretta. Il GTFS di default mostra un tracciato GTFS; premi `Associa fermate GTFS` per sostituirlo con il GPX Academy e associarvi le fermate.
+5. Se l'app segnala differenze di linea, fermate fuori percorso o ordine non plausibile, **non usare l'abbinamento**. Potrebbero essere corsa/variante errata, feed non aggiornato o GPX non allineato alla corsa.
+6. Prova `Simula corsa` a veicolo fermo. GPS e sintesi vocale sono disponibili solo dove browser e permessi lo consentono.
 
-```sh
-python3 -m http.server 8000
-```
+## Limiti di verifica
+- Tutti i 787 file GPX sono stati analizzati come XML; nessun errore di parsing. Non è stata verificata la percorribilità sul campo, la validità odierna o l'autorizzazione a redistribuire pubblicamente i GPX.
+- Il feed GTFS non è stato scaricato o testato in questo ambiente per limitazioni di rete/DNS: nessun abbinamento reale GPX↔GTFS è stato confermato, e la disponibilità del servizio CORS è incerta. Possibile importare ZIP localmente.
+- La logica di abbinamento non è un map matching professionale: strade sovrapposte, linee ad anello e varianti simili possono produrre falsi positivi/negativi anche quando il controllo restituisce esito positivo. Verifica sempre manualmente la sequenza sulla mappa.
+- Le corse GTFS non sono filtrate per calendario; devi selezionare la corsa programmata corretta.
+- La PWA su iOS non garantisce GPS e voce a schermo bloccato. Il GPS deve essere usato solo se è consentito e a schermo predisposto prima della guida.
+- Mappe Leaflet, JSZip e OpenStreetMap usano servizi esterni e richiedono Internet; i dati GTFS importati possono essere salvati localmente ma **non esiste offline completo**.
+- Le svolte sono stimate dalla curvatura: svolte non necessariamente corrispondenti a vere manovre stradali; l'app non controlla corsie bus, strettoie, deviazioni o limiti di transito.
+- Prima della pubblicazione pubblica verifica la titolarità e i permessi di utilizzo e diffusione delle mappe Academy, licenze dei dati GTFS e condizioni tile OSM.
 
-Apri http://localhost:8000. Su iPhone, HTTPS è necessario per la geolocalizzazione. Su Safari: Condividi → Aggiungi alla schermata Home. Nessuna compilazione, nessuna API key.
+## Fonti per i dati fermata
+- Portale GTFS Busitalia Veneto: https://gtfs-biv.fsbusitalia.com/
+- Proxy aggregato BusOne: https://proxy.busone.app/biv/
 
-## Dati
-Predefinito: https://proxy.busone.app/biv/gtfs.zip (feed terzo, potrebbe variare oppure bloccare richieste CORS). Importazione manuale ZIP è disponibile come alternativa. Fonte ufficiale per BUS e TRAM: https://gtfs-biv.fsbusitalia.com/ . I feed ufficiali sono separati: se importi il file BUS vedrai gli autobus; per il TRAM importa l'altro. Il feed predefinito unificato può includere entrambi.
-
-**Nota di verifica**: durante la preparazione, gli endpoint sono stati confermati tramite documentazione pubblica, ma il file ZIP live non era scaricabile nell'ambiente di sviluppo. L'app non è stata validata con un GTFS reale di Busitalia Veneto né provata su strada: è un prototipo tecnico da testare.
-
-## Limitazioni importanti
-- Le corse sono elencate per direzione e orario ma **non ancora filtrate per data di servizio** (calendar/calendar_dates sono letti, non applicati). Seleziona la corsa corretta per il tuo turno.
-- Il tracciato `shapes.txt` può essere ricostruito da terze parti, può essere approssimato e non è garantito per tutti i servizi. Se manca, viene mostrata solo una polilinea tra fermate senza avvisi di svolta.
-- Il calcolo della progressione su shape con anelli e strade sovrapposte può scegliere la sezione sbagliata. Non sostituisce un motore di map matching professionale.
-- Il passaggio di fermata e gli annunci dipendono da precisione GPS e qualità delle shape. Avvisi errati sono possibili.
-- Sugli iPhone, Safari/PWA può sospendere GPS e voce a schermo spento o in background. Richiede schermo acceso per test affidabili.
-- Le mappe raster, Leaflet e JSZip usano servizi CDN e richiedono connessione, anche se il GTFS scaricato resta in cache. Il prototipo **non è totalmente offline**.
-- È indispensabile adeguare condizioni d'uso/attribuzioni dei fornitori dati prima di una distribuzione pubblica o uso commerciale. BusOne richiede identificazione per richieste automatizzate continuative; verificare le condizioni d'uso. Il prototipo scarica solo il GTFS statico su richiesta.
-- Non usare l'app per decidere manovre in servizio: seguire sempre disposizioni aziendali, segnaletica e normativa, e interagire con lo schermo solo a veicolo fermo.
-
-## Evoluzione proposta
-1. Validare feed live, le shape e soprattutto le corse esatte Busitalia.
-2. Filtrare servizi per data reale e raggruppare varianti/percorso.
-3. Aggiungere routing esplicitamente supportato per autobus con vincoli infrastrutturali e map matching affidabile.
-4. Implementare preavvisi personalizzabili, gestione deviazioni e test su itinerari noti, offline completo.
+## Passo successivo
+Testare uno o più abbinamenti GPX/GTFS reali, scegliere il percorso della corsa corretta, identificare i punti di svolta tramite rete stradale verificata ed evitare istruzioni stradali basate soltanto sulla curvatura del tracciato.
