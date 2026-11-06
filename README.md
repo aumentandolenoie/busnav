@@ -75,3 +75,8 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - Durante la guida la cartografia ruota verso la direzione di marcia usando `coords.heading` solo quando c'è sufficiente movimento; altrimenti usa il verso in avanti della geometria GPX Academy lungo il punto di percorrenza. Le mappe GTFS non modificano la geometria. La rotazione è gestita dal plug-in Leaflet Rotate 0.3.0; se non si carica, la mappa resta orientata a nord e il percorso/GPS continuano a funzionare.
 - Gli avvisi vocali anticipati e i dati di fermata Busitalia rimangono invariati. La direzione GPX può essere poco affidabile in prossimità di anelli, sovrapposizioni, curve strette o deviazioni: non usare questa PWA come strumento di guida certificato.
 - Il browser iOS non garantisce navigazione o audio a schermo bloccato; la mappa richiede il sito in primo piano. L'interfaccia non richiede l'API fullscreen nativa di Safari, usa soltanto una vista che occupa tutta l'area disponibile dell'app.
+
+## Verifica navigazione fullscreen (regressioni)
+- Il caricamento UMD di Leaflet Rotate `@tomickigrzegorz/leaflet-rotate@0.3.0` e l'API `setHeading`, `setBearing`, `stopHeadingUp` sono stati confrontati con la documentazione del progetto.
+- In caso di permesso GPS negato, si interrompe la sessione e si torna ai selettori, con pulsanti nuovamente utilizzabili. Errori di posizione temporanei mostrano un avviso senza terminare forzatamente il tracciato.
+- Alla fine della simulazione, la navigazione viene chiusa correttamente, GPS/voce si fermano e i pulsanti vengono riabilitati. Su iPhone restano necessari test reali del GPS, rotazione mappa e uscita dall'interfaccia.
