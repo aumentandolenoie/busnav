@@ -171,7 +171,7 @@ test('native iOS bridge does not replace web PWA GPS',()=>{
  assert.match(js,/navigator\.geolocation\.watchPosition/);
  assert.match(js,/if\(nativeActive\)return false; \/\/ Swift owns stop\/turn audio/);
  assert.match(js,/window\.lineaPilotNativeReceive/);
- assert.match(js,/WKURLSchemeHandler-compatible XHR/);
+ assert.match(js,/XMLHttpRequest is supported by WKURLSchemeHandler/);
  assert.match(js,/function downloadGTFSBlob/);
  assert.match(js,/!nativeMode&&'serviceWorker'in navigator/);
 });
