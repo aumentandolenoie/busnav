@@ -7,44 +7,80 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,att
 L.control.zoom({position:'topright'}).addTo(map);
 let academy=[], selectedOfficial=null, feed=null, current=null, watcher=null, simulation=null, simIndex=0, locationMarker=null, accuracyCircle=null, lineLayer=null, stopLayer=null;
 let nextStopIdx=0,lastFix=null,lastSpokenStop=-1,lastSpokenTurn=-1,lastProgress=0,lastAlong=0, turns=[];
-let navigationFullscreen=false,lastNavHeading=null;
+let navigationFullscreen=false,lastNavHeading=null,lastCameraAt=0,lastCameraPoint=null,lastMatchedAt=0,hasMatchedFix=false;
 function enterNavigationView(){
  navigationFullscreen=true;
  document.body.classList.add('navigating');
  $('navFullscreenBar').hidden=false;
  $('headingStatus').textContent='↑ Attesa direzione';
  $('followToggle').checked=true;
- requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(lastFix)map.setView([lastFix.lat,lastFix.lng],Math.max(map.getZoom(),16),{animate:false});});
+ requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(current?.points?.length){const initial=current.points[0];if(!hasMatchedFix)map.setView([initial.lat,initial.lng],Math.max(map.getZoom(),16),{animate:false});}});
 }
 function leaveNavigationView(){
  if(!navigationFullscreen)return;
  navigationFullscreen=false;document.body.classList.remove('navigating');
- $('navFullscreenBar').hidden=true;lastNavHeading=null;
+ $('navFullscreenBar').hidden=true;lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;
  if(typeof map.setHeading==='function')map.setHeading(null);
  if(typeof map.stopHeadingUp==='function')map.stopHeadingUp();
  if(typeof map.setBearing==='function')map.setBearing(0);
  requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(lineLayer&&lineLayer.getBounds().isValid())map.fitBounds(lineLayer.getBounds(),{padding:[40,40]});});
 }
 function headingFromGPX(points,dists,along){
+ // Sample over a longer section of the official route, instead of its
+ // small GPS bends or noisy device compass values.
  const total=dists.at(-1)||0;
- const a=pointAt(points,dists,Math.max(0,Math.min(total,along+5)));
- const b=pointAt(points,dists,Math.max(0,Math.min(total,along+65)));
- if(metres(a,b)<4)return null;
+ const begin=Math.max(0,along-35),end=Math.min(total,along+105);
+ if(end-begin<15)return null;
+ const a=pointAt(points,dists,begin),b=pointAt(points,dists,end);
+ if(metres(a,b)<18)return null; // avoid bearing from near-repeated/loop geometry
  return (bearing(a,b)+360)%360;
 }
-function updateNavigationHeading(points,dists,along,reportedHeading,speed){
+function updateNavigationHeading(points,dists,along){
  if(!navigationFullscreen)return;
- // GPS heading is useful only while moving; otherwise follow the GPX Academy forward direction.
- const actual=Number.isFinite(reportedHeading)&&reportedHeading>=0&&reportedHeading<360&&speed>2.5;
- const target=actual?reportedHeading:headingFromGPX(points,dists,along);
+ // Academy geometry is the authority. GPS heading is intentionally ignored:
+ // phone magnetometers and GPS bearings fluctuate too much while driving slowly.
+ const target=headingFromGPX(points,dists,along);
  if(target===null)return;
- if(lastNavHeading!==null){
+ if(lastNavHeading===null)lastNavHeading=target;
+ else{
   const diff=((target-lastNavHeading+540)%360)-180;
-  lastNavHeading=(lastNavHeading+Math.max(-45,Math.min(45,diff)) + 360)%360;
- }else lastNavHeading=target;
- if(typeof map.setHeading==='function')map.setHeading(lastNavHeading,{ease:0.25,deadzone:1});
+  if(Math.abs(diff)<12)return; // dead zone: don't rotate for minor route bends
+  const step=Math.max(-12,Math.min(12,diff*.22));
+  lastNavHeading=(lastNavHeading+step+360)%360;
+ }
+ if(typeof map.setHeading==='function')map.setHeading(lastNavHeading,{ease:0.12,deadzone:2});
  else if(typeof map.setBearing==='function')map.setBearing(-lastNavHeading);
- $('headingStatus').textContent=(actual?'GPS':'GPX')+' · '+Math.round(lastNavHeading)+'°';
+ $('headingStatus').textContent='GPX · '+Math.round(lastNavHeading)+'°';
+}
+function stableRouteMatch(p,points,dists,speed,isDemo){
+ const now=Date.now(),global=nearestOnShape(p,points,dists);
+ if(!hasMatchedFix){hasMatchedFix=true;lastMatchedAt=now;return global;}
+ const elapsed=Math.max(.5,Math.min(15,(now-lastMatchedAt)/1000));
+ lastMatchedAt=now;
+ const maxProgress=isDemo?90:Math.max(65,Math.min(220,Math.max(speed,4)*elapsed*2+45));
+ const minAlong=Math.max(0,lastAlong-45),maxAlong=Math.min(dists.at(-1)||0,lastAlong+maxProgress);
+ const i0=dists.findIndex(d=>d>=minAlong),i1=dists.findIndex(d=>d>=maxAlong);
+ const start=Math.max(0,(i0<0?points.length-2:i0)-2);
+ const end=Math.min(points.length-1,(i1<0?points.length-1:i1)+2);
+ const local=nearestOnShape(p,points,dists,start,end);
+ if(local.d<=Math.max(75,global.d+25)){
+  // Keep the same section of route at close crossings or overlapping roads.
+  if(local.along<lastAlong-45)return {...local,along:lastAlong};
+  return local;
+ }
+ // Ignore sudden implausible skips to another portion of the line;
+ // do not advance stops or rotate the map on an untrusted fix.
+ return {d:Infinity,along:lastAlong,idx:local.idx};
+}
+function followStableCamera(points,dists,along,isDemo){
+ if(!navigationFullscreen||!$('followToggle').checked)return;
+ const now=Date.now();
+ const center=pointAt(points,dists,along);
+ if(lastCameraPoint&&metres(lastCameraPoint,center)<24&&now-lastCameraAt<2500)return;
+ // Throttle pans so the entire map does not jump on every GPS fix.
+ const first=!lastCameraPoint;
+ lastCameraPoint=center;lastCameraAt=now;
+ map.panTo([center.lat,center.lng],{animate:!first,duration:.65});
 }
 $('exitNavigation').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&navigationFullscreen){stopNavigation();$('navStatus').textContent='Navigazione terminata'}});
@@ -466,16 +502,11 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  if(!current)return;
  lastFix=p;const {points,dists,offsets,stops}=current;
  const speed=speedEstimate(p,reportedSpeed,isDemo);
- let near=nearestOnShape(p,points,dists);
+ let near=stableRouteMatch(p,points,dists,speed,isDemo);
  if(near.d>180){$('gpsStatus').textContent='Fuori percorso';$('navStatus').textContent='GPS lontano dal tracciato';$('turnHint').textContent='Verifica percorso / deviazione';return}
  if(!isDemo&&accuracy>110){$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
- // Prefer forward map matching around crossings, without trusting a large GPS jump.
- if(near.along+100<lastAlong){
-  const ix=dists.findIndex(d=>d>=lastAlong);
-  const start=Math.max(0,(ix<0?dists.length-1:ix)-3);
-  const ahead=nearestOnShape(p,points,dists,start);
-  if(ahead.d<Math.max(near.d+20,55))near=ahead;
- }
+ // Prevent map and stop list from moving backwards due to GPS jitter.
+ if(near.along<lastAlong-30)near={...near,along:lastAlong};
  const along=near.along;
  // A capolinea is often also GTFS stop #1: on departure, the next alert is stop #2.
  if(firstVoiceFix){
@@ -483,7 +514,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
   if(stops.length>1&&offsets[0]<=50&&Math.abs(along-offsets[0])<30)nextStopIdx=1;
  }
  lastAlong=Math.max(lastAlong,along-30);
- updateNavigationHeading(points,dists,along,reportedHeading,speed);
+ updateNavigationHeading(points,dists,along);
  $('gpsStatus').textContent=isDemo?'Simulazione':accuracy?'GPS ±'+Math.round(accuracy)+' m':'GPS attivo';
  $('navStatus').textContent=current.trip.trip_headsign||'Corsa in corso';
  // This value must move forward only once the stop is actually passed.
@@ -510,7 +541,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
    if(speak('Possibile svolta a '+turn.side+' tra circa '+speechDistance(d)+'.','turn'))lastSpokenTurn=idx;
   }
  }else $('turnHint').textContent=done?'Corsa completata':'Segui il tracciato GPX';
- if($('followToggle').checked)map.panTo([p.lat,p.lng],{animate:true,duration:.35});
+ followStableCamera(points,dists,along,isDemo);
  if(!locationMarker)locationMarker=L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:3,fillColor:'#0c55eb',fillOpacity:1}).addTo(map);
  else locationMarker.setLatLng([p.lat,p.lng]);
  if(accuracy&&!isDemo){
