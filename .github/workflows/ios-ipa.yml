@@ -12,8 +12,19 @@ on:
       - 'style.css'
       - 'official-routes.json'
       - '.github/workflows/ios-ipa.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'scripts/prepare-ios.sh'
+      - 'scripts/build-ios-unsigned.sh'
+      - 'app.js'
+      - 'index.html'
+      - 'style.css'
+      - 'official-routes.json'
+      - '.github/workflows/ios-ipa.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   build-ios:
     runs-on: macos-15
@@ -28,11 +39,15 @@ jobs:
           (cd ios && xcodegen generate)
       - name: Compile unsigned iOS device app and package IPA
         run: bash scripts/build-ios-unsigned.sh
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: LineaPilot-iOS-unsigned
-          path: |
-            build/ios/LineaPilot-unsigned.ipa
-            build/ios/xcodebuild.log
-          if-no-files-found: warn
+      # Releases avoid the exhausted Actions artifact storage quota.
+      # A release is created only on main (never for a pull request).
+      - name: Publish unsigned IPA as prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="ios-preview-$(git rev-parse --short=12 HEAD)"
+          gh release create "$TAG" build/ios/LineaPilot-unsigned.ipa \
+            --title "LineaPilot iOS unsigned - $TAG" \
+            --notes "Prototipo iOS NON FIRMATO, destinato a test di sideloading con SideStore. Servono firma e autorizzazioni iOS per installarlo. GPS e voce con schermo bloccato da collaudare: non è navigazione certificata." \
+            --prerelease --target "$GITHUB_SHA"
