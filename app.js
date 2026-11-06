@@ -7,7 +7,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,att
 L.control.zoom({position:'topright'}).addTo(map);
 let academy=[], selectedOfficial=null, feed=null, current=null, watcher=null, simulation=null, simIndex=0, locationMarker=null, accuracyCircle=null, lineLayer=null, stopLayer=null;
 let nextStopIdx=0,lastFix=null,lastSpokenStop=-1,lastSpokenTurn=-1,lastProgress=0,lastAlong=0, turns=[];
-let navigationFullscreen=false,lastNavHeading=null,lastCameraAt=0,lastCameraPoint=null,lastMatchedAt=0,hasMatchedFix=false,realGpsFix=null,realGpsFixAt=0;
+let navigationFullscreen=false,lastNavHeading=null,lastCameraAt=0,lastCameraPoint=null,lastMatchedAt=0,hasMatchedFix=false,realGpsFix=null,realGpsFixAt=0,recoveryCandidate=null;
 function enterNavigationView(){
  navigationFullscreen=true;
  document.body.classList.add('navigating');
@@ -28,7 +28,7 @@ function enterNavigationView(){
 function leaveNavigationView(){
  if(!navigationFullscreen)return;
  navigationFullscreen=false;document.body.classList.remove('navigating');
- $('navFullscreenBar').hidden=true;lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;
+ $('navFullscreenBar').hidden=true;lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;recoveryCandidate=null;
  $('navigationPosition').hidden=true;
  $('voiceNavigationControls').hidden=true;
  map.dragging.enable();
@@ -68,23 +68,43 @@ function updateNavigationHeading(points,dists,along){
 }
 function stableRouteMatch(p,points,dists,speed,isDemo){
  const now=Date.now(),global=nearestOnShape(p,points,dists);
- if(!hasMatchedFix){if(global.d>100)return global;hasMatchedFix=true;lastMatchedAt=now;return global;}
+ if(!hasMatchedFix){
+  if(global.d>140)return {...global,offRoute:global.d>180,waiting:true};
+  hasMatchedFix=true;lastMatchedAt=now;recoveryCandidate=null;
+  return global;
+ }
  const elapsed=Math.max(.5,Math.min(15,(now-lastMatchedAt)/1000));
  lastMatchedAt=now;
- const maxProgress=isDemo?90:Math.max(65,Math.min(220,Math.max(speed,4)*elapsed*2+45));
- const minAlong=Math.max(0,lastAlong-45),maxAlong=Math.min(dists.at(-1)||0,lastAlong+maxProgress);
+ // GPS fixes can be seconds apart, especially on iOS. A fixed 220-metre
+ // search window otherwise traps the vehicle behind forever.
+ const maxProgress=isDemo?110:Math.max(90,Math.min(320,Math.max(speed,5)*elapsed*2.4+65));
+ const minAlong=Math.max(0,lastAlong-55),maxAlong=Math.min(dists.at(-1)||0,lastAlong+maxProgress);
  const i0=dists.findIndex(d=>d>=minAlong),i1=dists.findIndex(d=>d>=maxAlong);
  const start=Math.max(0,(i0<0?points.length-2:i0)-2);
- const end=Math.min(points.length-1,(i1<0?points.length-1:i1)+2);
+ const end=Math.min(points.length-1,Math.max(start+1,(i1<0?points.length-1:i1)+2));
  const local=nearestOnShape(p,points,dists,start,end);
- if(local.d<=Math.max(75,global.d+25)){
-  // Keep the same section of route at close crossings or overlapping roads.
-  if(local.along<lastAlong-45)return {...local,along:lastAlong};
+ if(local.d<=Math.max(95,global.d+30)&&local.along>=lastAlong-75){
+  recoveryCandidate=null;
   return local;
  }
- // Ignore sudden implausible skips to another portion of the line;
- // do not advance stops or rotate the map on an untrusted fix.
- return {d:Infinity,along:lastAlong,idx:local.idx};
+ // Only the distance to the WHOLE GPX proves a real route deviation.
+ // Being outside a narrow progress window is not "GPS lontano dal tracciato".
+ if(global.d<=125&&global.along>=lastAlong-70){
+  const old=recoveryCandidate;
+  const consecutive=old&&now-old.at<20000&&Math.abs(global.along-old.along)<Math.max(180,speed*elapsed*3+75);
+  recoveryCandidate={along:global.along,at:now,count:consecutive?old.count+1:1};
+  if(recoveryCandidate.count>=2){
+   recoveryCandidate=null;
+   return {...global,reacquired:true};
+  }
+  // Hold turns and stop progression until two consistent fixes agree.
+  return {d:global.d,along:lastAlong,idx:global.idx,recovering:true};
+ }
+ recoveryCandidate=null;
+ if(global.d<=180){
+  return {d:global.d,along:lastAlong,idx:global.idx,recovering:true};
+ }
+ return {d:global.d,along:lastAlong,idx:global.idx,offRoute:true};
 }
 function followStableCamera(position,isDemo=false,force=false){
  if(!navigationFullscreen||!position)return;
@@ -600,7 +620,18 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  // Poor fixes are rejected above; the heading still comes from the GPX.
  followStableCamera(p,isDemo);
  let near=stableRouteMatch(p,points,dists,speed,isDemo);
- if(near.d>180){$('gpsStatus').textContent='Fuori percorso';$('navStatus').textContent='GPS lontano dal tracciato';$('turnHint').textContent='Verifica percorso / deviazione';return}
+ if(near.offRoute||near.d>180){
+  $('gpsStatus').textContent='GPS fuori dal GPX · '+Math.round(near.d)+' m';
+  $('navStatus').textContent='Posizione distante dal percorso Academy';
+  $('turnHint').textContent='Avvisi sospesi finché la posizione non torna affidabile';
+  return;
+ }
+ if(near.recovering||near.waiting){
+  $('gpsStatus').textContent='GPS · riallineamento al GPX';
+  $('navStatus').textContent='Verifica avanzamento sul percorso';
+  $('turnHint').textContent='Ricalcolo posizione: avvisi in attesa';
+  return;
+ }
  // Prevent map and stop list from moving backwards due to GPS jitter.
  if(near.along<lastAlong-30)near={...near,along:lastAlong};
  const along=near.along;
