@@ -1,0 +1,20 @@
+workflows:
+  lineapilot-ios-unsigned:
+    name: LineaPilot iOS — IPA non firmata
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      xcode: latest
+    scripts:
+      - name: Verifica e copia i 787 GPX Academy
+        script: bash scripts/prepare-ios.sh
+      - name: Genera il progetto Xcode
+        script: |
+          command -v xcodegen >/dev/null || brew install xcodegen
+          cd ios
+          xcodegen generate
+      - name: Compila app iOS e confeziona IPA unsigned
+        script: bash scripts/build-ios-unsigned.sh
+    artifacts:
+      - build/ios/LineaPilot-unsigned.ipa
+      - build/ios/xcodebuild.log

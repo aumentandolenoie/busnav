@@ -2,6 +2,24 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const FEED='https://proxy.busone.app/biv/gtfs.zip';
+// iOS native bridge is present ONLY in the Swift wrapper. The web PWA remains unchanged.
+const nativeMode=!!window.webkit?.messageHandlers?.lineaPilot;
+let nativeActive=false;
+function nativePost(data){
+ if(!nativeMode)return false;
+ try{window.webkit.messageHandlers.lineaPilot.postMessage(data);return true}
+ catch(e){console.warn('Native bridge:',e);return false}
+}
+window.lineaPilotNativeReceive=(type,data)=>{
+ if(!nativeActive)return;
+ if(type==='location'&&data&&Number.isFinite(data.lat)&&Number.isFinite(data.lng)){
+  updatePosition({lat:data.lat,lng:data.lng},data.accuracy||0,data.speed,false,data.heading);
+ }else if(type==='status'&&data?.message){
+  $('gpsStatus').textContent=data.message;
+  setVoiceStatus(data.message);
+ }
+};
+
 const map=L.map('map',{zoomControl:false,rotate:true,touchRotate:false,dragRotate:false,shiftKeyRotate:false}).setView([45.4064,11.8768],12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
 L.control.zoom({position:'topright'}).addTo(map);
@@ -126,6 +144,7 @@ function followStableCamera(position,isDemo=false,force=false){
 function recenterOnRealGPS(){
  // The location button must NEVER recenter on the GPX projection.
  // Live geolocation is authoritative for the user's actual position.
+ if(nativeMode&&nativeActive){if(realGpsFix){const p=realGpsFix;lastCameraPoint=null;followStableCamera(p,false,true)}else toast('In attesa del primo GPS nativo');return}
  if(realGpsFix&&Date.now()-realGpsFixAt<10000){
   const fix=realGpsFix;
   if(navigationFullscreen){
@@ -163,8 +182,25 @@ const ACADEMY_DOCUMENTS={
 const sortIt=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true,sensitivity:'base'});
 function academyGroupName(r){return String(r.line||'Altri percorsi').trim();}
 async function loadAcademy(){try{
- const res=await fetch('./official-routes.json');if(!res.ok)throw Error('HTTP '+res.status);
- const data=await res.json();if(!Array.isArray(data))throw Error('Catalogo non valido');
+ let data;
+ if(nativeMode){
+  // WKWebView custom URL schemes can reject fetch() even for same-origin resources.
+  // XMLHttpRequest is supported by WKURLSchemeHandler for bundled JSON.
+  data=await new Promise((resolve,reject)=>{
+   const xhr=new XMLHttpRequest();
+   xhr.open('GET','./official-routes.json',true);
+   xhr.onload=()=>{
+    if(xhr.status!==0&&(xhr.status<200||xhr.status>=300)){reject(Error('Academy HTTP '+xhr.status));return}
+    try{resolve(JSON.parse(xhr.responseText))}catch(e){reject(e)}
+   };
+   xhr.onerror=()=>reject(Error('Catalogo Academy locale non accessibile'));
+   xhr.send();
+  });
+ }else{
+  const res=await fetch('./official-routes.json');
+  if(!res.ok)throw Error('HTTP '+res.status);
+  data=await res.json();
+ }if(!Array.isArray(data))throw Error('Catalogo non valido');
  academy=data;const ids=new Set(data.map(r=>r.id)),stats={};
  for(const category of Object.keys(ACADEMY_EXPECTED))stats[category]=data.filter(r=>r.category===category).length;
  const complete=data.length===787&&ids.size===787&&Object.keys(ACADEMY_EXPECTED).every(k=>stats[k]===ACADEMY_EXPECTED[k])&&data.every(r=>Array.isArray(r.points)&&r.points.length>=2);
@@ -524,6 +560,7 @@ function setupVoice(){
  return true;
 }
 function enqueueVoice(message,priority='normal'){
+ if(nativeActive)return false; // Swift owns stop/turn audio during native GPS sessions
  if(!$('voiceToggle').checked||!setupVoice())return false;
  if(priority==='stop'){
   voiceQueue=voiceQueue.filter(x=>x.priority!=='turn');
@@ -567,6 +604,7 @@ function drainVoice(){
 }
 function speak(message,priority='normal'){return enqueueVoice(message,priority)}
 function activateNavigationVoice(){
+ if(nativeActive){nativePost({type:'testVoice'});return}
  if(!$('voiceToggle').checked){setVoiceStatus('Attiva annunci vocali nelle impostazioni',true);return}
  resetVoiceGuidance();
  if(!setupVoice())return;
@@ -696,6 +734,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  }
 }
 function stopNavigation(){
+ if(nativeActive){nativePost({type:'stop'});nativeActive=false}
  // Immediately stop browser position updates and speech on manual exit.
  if(watcher!==null){navigator.geolocation.clearWatch(watcher);watcher=null}
  if(simulation){clearInterval(simulation);simulation=null}
@@ -703,19 +742,77 @@ function stopNavigation(){
  $('stopNav').disabled=true;$('startNav').disabled=!current;$('demoBtn').disabled=!current;
  $('gpsStatus').textContent='GPS inattivo';
 }
-function startGPS(){if(!current)return;stopNavigation();setupVoice();if(!('geolocation'in navigator)){toast('GPS non disponibile nel browser');return}if(!window.isSecureContext){toast('Per il GPS occorre HTTPS oppure localhost');return}lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();enterNavigationView();activateNavigationVoice();$('gpsStatus').textContent='Ricerca GPS…';watcher=navigator.geolocation.watchPosition(pos=>{const p={lat:pos.coords.latitude,lng:pos.coords.longitude};updatePosition(p,pos.coords.accuracy,pos.coords.speed,false,pos.coords.heading)},err=>{
-  const reason=err.message||'Errore di localizzazione';
-  const wasWatching=watcher!==null;
-  if(err.code===1){ // permission denied: no GPS can be received
-   stopNavigation();$('navStatus').textContent='GPS non autorizzato';
-  }else{
-   $('gpsStatus').textContent='GPS temporaneamente non disponibile';
-   if(wasWatching)toast('Segnale GPS non disponibile: '+reason);
-  }
+function startGPS(){
+ if(!current)return;
+ stopNavigation();
+ if(nativeMode){
+  // Native GPS and voice keep running independently of the WKWebView lifecycle.
+  const route={
+   points:current.points.map(p=>[p.lat,p.lng]),
+   offsets:current.offsets,
+   stops:current.stops.map(s=>s.stop?.stop_name||''),
+   turns:turns.map(t=>({at:t.at,side:t.side}))
+  };
+  if(route.points.length<2){toast('Percorso non valido');return}
+  setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
+  enterNavigationView();
+  nativeActive=true;
+  const ok=nativePost({type:'start',route,voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked});
+  if(!ok){nativeActive=false;leaveNavigationView();toast('Impossibile avviare il GPS nativo');return}
+  $('gpsStatus').textContent='GPS nativo in avvio…';
+  setVoiceStatus('Voce nativa pronta: annunci anche con schermo bloccato se autorizzati');
+  $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
+  return;
+ }
+ setupVoice();
+ if(!('geolocation'in navigator)){toast('GPS non disponibile nel browser');return}
+ if(!window.isSecureContext){toast('Per il GPS occorre HTTPS oppure localhost');return}
+ lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
+ enterNavigationView();activateNavigationVoice();$('gpsStatus').textContent='Ricerca GPS…';
+ watcher=navigator.geolocation.watchPosition(pos=>{
+  const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
+  updatePosition(p,pos.coords.accuracy,pos.coords.speed,false,pos.coords.heading);
+ },err=>{
+  const reason=err.message||'Errore di localizzazione',wasWatching=watcher!==null;
+  if(err.code===1){stopNavigation();$('navStatus').textContent='GPS non autorizzato'}
+  else{$('gpsStatus').textContent='GPS temporaneamente non disponibile';if(wasWatching)toast('Segnale GPS non disponibile: '+reason)}
   if(err.code===1)toast('GPS non autorizzato: '+reason);
- },{enableHighAccuracy:true,maximumAge:1000,timeout:15000});$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;}
+ },{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
+ $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
+}
 function startDemo(){if(!current)return;stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
-$('loadFeed').addEventListener('click',async()=>{const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');try{const res=await fetch(FEED);if(!res.ok)throw Error('HTTP '+res.status);const blob=await res.blob();if(blob.size<1000)throw Error('File ZIP troppo piccolo');const f=await getGTFS(blob);handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente')}catch(err){status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');toast('Download non riuscito (possibile blocco CORS o rete)')}finally{btn.disabled=false}});
+async function downloadGTFSBlob(){
+ if(!nativeMode){
+  const res=await fetch(FEED);
+  if(!res.ok)throw Error('HTTP '+res.status);
+  return await res.blob();
+ }
+ // Native URLSession fetches GTFS and WKURLSchemeHandler returns it locally.
+ return await new Promise((resolve,reject)=>{
+  const xhr=new XMLHttpRequest();
+  xhr.open('GET','./gtfs.zip',true);xhr.responseType='blob';
+  xhr.onload=()=>{
+   if(xhr.status!==0&&(xhr.status<200||xhr.status>=300)){
+    reject(Error('GTFS HTTP '+xhr.status));return;
+   }
+   resolve(xhr.response);
+  };
+  xhr.onerror=()=>reject(Error('Download GTFS nativo fallito'));
+  xhr.send();
+ });
+}
+$('loadFeed').addEventListener('click',async()=>{
+ const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');
+ try{
+  const blob=await downloadGTFSBlob();
+  if(!blob||blob.size<1000)throw Error('File ZIP troppo piccolo');
+  const f=await getGTFS(blob);
+  handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente');
+ }catch(err){
+  status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');
+  toast('Download non riuscito (verifica la rete o importa ZIP)');
+ }finally{btn.disabled=false}
+});
 $('fileFeed').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{status('Importazione ZIP…');const f=await getGTFS(file);handleFeed(f);saveZip(file).catch(()=>{});toast('GTFS importato')}catch(err){status('Errore importazione: '+err.message)}e.target.value=''});
 $('extraFeed').addEventListener('change',async e=>{
  const file=e.target.files?.[0];if(!file)return;
@@ -732,12 +829,13 @@ document.addEventListener('visibilitychange',()=>{
  }
 });
 $('activateNavVoice').addEventListener('click',activateNavigationVoice);
-$('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceToggle').checked){toast('Attiva prima gli annunci vocali');return}if(!speak('Prova audio LineaPilot. Tra duecento metri, prossima fermata.','stop'))toast('Sintesi vocale non disponibile: controlla il volume e le impostazioni di Safari');});
-$('voiceToggle').addEventListener('change',()=>{if(!$('voiceToggle').checked){resetVoiceGuidance();setVoiceStatus('Voce disattivata')}else setVoiceStatus('Premi Riattiva voce')});
+$('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceToggle').checked){toast('Attiva prima gli annunci vocali');return}if(nativeMode){nativePost({type:'testVoice'});return}if(!speak('Prova audio LineaPilot. Tra duecento metri, prossima fermata.','stop'))toast('Sintesi vocale non disponibile: controlla il volume e le impostazioni di Safari');});
+$('voiceToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked});if(!$('voiceToggle').checked){resetVoiceGuidance();setVoiceStatus('Voce disattivata')}else setVoiceStatus('Premi Riattiva voce')});
+$('turnToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked})});
 $('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',recenterOnRealGPS);
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('lineapilot-db',1);req.onupgradeneeded=()=>req.result.createObjectStore('feeds');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function saveZip(blob){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readwrite');tx.objectStore('feeds').put(blob,'biv');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
 async function restoreZip(){try{const db=await openDB();const blob=await new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readonly');const req=tx.objectStore('feeds').get('biv');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(blob){status('Ripristino dati salvati…');handleFeed(await getGTFS(blob));toast('GTFS recuperato dalla memoria del dispositivo')}}catch(err){console.warn('Cache GTFS:',err)}}
-if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(console.warn);
+if(!nativeMode&&'serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(console.warn);
 restoreZip();
 loadAcademy();

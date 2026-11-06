@@ -164,3 +164,27 @@ test('turn cues are staged, deduplicated and stop-prioritized',()=>{
  assert.equal(calls.length,3);
  assert.match(calls[2].msg,/sinistra/);
 });
+
+test('native iOS bridge does not replace web PWA GPS',()=>{
+ assert.match(js,/const nativeMode=!!window\.webkit\?\.messageHandlers\?\.lineaPilot/);
+ assert.match(js,/if\(nativeMode\)\{[\s\S]*?nativePost\(\{type:'start'/);
+ assert.match(js,/navigator\.geolocation\.watchPosition/);
+ assert.match(js,/if\(nativeActive\)return false; \/\/ Swift owns stop\/turn audio/);
+ assert.match(js,/window\.lineaPilotNativeReceive/);
+ assert.match(js,/XMLHttpRequest is supported by WKURLSchemeHandler/);
+ assert.match(js,/function downloadGTFSBlob/);
+ assert.match(js,/!nativeMode&&'serviceWorker'in navigator/);
+});
+test('native iOS project and cloud pipeline are available',()=>{
+ for(const file of ['ios/project.yml','ios/Sources/Info.plist','ios/Sources/AppDelegate.swift',
+  'ios/Sources/BundledSite.swift','ios/Sources/NavigatorViewController.swift',
+  'ios/Sources/NativeNavigation.swift','codemagic.yaml','.github/workflows/ios-ipa.yml']){
+  assert.ok(fs.existsSync(file),'Missing native file: '+file);
+ }
+ const swift=fs.readFileSync('ios/Sources/NativeNavigation.swift','utf8');
+ assert.match(swift,/allowsBackgroundLocationUpdates = true/);
+ assert.match(swift,/AVSpeechSynthesizer/);
+ assert.match(swift,/stopIndex/);
+ const workflow=fs.readFileSync('.github/workflows/ios-ipa.yml','utf8');
+ assert.match(workflow,/gh release create/);
+});

@@ -1,0 +1,53 @@
+name: LineaPilot iOS unsigned IPA
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'scripts/prepare-ios.sh'
+      - 'scripts/build-ios-unsigned.sh'
+      - 'app.js'
+      - 'index.html'
+      - 'style.css'
+      - 'official-routes.json'
+      - '.github/workflows/ios-ipa.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'scripts/prepare-ios.sh'
+      - 'scripts/build-ios-unsigned.sh'
+      - 'app.js'
+      - 'index.html'
+      - 'style.css'
+      - 'official-routes.json'
+      - '.github/workflows/ios-ipa.yml'
+permissions:
+  contents: write
+jobs:
+  build-ios:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare web assets
+        run: bash scripts/prepare-ios.sh
+      - name: Install XcodeGen
+        run: |
+          command -v xcodegen >/dev/null || brew install xcodegen
+          (cd ios && xcodegen generate)
+      - name: Compile unsigned iOS device app and package IPA
+        run: bash scripts/build-ios-unsigned.sh
+      # Releases avoid the exhausted Actions artifact storage quota.
+      # A release is created only on main (never for a pull request).
+      - name: Publish unsigned IPA as prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="ios-preview-$(git rev-parse --short=12 HEAD)"
+          gh release create "$TAG" build/ios/LineaPilot-unsigned.ipa \
+            --title "LineaPilot iOS unsigned - $TAG" \
+            --notes "Prototipo iOS NON FIRMATO, destinato a test di sideloading con SideStore. Servono firma e autorizzazioni iOS per installarlo. GPS e voce con schermo bloccato da collaudare: non è navigazione certificata." \
+            --prerelease --target "$GITHUB_SHA"
