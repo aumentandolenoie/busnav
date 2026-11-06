@@ -453,11 +453,24 @@ function stopOffsets(stops,pts,dist){let last=0;return stops.map(s=>{if(!s.stop)
 let best=hit;if(hit.along<last-80){const forward=nearestOnShape(s.stop,pts,dist,Math.max(0,dist.findIndex(d=>d>=last)-1));if(forward.d<150)best=forward}last=Math.max(last,best.along);return last})}
 function bearing(a,b){const lat1=a.lat*rad,lat2=b.lat*rad,lon=(b.lng-a.lng)*rad;let y=Math.sin(lon)*Math.cos(lat2),x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon);return Math.atan2(y,x)*180/Math.PI}
 function deltaHeading(a,b){return ((b-a+540)%360)-180}
-function pointAt(pts,dists,at){const idx=Math.max(0,dists.findIndex(x=>x>=at));if(idx===0)return pts[0];if(idx<0)return pts.at(-1);const t=(at-dists[idx-1])/(dists[idx]-dists[idx-1]||1);return {lat:pts[idx-1].lat+(pts[idx].lat-pts[idx-1].lat)*t,lng:pts[idx-1].lng+(pts[idx].lng-pts[idx-1].lng)*t}}
+function pointAt(pts,dists,at){
+ if(!pts.length)return null;
+ if(pts.length===1||!Number.isFinite(at)||at<=0)return pts[0];
+ const total=dists.at(-1)||0;
+ if(at>=total)return pts.at(-1);
+ const idx=dists.findIndex(x=>x>=at);
+ if(idx<=0)return pts[0];const t=(at-dists[idx-1])/(dists[idx]-dists[idx-1]||1);return {lat:pts[idx-1].lat+(pts[idx].lat-pts[idx-1].lat)*t,lng:pts[idx-1].lng+(pts[idx].lng-pts[idx-1].lng)*t}}
 function computeTurns(pts,dists){const list=[];const total=dists.at(-1)||0;for(let d=100;d<total-100;d+=30){const a=pointAt(pts,dists,d-75),b=pointAt(pts,dists,d),c=pointAt(pts,dists,d+75);const deg=deltaHeading(bearing(a,b),bearing(b,c));if(Math.abs(deg)>47&&(!list.length||d-list.at(-1).at>170))list.push({at:d,side:deg>0?'destra':'sinistra',deg})}return list}
 function selectTrip(){stopNavigation();const trip=tripsInDirection().find(t=>t.trip_id===$('tripSelect').value);if(!trip)return;const stops=(feed.timesByTrip.get(trip.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));let points=feed.shapesById.get(trip.shape_id)||[];let fallback=false;if(points.length<2){points=stops.map(s=>({lat:s.stop.lat,lng:s.stop.lng}));fallback=true}if(points.length<2){toast('La corsa non ha una geometria valida');return}const dists=shapeMetrics(points),offsets=stopOffsets(stops,points,dists);current={trip,stops,points,dists,offsets,fallback};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastProgress=0;lastAlong=0;turns=fallback?[]:computeTurns(points,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#2869ed',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);map.fitBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length+' fermate';$('navStatus').textContent='Percorso caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'—';$('nextDetail').textContent='Avvia il GPS o la simulazione';$('nextDistance').textContent='—';$('demoBtn').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent=fallback?'Shape assente · svolte disabilitate':'Svolte indicative dalla shape';if(fallback)toast('ATTENZIONE: tracciato mancante; collegamento semplificato tra fermate, non valido per la guida');}
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function renderStops(){if(!current)return;if(!current.stops.length){$('stopList').innerHTML='<p class="empty">GPX Academy: importa e associa una corsa GTFS per vedere le fermate.</p>';return}const frag=document.createDocumentFragment();current.stops.forEach((s,i)=>{const el=document.createElement('div');el.className='stop-row '+(i<nextStopIdx?'done':i===nextStopIdx?'current':'');el.innerHTML=`<div class="stop-num">${i+1}</div><div><strong>${escapeHTML(s.stop.stop_name)}</strong><small>${escapeHTML(s.arrival||'')} · ${escapeHTML(s.stop.stop_id)}</small></div>`;frag.append(el)});$('stopList').replaceChildren(frag)}
+function renderStops(){if(!current)return;if(!current.stops.length){$('stopList').innerHTML='<p class="empty">GPX Academy: importa e associa una corsa GTFS per vedere le fermate.</p>';return}const frag=document.createDocumentFragment();current.stops.forEach((s,i)=>{const el=document.createElement('div');el.className='stop-row '+(i<nextStopIdx?'done':i===nextStopIdx?'current':'');el.innerHTML=`<div class="stop-num">${i+1}</div><div><strong>${escapeHTML(s.stop.stop_name)}</strong><small>${escapeHTML(s.arrival||'')} · ${escapeHTML(s.stop.stop_id)}</small></div>`;frag.append(el)});$('stopList').replaceChildren(frag);
+ // Keep the current stop easy to find without changing the map camera.
+ if(nextStopIdx<current.stops.length&&$('stopList').scrollHeight>$('stopList').clientHeight){
+  const active=$('stopList').querySelector('.stop-row.current');
+  if(active&&active.offsetTop>$('stopList').scrollTop+$('stopList').clientHeight-85)
+   $('stopList').scrollTop=Math.max(0,active.offsetTop-90);
+ }
+}
 // GPS-like spoken guidance. All distances are measured along the Academy GPX.
 let voiceQueue=[],voiceBusy=false,voiceGeneration=0,voiceUnlocked=false,activeVoicePriority=null,firstVoiceFix=true;
 let spokenStopStages=new Map(),lastVoiceTime=0,lastPositionSample=null,filteredSpeed=0;
@@ -565,8 +578,10 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  $('gpsStatus').textContent=isDemo?'Simulazione':accuracy?'GPS ±'+Math.round(accuracy)+' m':'GPS attivo';
  $('navStatus').textContent=current.trip.trip_headsign||'Corsa in corso';
  // This value must move forward only once the stop is actually passed.
+ const previousStopIdx=nextStopIdx;
  while(nextStopIdx<stops.length&&along>offsets[nextStopIdx]+35)nextStopIdx++;
- renderStops();
+ // Avoid rebuilding every stop DOM node on every GPS update.
+ if(nextStopIdx!==previousStopIdx)renderStops();
  const done=stops.length>0&&nextStopIdx>=stops.length;
  const remaining=done?0:Math.max(0,offsets[nextStopIdx]-along);
  $('nextName').textContent=!stops.length?'Nessuna fermata associata':done?'Capolinea raggiunto':stops[nextStopIdx].stop.stop_name;
