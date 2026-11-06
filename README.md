@@ -132,3 +132,11 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - La PWA su iPhone è soggetta alla sospensione da parte di iOS quando non è in primo piano. Anche installandola nella schermata Home, non è possibile garantire né geolocalizzazione continua, né annunci Web Speech con il display bloccato. L'interfaccia indica la possibile sospensione e tenta di riprendere la voce al ritorno in primo piano, senza promettere di recuperare annunci persi.
 - Per vera navigazione in background serve un'app iOS con Core Location configurato per aggiornamenti in background e una gestione audio nativa adeguata, previa verifica dei permessi e dei requisiti di sistema. Una semplice WebView/PWA non fornisce queste garanzie.
 - Test automatici su chiamate di svolta doppie, duplicati e priorità delle fermate; GPX Academy e associazioni GTFS invariati.
+
+## iOS nativo / sideload senza Mac (prototipo)
+- `ios/` ospita il progetto XcodeGen e un'app Swift che riutilizza la UI web. Swift gestisce Core Location, progressione sul GPX Academy e annunci con AVSpeechSynthesizer, anche quando WKWebView viene sospesa.
+- La PWA Vercel continua a eseguire la navigazione web originale: il bridge funziona solo quando è presente il canale `window.webkit.messageHandlers.lineaPilot` della versione iOS.
+- I file del catalogo Academy (787 percorsi) vengono copiati nel bundle; la versione iOS usa XMLHttpRequest attraverso WKURLSchemeHandler per leggere il JSON e un downloader URLSession nativo per ottenere il GTFS senza CORS della WebView. Mappe e librerie CDN richiedono Internet.
+- Compilazione: `codemagic.yaml` o `.github/workflows/ios-ipa.yml`; entrambe compilano una **IPA non firmata**. L'azione GitHub pubblica una **prerelease** su `main` per evitare il limite di archiviazione degli artefatti Actions.
+- SideStore firma e installa la IPA con account Apple gratuito, soggetto alle limitazioni di 7 giorni/slot; permessi, audio GPS con iPhone bloccato e accettazione della firma devono essere verificati sul dispositivo.
+- Il progetto nativo è un primo prototipo, non una navigazione stradale certificata e non garantisce ancora continuità a schermo bloccato.
