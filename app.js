@@ -231,12 +231,13 @@ function buildAcademyMatches(chosen){
   frontier=next.slice(0,120);
  }
  results.sort((a,b)=>b.coverage-a.coverage||a.averageError-b.averageError);
- return {results:results.slice(0,80),segments:segments.length,groupCount};
+ return {results,segments:segments.length,groupCount};
 }
 function findGtfsForAcademy(){
  if(!selectedOfficial||!feed)return;
  const button=$('findGtfsAcademy');button.disabled=true;
  $('academyGtfsStatus').textContent='Confronto delle fermate GTFS con il GPX Academy…';
+ academyGtfsMatches=new Map();$('academyDiff').hidden=true;$('academyDiffList').replaceChildren();
  try{
   const {results,segments,groupCount}=buildAcademyMatches(selectedOfficial);
   academyGtfsMatches=new Map();const options=[];
