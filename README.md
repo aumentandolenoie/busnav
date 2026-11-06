@@ -87,3 +87,9 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - Il centro della navigazione è proiettato sul GPX Academy, non sulle coordinate GPS grezze. I ricentramenti vengono limitati (24 metri / 2,5 secondi) e animati. L'ingresso in navigazione attende il primo fix valido prima di centrare e regolare lo zoom.
 - Un filtro di avanzamento confronta la posizione con un segmento vicino all'ultima posizione confermata e respinge salti implausibili verso altri punti dello stesso percorso, specie negli incroci e in tratte sovrapposte. I fix GPS poco precisi non inizializzano il riferimento di navigazione.
 - Nessuna modifica alla geometria dei GPX o ai dati delle fermate Busitalia. La navigazione rimane sperimentale: verificare sul campo da fermi e non usarla come fonte di manovre autorizzate.
+
+## Indicatore direzionale e centro stabile (v10)
+- Durante la navigazione il puntatore blu con freccia in avanti rimane **fisso al centro dello schermo**. Rappresenta la posizione agganciata al GPX Academy, non la misura GPS grezza.
+- La mappa viene centrata senza animazione sulla posizione proiettata sul GPX dopo ogni aggiornamento affidabile. I movimenti di pochi metri vengono smorzati e lo scorrimento manuale viene disattivato durante la navigazione, così il puntatore non può sparire fuori dallo schermo.
+- La cartografia resta orientata al senso di marcia lungo il GPX; la freccia punta verso la parte alta dello schermo. Il normale indicatore GPS e il trascinamento ritornano quando termini la navigazione.
+- Il puntatore appare solo dopo un primo GPS sufficientemente affidabile. Se il GPS è fuori percorso, la posizione può rimanere ferma sull'ultimo punto valido: verificare sempre lo stato GPS. Non è una posizione certificata.
