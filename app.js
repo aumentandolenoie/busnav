@@ -14,12 +14,21 @@ function enterNavigationView(){
  $('navFullscreenBar').hidden=false;
  $('headingStatus').textContent='↑ Attesa direzione';
  $('followToggle').checked=true;
+ // Keep the map locked to the route while driving. No free dragging that
+ // leaves the position icon away from the map's tracked center.
+ map.dragging.disable();
+ $('navigationPosition').hidden=true;
+ if(locationMarker)locationMarker.setStyle({opacity:0,fillOpacity:0});
+ if(accuracyCircle&&map.hasLayer(accuracyCircle))map.removeLayer(accuracyCircle);
  requestAnimationFrame(()=>{map.invalidateSize({pan:false});/* Await first reliable GPS fix before centring; avoid jumping to the GPX origin. */});
 }
 function leaveNavigationView(){
  if(!navigationFullscreen)return;
  navigationFullscreen=false;document.body.classList.remove('navigating');
  $('navFullscreenBar').hidden=true;lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;
+ $('navigationPosition').hidden=true;
+ map.dragging.enable();
+ if(locationMarker)locationMarker.setStyle({opacity:1,fillOpacity:1});
  if(typeof map.setHeading==='function')map.setHeading(null);
  if(typeof map.stopHeadingUp==='function')map.stopHeadingUp();
  if(typeof map.setBearing==='function')map.setBearing(0);
@@ -72,16 +81,23 @@ function stableRouteMatch(p,points,dists,speed,isDemo){
  // do not advance stops or rotate the map on an untrusted fix.
  return {d:Infinity,along:lastAlong,idx:local.idx};
 }
-function followStableCamera(points,dists,along,isDemo){
- if(!navigationFullscreen||!$('followToggle').checked)return;
- const now=Date.now();
+function followStableCamera(points,dists,along){
+ if(!navigationFullscreen)return;
  const center=pointAt(points,dists,along);
- if(lastCameraPoint&&metres(lastCameraPoint,center)<24&&now-lastCameraAt<2500)return;
- // Throttle pans so the entire map does not jump on every GPS fix.
- const first=!lastCameraPoint;
- lastCameraPoint=center;lastCameraAt=now;
- if(first)map.setView([center.lat,center.lng],Math.max(16,map.getZoom()),{animate:false});
- else map.panTo([center.lat,center.lng],{animate:true,duration:.65});
+ // A fixed, non-animated center keeps the position indicator in the middle
+ // even while the map is rotating. Never follow raw, noisy GPS coordinates.
+ if(!lastCameraPoint){
+  map.setView([center.lat,center.lng],Math.max(16,map.getZoom()),{animate:false});
+ }else{
+  const distance=metres(lastCameraPoint,center);
+  // Tiny movements only change camera center when they become meaningful.
+  // Re-centering on rotation prevents the icon drifting from the route.
+  if(distance>=3||Math.abs(map.getCenter().lat-center.lat)>0.00004||
+      Math.abs(map.getCenter().lng-center.lng)>0.00004)
+   map.panTo([center.lat,center.lng],{animate:false});
+ }
+ lastCameraPoint=center;
+ $('navigationPosition').hidden=false;
 }
 $('exitNavigation').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&navigationFullscreen){stopNavigation();$('navStatus').textContent='Navigazione terminata'}});
@@ -542,10 +558,11 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
    if(speak('Possibile svolta a '+turn.side+' tra circa '+speechDistance(d)+'.','turn'))lastSpokenTurn=idx;
   }
  }else $('turnHint').textContent=done?'Corsa completata':'Segui il tracciato GPX';
- followStableCamera(points,dists,along,isDemo);
+ followStableCamera(points,dists,along);
  if(!locationMarker)locationMarker=L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:3,fillColor:'#0c55eb',fillOpacity:1}).addTo(map);
  else locationMarker.setLatLng([p.lat,p.lng]);
- if(accuracy&&!isDemo){
+ if(navigationFullscreen)locationMarker.setStyle({opacity:0,fillOpacity:0});
+ if(accuracy&&!isDemo&&!navigationFullscreen){
   if(!accuracyCircle)accuracyCircle=L.circle([p.lat,p.lng],{radius:accuracy,weight:1,color:'#4288ff',fillOpacity:.08}).addTo(map);
   else accuracyCircle.setLatLng([p.lat,p.lng]).setRadius(accuracy)
  }
@@ -580,7 +597,11 @@ $('extraFeed').addEventListener('change',async e=>{
 });
 $('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceToggle').checked){toast('Attiva prima gli annunci vocali');return}if(!speak('Prova audio LineaPilot. Tra duecento metri, prossima fermata.','stop'))toast('Sintesi vocale non disponibile: controlla il volume e le impostazioni di Safari');});
 $('voiceToggle').addEventListener('change',()=>{if(!$('voiceToggle').checked)resetVoiceGuidance()});
-$('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',()=>{if(lastFix)map.setView([lastFix.lat,lastFix.lng],16);else if(lineLayer)map.fitBounds(lineLayer.getBounds(),{padding:[50,50]})});
+$('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',()=>{if(navigationFullscreen&&current&&hasMatchedFix){
+ const center=pointAt(current.points,current.dists,lastAlong);
+ map.setView([center.lat,center.lng],Math.max(16,map.getZoom()),{animate:false});
+}else if(lastFix)map.setView([lastFix.lat,lastFix.lng],16);
+ else if(lineLayer)map.fitBounds(lineLayer.getBounds(),{padding:[50,50]})});
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('lineapilot-db',1);req.onupgradeneeded=()=>req.result.createObjectStore('feeds');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function saveZip(blob){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readwrite');tx.objectStore('feeds').put(blob,'biv');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
 async function restoreZip(){try{const db=await openDB();const blob=await new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readonly');const req=tx.objectStore('feeds').get('biv');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(blob){status('Ripristino dati salvati…');handleFeed(await getGTFS(blob));toast('GTFS recuperato dalla memoria del dispositivo')}}catch(err){console.warn('Cache GTFS:',err)}}
