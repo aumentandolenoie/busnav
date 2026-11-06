@@ -30,3 +30,9 @@ Apri l'IPA firmata, carica il GPX Academy e associagli una corsa GTFS Busitalia.
 ### Limiti iniziali
 
 Questo primo prototipo richiede internet per mappe OpenStreetMap e dipendenze JS da CDN e per il download GTFS (a meno di caricare lo ZIP manualmente). Il motore nativo non rappresenta istruzioni stradali autorizzate. Non interrompere la navigazione reale con app non collaudata.
+
+### Test cloud e download
+
+La prima compilazione macOS ha raggiunto correttamente `LineaPilot-unsigned.ipa`. Il caricamento con `actions/upload-artifact` era fallito perché la quota di storage Actions del repository era esaurita, non per un errore di compilazione. La pipeline aggiornata carica le IPA come **GitHub prerelease** dopo il merge su `main`, così il file si scarica da **Releases**. Le PR continuano a compilare senza caricare artefatti.
+
+Per l'importazione GTFS automatica nella WKWebView, `BundledSite` serve `gtfs.zip` tramite `URLSession` e usa XMLHttpRequest in JavaScript. La PWA web usa sempre il proprio endpoint HTTPS e non viene alterata.
