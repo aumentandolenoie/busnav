@@ -7,7 +7,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,att
 L.control.zoom({position:'topright'}).addTo(map);
 let academy=[], selectedOfficial=null, feed=null, current=null, watcher=null, simulation=null, simIndex=0, locationMarker=null, accuracyCircle=null, lineLayer=null, stopLayer=null;
 let nextStopIdx=0,lastFix=null,lastSpokenStop=-1,lastSpokenTurn=-1,lastProgress=0,lastAlong=0, turns=[];
-let navigationFullscreen=false,lastNavHeading=null,lastCameraAt=0,lastCameraPoint=null,lastMatchedAt=0,hasMatchedFix=false;
+let navigationFullscreen=false,lastNavHeading=null,lastCameraAt=0,lastCameraPoint=null,lastMatchedAt=0,hasMatchedFix=false,realGpsFix=null;
 function enterNavigationView(){
  navigationFullscreen=true;
  document.body.classList.add('navigating');
@@ -82,23 +82,47 @@ function stableRouteMatch(p,points,dists,speed,isDemo){
  // do not advance stops or rotate the map on an untrusted fix.
  return {d:Infinity,along:lastAlong,idx:local.idx};
 }
-function followStableCamera(points,dists,along){
- if(!navigationFullscreen)return;
- const center=pointAt(points,dists,along);
- // A fixed, non-animated center keeps the position indicator in the middle
- // even while the map is rotating. Never follow raw, noisy GPS coordinates.
+function followStableCamera(position,isDemo=false,force=false){
+ if(!navigationFullscreen||!position)return;
+ // The blue dot represents the device's measured GPS position, not its projection on
+ // the Academy GPX. GPX matching is ONLY for route progress, stops and map bearing.
+ const fix={lat:position.lat,lng:position.lng};
+ if(!Number.isFinite(fix.lat)||!Number.isFinite(fix.lng))return;
  if(!lastCameraPoint){
-  map.setView([center.lat,center.lng],Math.max(16,map.getZoom()),{animate:false});
- }else{
-  const distance=metres(lastCameraPoint,center);
-  // Tiny movements only change camera center when they become meaningful.
-  // Re-centering on rotation prevents the icon drifting from the route.
-  if(distance>=3||Math.abs(map.getCenter().lat-center.lat)>0.00004||
-      Math.abs(map.getCenter().lng-center.lng)>0.00004)
-   map.panTo([center.lat,center.lng],{animate:false});
+  map.setView([fix.lat,fix.lng],Math.max(16,map.getZoom()),{animate:false});
+ }else if(force||metres(lastCameraPoint,fix)>8){
+  map.panTo([fix.lat,fix.lng],{animate:false});
  }
- lastCameraPoint=center;
+ lastCameraPoint=fix;
  $('navigationPosition').hidden=false;
+}
+function recenterOnRealGPS(){
+ // The location button must NEVER recenter on the GPX projection.
+ // Live geolocation is authoritative for the user's actual position.
+ if(realGpsFix){
+  const fix=realGpsFix;
+  if(navigationFullscreen){
+   lastCameraPoint=null;
+   followStableCamera(fix,false,true);
+  }else map.setView([fix.lat,fix.lng],16,{animate:false});
+  toast('Mappa centrata sulla tua posizione GPS');
+  return;
+ }
+ if(!('geolocation' in navigator)){
+  toast('GPS non disponibile su questo dispositivo');return;
+ }
+ toast('Ricerca della posizione GPS…');
+ navigator.geolocation.getCurrentPosition(pos=>{
+  const c=pos.coords;
+  if(!Number.isFinite(c.latitude)||!Number.isFinite(c.longitude)||c.accuracy>120){
+   toast('Posizione GPS troppo imprecisa, riprova');return;
+  }
+  realGpsFix={lat:c.latitude,lng:c.longitude};
+  if(navigationFullscreen){lastCameraPoint=null;followStableCamera(realGpsFix,false,true)}
+  else map.setView([c.latitude,c.longitude],16,{animate:false});
+  toast('Mappa centrata sulla tua posizione GPS');
+ },err=>toast('Impossibile trovare la posizione GPS: '+err.message),
+ {enableHighAccuracy:true,maximumAge:2000,timeout:12000});
 }
 $('exitNavigation').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&navigationFullscreen){stopNavigation();$('navStatus').textContent='Navigazione terminata'}});
@@ -518,9 +542,14 @@ function planStopVoice(stopIndex,remaining,mps,offRoute,isDemo){
 }
 function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){
  if(!current)return;
- lastFix=p;const {points,dists,offsets,stops}=current;
+ const {points,dists,offsets,stops}=current;
  if(!isDemo&&accuracy>110){$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
+ lastFix=p;
+ if(!isDemo)realGpsFix={lat:p.lat,lng:p.lng};
  const speed=speedEstimate(p,reportedSpeed,isDemo);
+ // Keep the center on the GPS position even when the vehicle is off the Academy line.
+ // Poor fixes are rejected above; the heading still comes from the GPX.
+ followStableCamera(p,isDemo);
  let near=stableRouteMatch(p,points,dists,speed,isDemo);
  if(near.d>180){$('gpsStatus').textContent='Fuori percorso';$('navStatus').textContent='GPS lontano dal tracciato';$('turnHint').textContent='Verifica percorso / deviazione';return}
  // Prevent map and stop list from moving backwards due to GPS jitter.
@@ -559,7 +588,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
    if(speak('Possibile svolta a '+turn.side+' tra circa '+speechDistance(d)+'.','turn'))lastSpokenTurn=idx;
   }
  }else $('turnHint').textContent=done?'Corsa completata':'Segui il tracciato GPX';
- followStableCamera(points,dists,along);
+ // Map already follows the actual GPS fix, not the snapped GPX coordinate.
  if(!locationMarker)locationMarker=L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:3,fillColor:'#0c55eb',fillOpacity:1}).addTo(map);
  else locationMarker.setLatLng([p.lat,p.lng]);
  if(navigationFullscreen)locationMarker.setStyle({opacity:0,fillOpacity:0});
@@ -598,11 +627,7 @@ $('extraFeed').addEventListener('change',async e=>{
 });
 $('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceToggle').checked){toast('Attiva prima gli annunci vocali');return}if(!speak('Prova audio LineaPilot. Tra duecento metri, prossima fermata.','stop'))toast('Sintesi vocale non disponibile: controlla il volume e le impostazioni di Safari');});
 $('voiceToggle').addEventListener('change',()=>{if(!$('voiceToggle').checked)resetVoiceGuidance()});
-$('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',()=>{if(navigationFullscreen&&current&&hasMatchedFix){
- const center=pointAt(current.points,current.dists,lastAlong);
- map.setView([center.lat,center.lng],Math.max(16,map.getZoom()),{animate:false});
-}else if(lastFix)map.setView([lastFix.lat,lastFix.lng],16);
- else if(lineLayer)map.fitBounds(lineLayer.getBounds(),{padding:[50,50]})});
+$('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',recenterOnRealGPS);
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('lineapilot-db',1);req.onupgradeneeded=()=>req.result.createObjectStore('feeds');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function saveZip(blob){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readwrite');tx.objectStore('feeds').put(blob,'biv');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
 async function restoreZip(){try{const db=await openDB();const blob=await new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readonly');const req=tx.objectStore('feeds').get('biv');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(blob){status('Ripristino dati salvati…');handleFeed(await getGTFS(blob));toast('GTFS recuperato dalla memoria del dispositivo')}}catch(err){console.warn('Cache GTFS:',err)}}
