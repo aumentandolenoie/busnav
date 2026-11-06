@@ -7,3 +7,21 @@
 .academy-diff-item{padding:10px 0;border-top:1px solid #344567;overflow-wrap:anywhere}
 .academy-diff-item:first-of-type{margin-top:8px}
 .academy-diff-item .help{margin:6px 0;line-height:1.5}
+
+/* Fullscreen driver view: keep touch targets clear of iPhone notches and home indicator. */
+.nav-fullscreen-bar{position:absolute;z-index:720;top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));display:flex;gap:10px;align-items:center;justify-content:space-between;pointer-events:none}
+.nav-fullscreen-bar[hidden]{display:none}
+.nav-fullscreen-bar>*{pointer-events:auto}
+#exitNavigation{background:#142344f5;border:1px solid #7890bc;color:#fff;padding:12px 14px;font-size:13px;min-height:46px;box-shadow:0 6px 18px #0005}
+#headingStatus{background:#152440f0;border:1px solid #45597b;border-radius:14px;padding:10px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+body.navigating{overflow:hidden}
+body.navigating header,body.navigating .sidebar{display:none!important}
+body.navigating main{display:block;height:100dvh}
+body.navigating .map-wrap{position:fixed;z-index:1000;inset:0;height:100dvh!important;min-height:0;width:100vw;overflow:hidden;background:#101a2e}
+body.navigating .map-top{top:calc(max(12px,env(safe-area-inset-top)) + 58px);left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));max-width:unset;padding:9px 12px}
+body.navigating .next-card{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 4px);left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));max-width:unset;padding:14px}
+body.navigating .map-controls{right:16px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 160px)}
+body.navigating .toast{top:calc(max(12px,env(safe-area-inset-top)) + 110px)}
+body.navigating #map{height:100%;width:100%}
+@media(min-width:801px){body.navigating .map-top{max-width:650px}body.navigating .next-card{max-width:650px}}
+@media(max-width:440px){#exitNavigation{font-size:12px}#headingStatus{font-size:11px;padding:10px}body.navigating .next-main strong{font-size:18px}body.navigating .next-card{padding:12px}body.navigating .map-controls{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 176px)}}

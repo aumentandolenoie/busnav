@@ -2,11 +2,53 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const FEED='https://proxy.busone.app/biv/gtfs.zip';
-const map=L.map('map',{zoomControl:false}).setView([45.4064,11.8768],12);
+const map=L.map('map',{zoomControl:false,rotate:true,touchRotate:false,dragRotate:false,shiftKeyRotate:false}).setView([45.4064,11.8768],12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
 L.control.zoom({position:'topright'}).addTo(map);
 let academy=[], selectedOfficial=null, feed=null, current=null, watcher=null, simulation=null, simIndex=0, locationMarker=null, accuracyCircle=null, lineLayer=null, stopLayer=null;
 let nextStopIdx=0,lastFix=null,lastSpokenStop=-1,lastSpokenTurn=-1,lastProgress=0,lastAlong=0, turns=[];
+let navigationFullscreen=false,lastNavHeading=null;
+function enterNavigationView(){
+ navigationFullscreen=true;
+ document.body.classList.add('navigating');
+ $('navFullscreenBar').hidden=false;
+ $('headingStatus').textContent='↑ Attesa direzione';
+ $('followToggle').checked=true;
+ requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(lastFix)map.setView([lastFix.lat,lastFix.lng],Math.max(map.getZoom(),16),{animate:false});});
+}
+function leaveNavigationView(){
+ if(!navigationFullscreen)return;
+ navigationFullscreen=false;document.body.classList.remove('navigating');
+ $('navFullscreenBar').hidden=true;lastNavHeading=null;
+ if(typeof map.setHeading==='function')map.setHeading(null);
+ if(typeof map.stopHeadingUp==='function')map.stopHeadingUp();
+ if(typeof map.setBearing==='function')map.setBearing(0);
+ requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(lineLayer)map.fitBounds(lineLayer.getBounds(),{padding:[40,40]});});
+}
+function headingFromGPX(points,dists,along){
+ const total=dists.at(-1)||0;
+ const a=pointAt(points,dists,Math.max(0,Math.min(total,along+5)));
+ const b=pointAt(points,dists,Math.max(0,Math.min(total,along+65)));
+ if(metres(a,b)<4)return null;
+ return (bearing(a,b)+360)%360;
+}
+function updateNavigationHeading(points,dists,along,reportedHeading,speed){
+ if(!navigationFullscreen)return;
+ // GPS heading is useful only while moving; otherwise follow the GPX Academy forward direction.
+ const actual=Number.isFinite(reportedHeading)&&reportedHeading>=0&&reportedHeading<360&&speed>2.5;
+ const target=actual?reportedHeading:headingFromGPX(points,dists,along);
+ if(target===null)return;
+ if(lastNavHeading!==null){
+  const diff=((target-lastNavHeading+540)%360)-180;
+  lastNavHeading=(lastNavHeading+Math.max(-45,Math.min(45,diff)) + 360)%360;
+ }else lastNavHeading=target;
+ if(typeof map.setHeading==='function')map.setHeading(lastNavHeading,{ease:0.25,deadzone:1});
+ else if(typeof map.setBearing==='function')map.setBearing(-lastNavHeading);
+ $('headingStatus').textContent=(actual?'GPS':'GPX')+' · '+Math.round(lastNavHeading)+'°';
+}
+$('exitNavigation').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&navigationFullscreen){stopNavigation();$('navStatus').textContent='Navigazione terminata'}});
+
 
 const ACADEMY_EXPECTED={Extraurbano:557,Colli:29,Urbano:201};
 const ACADEMY_DOCUMENTS={
@@ -420,7 +462,7 @@ function planStopVoice(stopIndex,remaining,mps,offRoute,isDemo){
   if(enqueueVoice('Fermata in arrivo: '+stop.stop_name+'.','stop'))spokenStopStages.set(stopIndex,2);
  }
 }
-function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false){
+function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){
  if(!current)return;
  lastFix=p;const {points,dists,offsets,stops}=current;
  const speed=speedEstimate(p,reportedSpeed,isDemo);
@@ -441,6 +483,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false){
   if(stops.length>1&&offsets[0]<=50&&Math.abs(along-offsets[0])<30)nextStopIdx=1;
  }
  lastAlong=Math.max(lastAlong,along-30);
+ updateNavigationHeading(points,dists,along,reportedHeading,speed);
  $('gpsStatus').textContent=isDemo?'Simulazione':accuracy?'GPS ±'+Math.round(accuracy)+' m':'GPS attivo';
  $('navStatus').textContent=current.trip.trip_headsign||'Corsa in corso';
  // This value must move forward only once the stop is actually passed.
@@ -475,9 +518,9 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false){
   else accuracyCircle.setLatLng([p.lat,p.lng]).setRadius(accuracy)
  }
 }
-function stopNavigation(){if(watcher!==null){navigator.geolocation.clearWatch(watcher);watcher=null}if(simulation){clearInterval(simulation);simulation=null}resetVoiceGuidance();$('stopNav').disabled=true;$('startNav').disabled=!current;$('demoBtn').disabled=!current;$('gpsStatus').textContent='GPS inattivo';}
-function startGPS(){if(!current)return;stopNavigation();setupVoice();if(!('geolocation'in navigator)){toast('GPS non disponibile nel browser');return}if(!window.isSecureContext){toast('Per il GPS occorre HTTPS oppure localhost');return}lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();$('gpsStatus').textContent='Ricerca GPS…';watcher=navigator.geolocation.watchPosition(pos=>{const p={lat:pos.coords.latitude,lng:pos.coords.longitude};updatePosition(p,pos.coords.accuracy,pos.coords.speed,false)},err=>{toast('GPS: '+err.message);$('gpsStatus').textContent='GPS non disponibile'},{enableHighAccuracy:true,maximumAge:1000,timeout:15000});$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;}
-function startDemo(){if(!current)return;stopNavigation();setupVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){clearInterval(simulation);simulation=null;toast('Simulazione completata');$('stopNav').disabled=false}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
+function stopNavigation(){leaveNavigationView();if(watcher!==null){navigator.geolocation.clearWatch(watcher);watcher=null}if(simulation){clearInterval(simulation);simulation=null}resetVoiceGuidance();$('stopNav').disabled=true;$('startNav').disabled=!current;$('demoBtn').disabled=!current;$('gpsStatus').textContent='GPS inattivo';}
+function startGPS(){if(!current)return;stopNavigation();setupVoice();if(!('geolocation'in navigator)){toast('GPS non disponibile nel browser');return}if(!window.isSecureContext){toast('Per il GPS occorre HTTPS oppure localhost');return}lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();enterNavigationView();$('gpsStatus').textContent='Ricerca GPS…';watcher=navigator.geolocation.watchPosition(pos=>{const p={lat:pos.coords.latitude,lng:pos.coords.longitude};updatePosition(p,pos.coords.accuracy,pos.coords.speed,false,pos.coords.heading)},err=>{toast('GPS: '+err.message);$('gpsStatus').textContent='GPS non disponibile'},{enableHighAccuracy:true,maximumAge:1000,timeout:15000});$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;}
+function startDemo(){if(!current)return;stopNavigation();setupVoice();enterNavigationView();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){clearInterval(simulation);simulation=null;toast('Simulazione completata');$('stopNav').disabled=false}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 $('loadFeed').addEventListener('click',async()=>{const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');try{const res=await fetch(FEED);if(!res.ok)throw Error('HTTP '+res.status);const blob=await res.blob();if(blob.size<1000)throw Error('File ZIP troppo piccolo');const f=await getGTFS(blob);handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente')}catch(err){status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');toast('Download non riuscito (possibile blocco CORS o rete)')}finally{btn.disabled=false}});
 $('fileFeed').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{status('Importazione ZIP…');const f=await getGTFS(file);handleFeed(f);saveZip(file).catch(()=>{});toast('GTFS importato')}catch(err){status('Errore importazione: '+err.message)}e.target.value=''});
 $('extraFeed').addEventListener('change',async e=>{
