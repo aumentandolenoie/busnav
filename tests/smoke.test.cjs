@@ -106,3 +106,34 @@ test('navigation keeps voice reactivation and turns available',()=>{
  assert.match(js,/d<230&&idx!==lastSpokenTurn/);
  assert.match(js,/planStopVoice\(nextStopIdx,remaining,speed,false,isDemo\)/);
 });
+
+test('map matcher re-acquires a real route position after GPS skips several hundred metres',()=>{
+ const fns=['metres','project','nearestOnShape','shapeMetrics','stableRouteMatch'].map(sourceOf).join('\n');
+ // 120 evenly spaced points along a straight Academy route.
+ const run=new Function(`
+  const rad=Math.PI/180;
+  let hasMatchedFix=false,lastMatchedAt=0,lastAlong=0,recoveryCandidate=null;
+  ${fns}
+  const pts=Array.from({length:121},(_,i)=>({lat:45.4,lng:11+i*0.001}));
+  const ds=shapeMetrics(pts);
+  const pos=i=>({lat:45.4,lng:11+i*0.001});
+  const first=stableRouteMatch(pos(2),pts,ds,12,false);
+  lastAlong=first.along;
+  const normal=stableRouteMatch(pos(3),pts,ds,12,false);
+  lastAlong=normal.along;
+  const skipped=stableRouteMatch(pos(18),pts,ds,12,false);
+  const recovery=stableRouteMatch(pos(18.1),pts,ds,12,false);
+  lastAlong=recovery.along;
+  const resumed=stableRouteMatch(pos(19),pts,ds,12,false);
+  const off=stableRouteMatch({lat:45.42,lng:11.02},pts,ds,12,false);
+  return {first,normal,skipped,recovery,resumed,off};
+ `)();
+ assert.equal(run.first.offRoute,undefined);
+ assert.equal(run.normal.recovering,undefined);
+ assert.equal(run.skipped.recovering,true);
+ assert.notEqual(run.skipped.offRoute,true,'On-route skips must not be classified off-route');
+ assert.equal(run.recovery.reacquired,true,'Two consistent GPS fixes must recover navigation');
+ assert.ok(run.recovery.along>run.normal.along+500);
+ assert.ok(run.resumed.along>=run.recovery.along-75);
+ assert.equal(run.off.offRoute,true,'Actual GPS drift >180m must suspend guidance');
+});
