@@ -54,7 +54,7 @@ function updateNavigationHeading(points,dists,along){
 }
 function stableRouteMatch(p,points,dists,speed,isDemo){
  const now=Date.now(),global=nearestOnShape(p,points,dists);
- if(!hasMatchedFix){hasMatchedFix=true;lastMatchedAt=now;return global;}
+ if(!hasMatchedFix){if(global.d>100)return global;hasMatchedFix=true;lastMatchedAt=now;return global;}
  const elapsed=Math.max(.5,Math.min(15,(now-lastMatchedAt)/1000));
  lastMatchedAt=now;
  const maxProgress=isDemo?90:Math.max(65,Math.min(220,Math.max(speed,4)*elapsed*2+45));
@@ -501,10 +501,10 @@ function planStopVoice(stopIndex,remaining,mps,offRoute,isDemo){
 function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){
  if(!current)return;
  lastFix=p;const {points,dists,offsets,stops}=current;
+ if(!isDemo&&accuracy>110){$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
  const speed=speedEstimate(p,reportedSpeed,isDemo);
  let near=stableRouteMatch(p,points,dists,speed,isDemo);
  if(near.d>180){$('gpsStatus').textContent='Fuori percorso';$('navStatus').textContent='GPS lontano dal tracciato';$('turnHint').textContent='Verifica percorso / deviazione';return}
- if(!isDemo&&accuracy>110){$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
  // Prevent map and stop list from moving backwards due to GPS jitter.
  if(near.along<lastAlong-30)near={...near,along:lastAlong};
  const along=near.along;
