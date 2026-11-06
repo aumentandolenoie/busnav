@@ -80,7 +80,8 @@ function followStableCamera(points,dists,along,isDemo){
  // Throttle pans so the entire map does not jump on every GPS fix.
  const first=!lastCameraPoint;
  lastCameraPoint=center;lastCameraAt=now;
- map.panTo([center.lat,center.lng],{animate:!first,duration:.65});
+ if(first)map.setView([center.lat,center.lng],Math.max(16,map.getZoom()),{animate:false});
+ else map.panTo([center.lat,center.lng],{animate:true,duration:.65});
 }
 $('exitNavigation').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&navigationFullscreen){stopNavigation();$('navStatus').textContent='Navigazione terminata'}});
