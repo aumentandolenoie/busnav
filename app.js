@@ -500,10 +500,10 @@ function renderStops(){if(!current)return;if(!current.stops.length){$('stopList'
 }
 // GPS-like spoken guidance. All distances are measured along the Academy GPX.
 let voiceQueue=[],voiceBusy=false,voiceGeneration=0,voiceUnlocked=false,activeVoicePriority=null,firstVoiceFix=true;
-let spokenStopStages=new Map(),lastVoiceTime=0,lastPositionSample=null,filteredSpeed=0;
+let spokenStopStages=new Map(),spokenTurnStages=new Map(),lastVoiceTime=0,lastPositionSample=null,filteredSpeed=0;
 let voiceStarted=false;
 function resetVoiceGuidance(){
- voiceGeneration++;voiceQueue=[];voiceBusy=false;spokenStopStages.clear();voiceStarted=false;
+ voiceGeneration++;voiceQueue=[];voiceBusy=false;spokenStopStages.clear();spokenTurnStages.clear();voiceStarted=false;
  lastVoiceTime=0;lastPositionSample=null;filteredSpeed=0;activeVoicePriority=null;firstVoiceFix=true;
  if('speechSynthesis'in window)try{speechSynthesis.cancel()}catch(e){console.warn(e)}
 }
@@ -611,6 +611,25 @@ function planStopVoice(stopIndex,remaining,mps,offRoute,isDemo){
   if(enqueueVoice('Fermata in arrivo: '+stop.stop_name+'.','stop'))spokenStopStages.set(stopIndex,2);
  }
 }
+function turnAlertDistance(speed){
+ // Speed-aware GPX geometry notices: give approximately 18 seconds of lead time.
+ return Math.max(150,Math.min(350,Math.round((Math.max(6,speed)*18)/10)*10));
+}
+function planTurnVoice(turn,turnIndex,remaining,speed,distanceFromGPX,stopRemaining=Infinity){
+ if(!$('turnToggle').checked||!$('voiceToggle').checked||
+    distanceFromGPX>85||remaining<15||!turn)return;
+ // These are indicative geometry changes, not confirmed road manoeuvres.
+ if(Number.isFinite(stopRemaining)&&stopRemaining>=0&&stopRemaining<170)return;
+ const lead=turnAlertDistance(speed),stage=spokenTurnStages.get(turnIndex)||0;
+ const label='Possibile svolta a '+turn.side;
+ if(stage===0&&remaining<=lead){
+  if(speak(label+' tra circa '+speechDistance(remaining)+'.','turn')){
+   spokenTurnStages.set(turnIndex,1);lastSpokenTurn=turnIndex;
+  }
+ }else if(stage===1&&remaining<=85){
+  if(speak(label+' tra poco.','turn'))spokenTurnStages.set(turnIndex,2);
+ }
+}
 function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){
  if(!current)return;
  const {points,dists,offsets,stops}=current;
@@ -661,16 +680,11 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  if(stops.length&&!done&&near.d<100){
   planStopVoice(nextStopIdx,remaining,speed,false,isDemo);
  }
- const turn=turns.find(t=>t.at>along+20&&t.at<along+450);
- if(turn){
-  const d=turn.at-along;
-  $('turnHint').textContent='Possibile svolta a '+turn.side+' tra '+niceDistance(d);
-  const idx=turns.indexOf(turn);
-  // Do not interrupt a stop announcement or narrate a turn close to a stop.
-  if($('turnToggle').checked&&d<230&&idx!==lastSpokenTurn&&!voiceBusy&&
-      (!stops.length||done||remaining>260)&&near.d<85){
-   if(speak('Possibile svolta a '+turn.side+' tra circa '+speechDistance(d)+'.','turn'))lastSpokenTurn=idx;
-  }
+ const turnIndex=turns.findIndex(t=>t.at>along+15&&t.at<along+650);
+ if(turnIndex>=0){
+  const turn=turns[turnIndex],d=turn.at-along;
+  $('turnHint').textContent='Possibile svolta a '+turn.side+' tra '+niceDistance(d)+' (GPX indicativo)';
+  planTurnVoice(turn,turnIndex,d,speed,near.d,stops.length&&!done?remaining:Infinity);
  }else $('turnHint').textContent=done?'Corsa completata':'Segui il tracciato GPX';
  // Map already follows the actual GPS fix, not the snapped GPX coordinate.
  if(!locationMarker)locationMarker=L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:3,fillColor:'#0c55eb',fillOpacity:1}).addTo(map);
@@ -708,6 +722,14 @@ $('extraFeed').addEventListener('change',async e=>{
  try{status('Importazione GTFS aggiuntivo '+file.name+'…');const f=await getGTFS(file);handleFeed(f,true);toast('GTFS aggiuntivo integrato: '+file.name)}
  catch(err){status('Errore importazione GTFS aggiuntivo: '+err.message)}
  e.target.value='';
+});
+document.addEventListener('visibilitychange',()=>{
+ if(!navigationFullscreen)return;
+ if(document.hidden)setVoiceStatus('Schermo non attivo: GPS e voce potrebbero sospendersi',true);
+ else{
+  setVoiceStatus('App riaperta · verifica gli annunci');
+  try{if('speechSynthesis'in window&&speechSynthesis.paused)speechSynthesis.resume()}catch(e){console.warn(e)}
+ }
 });
 $('activateNavVoice').addEventListener('click',activateNavigationVoice);
 $('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceToggle').checked){toast('Attiva prima gli annunci vocali');return}if(!speak('Prova audio LineaPilot. Tra duecento metri, prossima fermata.','stop'))toast('Sintesi vocale non disponibile: controlla il volume e le impostazioni di Safari');});
