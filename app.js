@@ -98,53 +98,111 @@ function timeOfTrip(t){
  const x=feed.timesByTrip.get(t.trip_id)||[];
  return (x[0]?.departure||'—')+' → '+(x.at(-1)?.arrival||'—');
 }
-function findGtfsForAcademy(){
- if(!selectedOfficial||!feed)return;
- const chosen=selectedOfficial,button=$('findGtfsAcademy');
- button.disabled=true;
- $('academyGtfsStatus').textContent='Confronto fermate GTFS con il tracciato Academy…';
- const candidates=[];
- for(const route of feed.routes){
-  if(!gtfsFitsAcademyCode(chosen,route))continue;
-  for(const t of feed.tripsByRoute.get(route.route_id)||[])candidates.push(t);
+// Compare GTFS segments to the Academy polyline, without altering its geometry.
+function evaluateGtfsSegment(stops,points,dists){
+ if(stops.length<2)return null;
+ const offsets=[],errors=[];let last=-Infinity,backward=0;
+ for(const item of stops){
+  const h=nearestOnShape(item.stop,points,dists);let candidate=h;
+  if(h.along+70<last){
+   const ix=dists.findIndex(d=>d>=last);
+   const forward=nearestOnShape(item.stop,points,dists,Math.max(0,(ix<0?dists.length-1:ix)-2));
+   if(forward.d<=100&&forward.d<h.d+35)candidate=forward;
+  }
+  if(candidate.along+70<last)backward++;
+  last=candidate.along;offsets.push(candidate.along);errors.push(candidate.d);
  }
- // Deduplicate recurring weekday trips with identical stop sequences and direction.
+ const outliers=errors.filter(d=>d>100).length;
+ const total=dists.at(-1)||1;
+ const span=offsets.at(-1)-offsets[0];
+ if(backward||outliers>Math.max(1,Math.floor(stops.length*.05))||span<300||offsets.some(x=>!Number.isFinite(x)))return null;
+ return {start:offsets[0],end:offsets.at(-1),span,meanError:errors.reduce((x,y)=>x+y,0)/errors.length,first:stops[0].stop,last:stops.at(-1).stop,stops};
+}
+function candidateGtfsSegments(chosen,pts,dists){
+ const aliases=academyRouteCodes(chosen);
+ // E060 Busitalia is also the MOM 101 Padova–Treviso pool route.
+ // Numeric alias is specific to this corridor and still requires geometry validation.
+ if(aliases.has('60')||aliases.has('060'))aliases.add('101');
  const groups=new Map();
- for(const t of candidates){
-  const stops=feed.timesByTrip.get(t.trip_id)||[];
-  if(stops.length<2)continue;
-  const key=t.route_id+'|'+stops.map(s=>s.stop?.stop_id||'?').join('|');
-  if(!groups.has(key))groups.set(key,[]);
-  groups.get(key).push(t);
- }
- const pts=chosen.points.map(([lat,lng])=>({lat,lng})),dists=shapeMetrics(pts);
- const verified=[];
- for(const trips of groups.values()){
-  const t=trips[0];
-  const ss=(feed.timesByTrip.get(t.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));
-  if(ss.length<2)continue;
-  const match=matchStopsStrict(ss,pts,dists);
-  if(match.ok){
-   const stopError=ss.reduce((sum,s,i)=>sum+nearestOnShape(s.stop,pts,dists).d,0)/ss.length;
-   verified.push({trip:t,alternatives:trips,stops:ss,averageError:stopError,match});
+ for(const route of feed.routes){
+  const rawCode=String(route.route_short_name||'');
+  const codes=rawCode.split(/[\/;,]+/).flatMap(part=>[normAcademyCode(part),normAcademyCode(part.split(/[_-]/)[0])]).filter(Boolean);
+  if(!codes.some(code=>aliases.has(code)||((/^(\d+)[A-Z]+$/.exec(code)?.[1])&&aliases.has(/^(\d+)[A-Z]+$/.exec(code)[1]))))continue;
+  for(const t of feed.tripsByRoute.get(route.route_id)||[]){
+   const a=feed.timesByTrip.get(t.trip_id)||[];
+   if(a.length<2)continue;
+   const key=t.route_id+'|'+a.map(x=>x.stop?.stop_id||'?').join('|');
+   if(!groups.has(key))groups.set(key,[]);
+   groups.get(key).push(t);
   }
  }
- verified.sort((a,b)=>a.averageError-b.averageError||b.stops.length-a.stops.length);
- academyGtfsMatches=new Map();
- const options=[];
- for(const result of verified){
-  const representative=result.trip;
-  const id=representative.trip_id;
-  academyGtfsMatches.set(id,result);
-  const gtfsRoute=feed.routesById.get(representative.route_id);
-  options.push([id,(gtfsRoute?.route_short_name||'?')+' · '+(representative.trip_headsign||'Direzione non indicata')+' · '+result.stops.length+' fermate · '+result.alternatives.length+' corse · scarto medio '+Math.round(result.averageError)+' m']);
+ const segments=[];
+ for(const trips of groups.values()){
+  const t=trips[0],ss=(feed.timesByTrip.get(t.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));
+  const m=evaluateGtfsSegment(ss,pts,dists);
+  if(m)segments.push({...m,trip:t,alternatives:trips});
  }
- setOptions($('academyGtfsTrip'),options,'Scegli sequenza di fermate…');
- $('academyGtfsStatus').textContent=verified.length?
-  verified.length+' sequenze di fermate geometricamente compatibili su '+groups.size+' sequenze GTFS candidate. Conferma la direzione e la variante: il controllo geometrico da solo non le certifica.':
-  'Nessun abbinamento sufficientemente affidabile ('+groups.size+' sequenze candidate). Il GPX resta disponibile senza fermate: nessun percorso eliminato.';
- button.disabled=false;
- $('mergeOfficial').disabled=true;
+ return {segments,groupCount:groups.size};
+}
+function buildAcademyMatches(chosen){
+ const pts=chosen.points.map(([lat,lng])=>({lat,lng})),dists=shapeMetrics(pts),total=dists.at(-1)||1;
+ const {segments,groupCount}=candidateGtfsSegments(chosen,pts,dists);
+ const results=[],full=x=>x.start<Math.max(700,total*.12)&&x.end>total*.85&&x.span>total*.68;
+ for(const x of segments)if(full(x)){
+  const match=matchStopsStrict(x.stops,pts,dists);
+  if(match.ok)results.push({trip:x.trip,legs:[x],stops:x.stops,averageError:x.meanError,coverage:x.span/total,match});
+ }
+ // Explore up to four segments when a whole Academy route is split into multiple GTFS trips.
+ // Never interpolate invented stops and never join geographically disconnected legs.
+ const ordered=segments.sort((a,b)=>a.start-b.start||b.end-a.end);
+ const seen=new Set();
+ let frontier=ordered.filter(x=>x.start<Math.max(700,total*.12)).map(x=>({legs:[x],stops:x.stops,start:x.start,end:x.end,error:x.meanError}));
+ for(let depth=2;depth<=4&&frontier.length;depth++){
+  const next=[];
+  for(const chain of frontier){
+   const last=chain.legs.at(-1);
+   for(const leg of ordered){
+    if(chain.legs.includes(leg)||leg.end<=last.end+400||leg.start<last.end-260||leg.start>last.end+2200)continue;
+    const gap=metres(last.last,leg.first);
+    if(gap>320)continue;
+    const sameStop=gap<35||(gap<100&&String(last.last.stop_name||'').trim().toLocaleLowerCase('it')===String(leg.first.stop_name||'').trim().toLocaleLowerCase('it'));
+    const stops=chain.stops.concat(leg.stops.slice(sameStop?1:0));
+    const candidate={legs:[...chain.legs,leg],stops,start:chain.start,end:leg.end,error:(chain.error*(depth-1)+leg.meanError)/depth};
+    if(full({start:candidate.start,end:candidate.end,span:candidate.end-candidate.start})){
+     const match=matchStopsStrict(stops,pts,dists);
+     if(!match.ok)continue;
+     const key=stops.map(x=>Math.round(x.stop.lat*10000)+':'+Math.round(x.stop.lng*10000)).join('|');
+     if(seen.has(key))continue;seen.add(key);
+     results.push({trip:chain.legs[0].trip,legs:candidate.legs,stops,averageError:candidate.error,coverage:(candidate.end-candidate.start)/total,match});
+    }else if(depth<4&&candidate.end<total*.96)next.push(candidate);
+   }
+  }
+  // Limit combinatorial growth on networks with many overlapping service variants.
+  next.sort((a,b)=>b.end-a.end||a.error-b.error);
+  frontier=next.slice(0,120);
+ }
+ results.sort((a,b)=>b.coverage-a.coverage||a.averageError-b.averageError);
+ return {results:results.slice(0,80),segments:segments.length,groupCount};
+}
+function findGtfsForAcademy(){
+ if(!selectedOfficial||!feed)return;
+ const button=$('findGtfsAcademy');button.disabled=true;
+ $('academyGtfsStatus').textContent='Confronto delle fermate GTFS con il GPX Academy…';
+ try{
+  const {results,segments,groupCount}=buildAcademyMatches(selectedOfficial);
+  academyGtfsMatches=new Map();const options=[];
+  results.forEach((x,i)=>{
+   const id='academy-match-'+i;academyGtfsMatches.set(id,x);
+   const codes=x.legs.map(l=>feed.routesById.get(l.trip.route_id)?.route_short_name||'?').join(' + ');
+   options.push([id,(x.legs.length>1?x.legs.length+' tratte':'Corsa unica')+' · '+codes+' · '+x.stops.length+' fermate · copertura '+Math.round(x.coverage*100)+'% · scarto '+Math.round(x.averageError)+' m']);
+  });
+  setOptions($('academyGtfsTrip'),options,'Scegli una sequenza di fermate…');
+  $('academyGtfsStatus').textContent=results.length?
+   results.length+' combinazioni geometriche compatibili; controlla fermate, direzione e variante. La combinazione non prova una corsa diretta dello stesso autobus.':
+   'Nessuna corrispondenza completa ('+segments+' segmenti compatibili da '+groupCount+' sequenze GTFS). Il GPX non viene modificato.';
+  $('mergeOfficial').disabled=true;
+ }catch(e){console.error(e);$('academyGtfsStatus').textContent='Errore di associazione: '+e.message;}
+ finally{button.disabled=false}
 }
 $('findGtfsAcademy').addEventListener('click',findGtfsForAcademy);
 $('academyGtfsTrip').addEventListener('change',()=>{
@@ -169,8 +227,8 @@ $('academySearch').addEventListener('input',filterAcademyRoutes);
 $('academyRoute').addEventListener('change',onAcademySelected);
 function selectedGTFS(){return tripsInDirection().find(t=>t.trip_id===$('tripSelect').value)}
 function showAcademyRoute(merge=false){const chosen=selectedOfficial;if(!chosen){toast('Seleziona un GPX Academy');return}const points=chosen.points.map(([lat,lng])=>({lat,lng}));const dists=shapeMetrics(points);let stops=[],offsets=[],diagnostic='GPX Academy senza fermate. Per aggiungerle, carica il GTFS e associa una corsa precisa.';let trip={trip_headsign:chosen.name};let reliable=false;
-if(merge){if(!feed){toast('Prima importa il GTFS');return}const gt=academyGtfsMatches.get($('academyGtfsTrip').value)?.trip||selectedGTFS();if(!gt){toast('Seleziona una corsa GTFS corrispondente');return}const gtfsRoute=feed.routesById.get(gt.route_id);const num=normAcademyCode(gtfsRoute?.route_short_name||'');const officialNum=[...academyRouteCodes(chosen)].join(', ');if(!gtfsFitsAcademyCode(chosen,gtfsRoute||{})){$('officialInfo').textContent=`Abbinamento bloccato: linea GTFS ${num} diversa dal GPX ${officialNum}. Seleziona la corsa corretta.`;toast('Linea GPX e GTFS non corrispondono');return}
-const candidates=(feed.timesByTrip.get(gt.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));if(candidates.length<2){toast('Nessuna sequenza di fermate disponibile');return}const match=matchStopsStrict(candidates,points,dists);diagnostic=match.message;if(!match.ok){$('officialInfo').textContent=diagnostic;toast('Abbinamento non affidabile: navigazione fermate non abilitata');return}stops=candidates;offsets=match.offsets;trip=gt;reliable=true}
+if(merge){if(!feed){toast('Prima importa il GTFS');return}const academyMatch=academyGtfsMatches.get($('academyGtfsTrip').value);const gt=academyMatch?.trip||selectedGTFS();if(!gt){toast('Seleziona una corsa GTFS corrispondente');return}const gtfsRoute=feed.routesById.get(gt.route_id);const num=normAcademyCode(gtfsRoute?.route_short_name||'');const officialNum=[...academyRouteCodes(chosen)].join(', ');if(!academyMatch&&!gtfsFitsAcademyCode(chosen,gtfsRoute||{})){$('officialInfo').textContent=`Abbinamento bloccato: linea GTFS ${num} diversa dal GPX ${officialNum}. Seleziona la corsa corretta.`;toast('Linea GPX e GTFS non corrispondono');return}
+const candidates=academyMatch?.stops||(feed.timesByTrip.get(gt.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));if(candidates.length<2){toast('Nessuna sequenza di fermate disponibile');return}const match=matchStopsStrict(candidates,points,dists);diagnostic=match.message;if(!match.ok){$('officialInfo').textContent=diagnostic;toast('Abbinamento non affidabile: navigazione fermate non abilitata');return}stops=candidates;offsets=match.offsets;trip={...gt,trip_headsign:academyMatch?.legs?.length>1?chosen.name:gt.trip_headsign};reliable=true}
 stopNavigation();current={trip,stops,points,dists,offsets,fallback:false,academy:chosen,reliable};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastAlong=0;turns=computeTurns(points,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#0da2a5',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);map.fitBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length?stops.length+' fermate':'Fermate non associate';$('navStatus').textContent='GPX Academy caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'GPX senza fermate';$('nextDetail').textContent=merge?'GPS e simulazione disponibili':'Associa prima una corsa GTFS per gli annunci';$('nextDistance').textContent='—';$('demoBtn').disabled=false;$('startNav').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent='Svolte geometriche sperimentali (non stradali)';$('officialInfo').textContent=diagnostic;toast(merge?'GPX Academy e fermate GTFS associati':'Tracciato GPX Academy visualizzato');}
 function matchStopsStrict(stops,points,dists){let offsets=[],last=-1,outliers=0,maxError=0,backward=0;const total=dists.at(-1);for(const st of stops){const p=st.stop;const start=Math.max(0,dists.findIndex(d=>d>=Math.max(0,last-30))-1);const near=nearestOnShape(p,points,dists,start);const global=nearestOnShape(p,points,dists);if(global.along<last-150 && global.d+25<near.d)backward++;
 if(near.d>100)outliers++;maxError=Math.max(maxError,near.d);offsets.push(near.along);if(near.along+50<last)backward++;last=Math.max(last,near.along)}
@@ -182,8 +240,8 @@ let toastTimeout=null;
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').classList.remove('show'),5500)}
 function status(text){$('feedMsg').textContent=text;}
 function parseCSV(text){text=text.replace(/^\uFEFF/,'');let rows=[],row=[],field='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++}else if(c==='"')quoted=false;else field+=c}else if(c==='"')quoted=true;else if(c===','){row.push(field);field=''}else if(c==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field=''}else field+=c}if(field||row.length){row.push(field.replace(/\r$/,''));rows.push(row)}const headers=rows.shift()||[];return rows.filter(r=>r.length>1||r[0]).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??''])))}
-async function getGTFS(zipBlob){if(!window.JSZip)throw Error('Libreria ZIP non disponibile: serve connessione Internet.');const zip=await JSZip.loadAsync(zipBlob);const files={};for(const name of ['routes','trips','stops','stop_times','shapes','calendar','calendar_dates']){const file=Object.values(zip.files).find(f=>f.name.split('/').pop().toLowerCase()===name+'.txt');if(file){status('Lettura '+name+'.txt…');files[name]=parseCSV(await file.async('string'))}else if(!['calendar','calendar_dates'].includes(name))throw Error('Nel GTFS manca '+name+'.txt')}
-const routes=files.routes, trips=files.trips, stops=files.stops, stopTimes=files.stop_times, shapes=files.shapes;
+async function getGTFS(zipBlob){if(!window.JSZip)throw Error('Libreria ZIP non disponibile: serve connessione Internet.');const zip=await JSZip.loadAsync(zipBlob);const files={};for(const name of ['routes','trips','stops','stop_times','shapes','calendar','calendar_dates']){const file=Object.values(zip.files).find(f=>f.name.split('/').pop().toLowerCase()===name+'.txt');if(file){status('Lettura '+name+'.txt…');files[name]=parseCSV(await file.async('string'))}else if(!['calendar','calendar_dates','shapes'].includes(name))throw Error('Nel GTFS manca '+name+'.txt')}
+const routes=files.routes, trips=files.trips, stops=files.stops, stopTimes=files.stop_times, shapes=files.shapes||[];
 const stopsById=new Map(stops.map(s=>[s.stop_id,{...s,lat:+s.stop_lat,lng:+s.stop_lon}]));
 const shapesById=new Map();for(const s of shapes){if(!shapesById.has(s.shape_id))shapesById.set(s.shape_id,[]);shapesById.get(s.shape_id).push({lat:+s.shape_pt_lat,lng:+s.shape_pt_lon,seq:+s.shape_pt_sequence,dist:s.shape_dist_traveled?+s.shape_dist_traveled:null})}for(const pts of shapesById.values())pts.sort((a,b)=>a.seq-b.seq);
 const timesByTrip=new Map();for(const s of stopTimes){if(!timesByTrip.has(s.trip_id))timesByTrip.set(s.trip_id,[]);timesByTrip.get(s.trip_id).push({stop:stopsById.get(s.stop_id),seq:+s.stop_sequence,arrival:s.arrival_time,departure:s.departure_time,dist:s.shape_dist_traveled?+s.shape_dist_traveled:null})}for(const ss of timesByTrip.values())ss.sort((a,b)=>a.seq-b.seq);
@@ -191,7 +249,23 @@ const routesById=new Map(routes.map(r=>[r.route_id,r]));const tripsByRoute=new M
 return {routes,routesById,tripsByRoute,timesByTrip,shapesById,stopsById,calendar:files.calendar||[],calendarDates:files.calendar_dates||[],updated:new Date().toISOString()};}
 function asOption(value,label){const opt=document.createElement('option');opt.value=value;opt.textContent=label;return opt}
 function setOptions(element,options,placeholder){element.replaceChildren();if(placeholder)element.add(asOption('',placeholder));for(const [val,lab] of options)element.add(asOption(val,lab));element.disabled=!options.length;}
-function handleFeed(f){feed=f;resetAcademyGtfs();const routes=f.routes.filter(r=>f.tripsByRoute.has(r.route_id)).sort((a,b)=>(a.route_short_name||a.route_long_name).localeCompare(b.route_short_name||b.route_long_name,'it',{numeric:true}));setOptions($('routeSelect'),routes.map(r=>[r.route_id,(r.route_short_name||'—')+' · '+(r.route_long_name||'Percorso')]),'Scegli una linea…');$('dataStatus').textContent=routes.length+' linee';status(`Pronto: ${routes.length} linee, ${f.stopsById.size} fermate. Seleziona la linea.`);$('routeSelect').dispatchEvent(new Event('change'));}
+// Namespace GTFS identifiers on import: agency files can reuse the same IDs.
+let gtfsImportSequence=0;
+function appendOfficialFeed(base,additional){
+ const prefix='source'+(++gtfsImportSequence)+':';
+ const stops=new Map();
+ for(const [id,s] of additional.stopsById)stops.set(prefix+id,{...s,stop_id:prefix+id});
+ const routes=additional.routes.map(r=>({...r,route_id:prefix+r.route_id}));
+ const routesById=new Map([...base.routesById,...routes.map(r=>[r.route_id,r])]);
+ const tripsByRoute=new Map(base.tripsByRoute);
+ for(const [routeId,trips] of additional.tripsByRoute)tripsByRoute.set(prefix+routeId,trips.map(t=>({...t,trip_id:prefix+t.trip_id,route_id:prefix+t.route_id,shape_id:prefix+(t.shape_id||''),service_id:prefix+(t.service_id||'')})));
+ const timesByTrip=new Map(base.timesByTrip);
+ for(const [id,entries] of additional.timesByTrip)timesByTrip.set(prefix+id,entries.map(e=>({...e,stop:e.stop?stops.get(prefix+e.stop.stop_id):null})));
+ const shapesById=new Map(base.shapesById);
+ for(const [id,pts] of additional.shapesById)shapesById.set(prefix+id,pts);
+ return {...base,routes:[...base.routes,...routes],routesById,tripsByRoute,timesByTrip,shapesById,stopsById:new Map([...base.stopsById,...stops]),sources:(base.sources||1)+1,updated:new Date().toISOString()};
+}
+function handleFeed(f,append=false){feed=append&&feed?appendOfficialFeed(feed,f):f;resetAcademyGtfs();const routes=feed.routes.filter(r=>feed.tripsByRoute.has(r.route_id)).sort((a,b)=>(a.route_short_name||a.route_long_name).localeCompare(b.route_short_name||b.route_long_name,'it',{numeric:true}));setOptions($('routeSelect'),routes.map(r=>[r.route_id,(r.route_short_name||'—')+' · '+(r.route_long_name||'Percorso')]),'Scegli una linea…');$('dataStatus').textContent=routes.length+' linee';status(`Pronto: ${routes.length} linee, ${feed.stopsById.size} fermate, ${feed.sources||1} feed. I GPX Academy restano invariati.`);$('routeSelect').dispatchEvent(new Event('change'));}
 function groupTrips(){if(!feed)return[];const trips=feed.tripsByRoute.get($('routeSelect').value)||[];const groups=new Map();for(const t of trips){const label=(t.trip_headsign||'Direzione '+(t.direction_id||'0')).trim();const key=(t.direction_id||'')+'|'+label;if(!groups.has(key))groups.set(key,{label,trips:[]});groups.get(key).trips.push(t)}return [...groups.entries()].map(([key,g])=>[key,g.label+' ('+g.trips.length+' corse)']);}
 function tripsInDirection(){const trips=feed?.tripsByRoute.get($('routeSelect').value)||[];return trips.filter(t=>((t.direction_id||'')+'|'+(t.trip_headsign||'Direzione '+(t.direction_id||'0')).trim())===$('directionSelect').value)}
 function tripLabel(t){const times=feed.timesByTrip.get(t.trip_id)||[];const a=times[0]?.departure||'—';const b=times.at(-1)?.arrival||'—';const n=times.length;return `${a} → ${b} · ${n} fermate · ${t.service_id||'servizio'}`}
@@ -232,6 +306,12 @@ function startGPS(){if(!current)return;stopNavigation();if(!('geolocation'in nav
 function startDemo(){if(!current)return;stopNavigation();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point);simIndex+=advance;if(simIndex>dist+90){clearInterval(simulation);simulation=null;toast('Simulazione completata');$('stopNav').disabled=false}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 $('loadFeed').addEventListener('click',async()=>{const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');try{const res=await fetch(FEED);if(!res.ok)throw Error('HTTP '+res.status);const blob=await res.blob();if(blob.size<1000)throw Error('File ZIP troppo piccolo');const f=await getGTFS(blob);handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente')}catch(err){status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');toast('Download non riuscito (possibile blocco CORS o rete)')}finally{btn.disabled=false}});
 $('fileFeed').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{status('Importazione ZIP…');const f=await getGTFS(file);handleFeed(f);saveZip(file).catch(()=>{});toast('GTFS importato')}catch(err){status('Errore importazione: '+err.message)}e.target.value=''});
+$('extraFeed').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{status('Importazione GTFS aggiuntivo '+file.name+'…');const f=await getGTFS(file);handleFeed(f,true);toast('GTFS aggiuntivo integrato: '+file.name)}
+ catch(err){status('Errore importazione GTFS aggiuntivo: '+err.message)}
+ e.target.value='';
+});
 $('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',()=>{if(lastFix)map.setView([lastFix.lat,lastFix.lng],16);else if(lineLayer)map.fitBounds(lineLayer.getBounds(),{padding:[50,50]})});
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('lineapilot-db',1);req.onupgradeneeded=()=>req.result.createObjectStore('feeds');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function saveZip(blob){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readwrite');tx.objectStore('feeds').put(blob,'biv');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
