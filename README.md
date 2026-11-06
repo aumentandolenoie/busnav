@@ -5,7 +5,7 @@
 ## Contenuti
 - 787 tracciati GPX estratti dall'archivio `Mappe Academy -20261105T223518Z-1-001.zip`: 557 extraurbani, 201 urbani, 29 Colli.
 - Nessun PDF del pacchetto originale viene redistribuito in questo progetto.
-- Archivio GPX convertito in `official-routes.json` per navigazione mappa e selezione per categoria, linea, codice e destinazione. Ogni percorso mantiene la sequenza originaria dei punti (solo duplicati consecutivi rimossi).
+- Tutti i 787 GPX sono convertiti e inclusi in `official-routes.json` (non come 787 file GPX separati), senza taglio a 400 risultati. Il file conserva coordinate ordinate e metadati di linea/variante; solo i duplicati consecutivi di coordinate sono stati rimossi.\n- Selezione in 3 passaggi: **categoria → linea/gruppo → percorso effettivo**. Categorie: Extraurbano, Colli, Urbano, Turni Invernali e Indicatori di percorso. Le ultime due sono indici dei 6 PDF dell’archivio originario: i PDF **non sono presenti nella repository** e non sono navigabili; nessun GPX appartiene a queste due categorie.\n- Il caricamento verifica 787 record, ID univoci, presenza di almeno due punti e conteggi categoria (557/29/201).
 - Importazione GTFS da ZIP o endpoint BusOne; linee, corse, fermate, annunci e GPS.
 - Combinazione **manuale e controllata**: seleziona GPX Academy, carica GTFS, seleziona la *corsa GTFS esatta*, poi premi `Associa fermate GTFS`. Il controllo verifica corrispondenza del numero di linea, distanza delle fermate dal GPX (100 metri come soglia di controllo), sequenza progressiva sul tracciato e anomalie di inversione. In caso di mismatch l'associazione viene rifiutata, non forzata.
 - Indicazioni di svolta indicative, da variazioni di direzione della geometria: **non sono indicazioni attendibili per incroci o restrizioni degli autobus**.
@@ -13,7 +13,7 @@
 
 ## Uso rapido
 1. Pubblica la cartella come sito statico su Vercel (Framework Preset: Other; senza build) o un web server HTTPS. Per prova locale: `python3 -m http.server 8000` da questa cartella.
-2. Cerca in `PERCORSI ACADEMY (GPX)` una linea o variante e premi `Mostra GPX`.
+2. Nella sezione `PERCORSI ACADEMY (GPX)` scegli **categoria**, poi **linea**, poi **percorso** e premi `Mostra GPX`. Non esiste più il limite di 400 percorsi.
 3. Carica un file ZIP GTFS tramite `Scarica GTFS` o `Importa ZIP`.
 4. Seleziona sotto `SELEZIONA IL SERVIZIO` la linea, direzione e corsa programmata corretta. Il GTFS di default mostra un tracciato GTFS; premi `Associa fermate GTFS` per sostituirlo con il GPX Academy e associarvi le fermate.
 5. Se l'app segnala differenze di linea, fermate fuori percorso o ordine non plausibile, **non usare l'abbinamento**. Potrebbero essere corsa/variante errata, feed non aggiornato o GPX non allineato alla corsa.
@@ -35,3 +35,4 @@
 
 ## Passo successivo
 Testare uno o più abbinamenti GPX/GTFS reali, scegliere il percorso della corsa corretta, identificare i punti di svolta tramite rete stradale verificata ed evitare istruzioni stradali basate soltanto sulla curvatura del tracciato.
+\n## Nota sul materiale originale\nLa repository conserva la geometria di tutti i 787 GPX nel file JSON unico, non gli 787 file GPX come singoli allegati. I documenti dei turni invernali e degli indicatori di percorso sono elencati per struttura ma non redistribuiti; occorre ottenere autorizzazione prima di caricarli.\n

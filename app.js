@@ -8,10 +8,80 @@ L.control.zoom({position:'topright'}).addTo(map);
 let academy=[], selectedOfficial=null, feed=null, current=null, watcher=null, simulation=null, simIndex=0, locationMarker=null, accuracyCircle=null, lineLayer=null, stopLayer=null;
 let nextStopIdx=0,lastFix=null,lastSpokenStop=-1,lastSpokenTurn=-1,lastProgress=0,lastAlong=0, turns=[];
 
-async function loadAcademy(){try{const res=await fetch('./official-routes.json');if(!res.ok)throw Error('HTTP '+res.status);academy=await res.json();filterAcademy();$('officialInfo').textContent=`${academy.length} tracciati Academy disponibili. Seleziona il percorso e poi, se vuoi le fermate, la corrispondente corsa GTFS.`}catch(e){$('officialInfo').textContent='Errore nel caricamento dei GPX: '+e.message}}
-function filterAcademy(){const cat=$('academyCategory').value;const q=$('academySearch').value.trim().toLocaleLowerCase('it');const matches=academy.filter(r=>(!cat||cat===r.category)&&(!q||`${r.line} ${r.variant} ${r.name} ${r.filename}`.toLocaleLowerCase('it').includes(q)));const selected=$('academyRoute').value;setOptions($('academyRoute'),matches.slice(0,400).map(r=>[String(r.id),`${r.category} ${r.line} · ${r.name}`]),'Seleziona percorso…');if(matches.some(r=>String(r.id)===selected))$('academyRoute').value=selected;onAcademySelected();}
-function onAcademySelected(){selectedOfficial=academy.find(r=>String(r.id)===$('academyRoute').value)||null;$('showOfficial').disabled=!selectedOfficial;$('mergeOfficial').disabled=!selectedOfficial||!feed||!$('tripSelect').value;if(selectedOfficial)$('officialInfo').textContent=`${selectedOfficial.category}, linea ${selectedOfficial.line}, variante ${selectedOfficial.variant||'—'}: ${selectedOfficial.name}. Per abbinare le fermate seleziona la corsa GTFS della stessa variante.`;}
-$('academyCategory').addEventListener('change',filterAcademy);$('academySearch').addEventListener('input',filterAcademy);$('academyRoute').addEventListener('change',onAcademySelected);
+const ACADEMY_EXPECTED={Extraurbano:557,Colli:29,Urbano:201};
+const ACADEMY_DOCUMENTS={
+  'Turni Invernali':{'Feriale':['1 FERIALE dal 02_11_2026 - _27-5.pdf'],'Sabato':['2 SABATO  anno scolastico 2026 - _27-2.pdf'],'Festivo':['3 FESTIVO EXTRAURBANO anno scolastico 2026 - _27-1.pdf']},
+  'Indicatori di percorso':{'Colli':['Linee Colli.pdf'],'Extraurbano':['Linee Extraurbanee.pdf'],'Urbano':['Linee Urbane.pdf']}
+};
+const sortIt=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true,sensitivity:'base'});
+function academyGroupName(r){return String(r.line||'Altri percorsi').trim();}
+async function loadAcademy(){try{
+ const res=await fetch('./official-routes.json');if(!res.ok)throw Error('HTTP '+res.status);
+ const data=await res.json();if(!Array.isArray(data))throw Error('Catalogo non valido');
+ academy=data;const ids=new Set(data.map(r=>r.id)),stats={};
+ for(const category of Object.keys(ACADEMY_EXPECTED))stats[category]=data.filter(r=>r.category===category).length;
+ const complete=data.length===787&&ids.size===787&&Object.keys(ACADEMY_EXPECTED).every(k=>stats[k]===ACADEMY_EXPECTED[k])&&data.every(r=>Array.isArray(r.points)&&r.points.length>=2);
+ $('academyCount').textContent=complete?'Catalogo completo: 787/787 GPX (557 Extraurbano, 29 Colli, 201 Urbano).':'ATTENZIONE: catalogo incompleto o non valido ('+data.length+'/787).';
+ $('officialInfo').textContent=complete?'Seleziona categoria, linea e variante. Le due sezioni documentali contengono PDF, non tracciati GPS.':'Controllare official-routes.json prima della navigazione.';
+ filterAcademy();
+}catch(e){$('academyCount').textContent='Catalogo GPX non disponibile';$('officialInfo').textContent='Errore caricamento GPX: '+e.message}}
+function filterAcademy(){
+ const category=$('academyCategory').value;
+ const previousLine=$('academyLine').value;
+ selectedOfficial=null;
+ if(!category){
+  setOptions($('academyLine'),[],'Scegli prima la categoria…');
+  setOptions($('academyRoute'),[],'Scegli prima la linea…');
+  $('academyCount').textContent=academy.length+' percorsi GPX disponibili · seleziona una categoria';
+  onAcademySelected();return;
+ }
+ if(ACADEMY_DOCUMENTS[category]){
+  const groups=Object.keys(ACADEMY_DOCUMENTS[category]).sort(sortIt);
+  setOptions($('academyLine'),groups.map(g=>[g,g]),'Scegli gruppo…');
+  if(groups.includes(previousLine))$('academyLine').value=previousLine;
+  filterAcademyRoutes();return;
+ }
+ const paths=academy.filter(r=>r.category===category);
+ const groups=[...new Set(paths.map(academyGroupName))].sort(sortIt);
+ setOptions($('academyLine'),groups.map(g=>[g,g+' ('+paths.filter(r=>academyGroupName(r)===g).length+')']),'Scegli linea…');
+ if(groups.includes(previousLine))$('academyLine').value=previousLine;
+ filterAcademyRoutes();
+}
+function filterAcademyRoutes(){
+ const cat=$('academyCategory').value,line=$('academyLine').value;
+ const previous=$('academyRoute').value;
+ if(!line){setOptions($('academyRoute'),[],'Scegli prima la linea…');$('academyCount').textContent=academy.filter(r=>r.category===cat).length+' percorsi nella categoria';onAcademySelected();return;}
+ if(ACADEMY_DOCUMENTS[cat]){
+  const docs=ACADEMY_DOCUMENTS[cat][line]||[];
+  setOptions($('academyRoute'),docs.map(d=>[d,d]),'Scegli documento…');
+  if(docs.includes(previous))$('academyRoute').value=previous;
+  $('academyCount').textContent=docs.length+' documento/i PDF · non sono GPX';
+  onAcademySelected();return;
+ }
+ const q=$('academySearch').value.trim().toLocaleLowerCase('it');
+ const matches=academy.filter(r=>r.category===cat&&academyGroupName(r)===line&&(!q||[r.name,r.variant,r.filename].join(' ').toLocaleLowerCase('it').includes(q))).sort((a,b)=>sortIt(a.name,b.name));
+ setOptions($('academyRoute'),matches.map(r=>[String(r.id),r.name]),'Scegli percorso…');
+ if(matches.some(r=>String(r.id)===previous))$('academyRoute').value=previous;
+ $('academyCount').textContent=matches.length+' percorsi trovati in '+cat+' / '+line+' (nessun limite ai risultati)';
+ onAcademySelected();
+}
+function onAcademySelected(){
+ const cat=$('academyCategory').value,line=$('academyLine').value;
+ if(ACADEMY_DOCUMENTS[cat]){
+  selectedOfficial=null;$('showOfficial').disabled=true;$('mergeOfficial').disabled=true;
+  $('officialInfo').textContent=$('academyRoute').value?'Documento: '+$('academyRoute').value+'. Il PDF originale non è incluso nel catalogo GPS; questa sezione è un indice, non una mappa navigabile.':'Sezione documentale: scegli prima il gruppo e il PDF.';
+  return;
+ }
+ selectedOfficial=academy.find(r=>String(r.id)===$('academyRoute').value&&r.category===cat&&academyGroupName(r)===line)||null;
+ $('showOfficial').disabled=!selectedOfficial;
+ $('mergeOfficial').disabled=!selectedOfficial||!feed||!$('tripSelect').value;
+ if(selectedOfficial)$('officialInfo').textContent=selectedOfficial.category+', linea '+selectedOfficial.line+', variante '+(selectedOfficial.variant||'—')+': '+selectedOfficial.name+'. Per abbinare le fermate seleziona una corsa GTFS corrispondente.';
+ else $('officialInfo').textContent='Scegli categoria, linea e percorso effettivo.';
+}
+$('academyCategory').addEventListener('change',()=>{$('academySearch').value='';filterAcademy()});
+$('academyLine').addEventListener('change',()=>{$('academySearch').value='';filterAcademyRoutes()});
+$('academySearch').addEventListener('input',filterAcademyRoutes);
+$('academyRoute').addEventListener('change',onAcademySelected);
 function selectedGTFS(){return tripsInDirection().find(t=>t.trip_id===$('tripSelect').value)}
 function showAcademyRoute(merge=false){const chosen=selectedOfficial;if(!chosen){toast('Seleziona un GPX Academy');return}const points=chosen.points.map(([lat,lng])=>({lat,lng}));const dists=shapeMetrics(points);let stops=[],offsets=[],diagnostic='GPX Academy senza fermate. Per aggiungerle, carica il GTFS e associa una corsa precisa.';let trip={trip_headsign:chosen.name};let reliable=false;
 if(merge){if(!feed){toast('Prima importa il GTFS');return}const gt=selectedGTFS();if(!gt){toast('Seleziona una corsa GTFS della stessa variante');return}const gtfsRoute=feed.routesById.get(gt.route_id);const num=(gtfsRoute?.route_short_name||'').toUpperCase().replace(/^([EU])0*/,'').replace(/^0+/,'');const officialNum=String(chosen.line).toUpperCase().replace(/^([EU])0*/,'').replace(/^0+/,'');if(num && officialNum && num!==officialNum){$('officialInfo').textContent=`Abbinamento bloccato: linea GTFS ${num} diversa dal GPX ${officialNum}. Seleziona la corsa corretta.`;toast('Linea GPX e GTFS non corrispondono');return}
