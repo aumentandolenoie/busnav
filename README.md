@@ -125,3 +125,10 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - Se il GPS è vicino al GPX ma molto avanti rispetto all'ultima progressione, due rilevamenti consecutivi e coerenti permettono il riallineamento automatico, con avvisi momentaneamente sospesi durante la verifica. Non vengono inventate posizioni o fermate.
 - Quando il GPS è realmente oltre 180 m dalla geometria, l'app indica la distanza dal GPX e sospende gli avvisi. La mappa continua a seguire la posizione reale.
 - Test di regressione con avanzamento normale, salto GPS di oltre 500 m sul GPX, recupero automatico e vera deviazione fuori percorso. Catalogo dei 787 GPX e feed fermate Busitalia invariati.
+
+## Avvisi di svolta in due fasi e iOS a schermo bloccato (v16)
+- Gli avvisi di possibili svolte sono ricavati da cambi di direzione **del solo GPX Academy**. Un primo avviso viene proposto a distanza dipendente dalla velocità stimata (150–350 m); un richiamo finale entro 85 m, se possibile e senza sovrapporsi a una fermata imminente. Ogni fase viene richiesta al massimo una volta.
+- Gli annunci di fermata restano prioritari; né i tracciati GPX né un GTFS descrivono necessariamente viabilità, corsie, segnaletica, limitazioni bus o regole agli incroci: gli avvisi non sono un'alternativa a navigazione stradale certificata.
+- La PWA su iPhone è soggetta alla sospensione da parte di iOS quando non è in primo piano. Anche installandola nella schermata Home, non è possibile garantire né geolocalizzazione continua, né annunci Web Speech con il display bloccato. L'interfaccia indica la possibile sospensione e tenta di riprendere la voce al ritorno in primo piano, senza promettere di recuperare annunci persi.
+- Per vera navigazione in background serve un'app iOS con Core Location configurato per aggiornamenti in background e una gestione audio nativa adeguata, previa verifica dei permessi e dei requisiti di sistema. Una semplice WebView/PWA non fornisce queste garanzie.
+- Test automatici su chiamate di svolta doppie, duplicati e priorità delle fermate; GPX Academy e associazioni GTFS invariati.
