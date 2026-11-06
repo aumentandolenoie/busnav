@@ -182,8 +182,25 @@ const ACADEMY_DOCUMENTS={
 const sortIt=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true,sensitivity:'base'});
 function academyGroupName(r){return String(r.line||'Altri percorsi').trim();}
 async function loadAcademy(){try{
- const res=await fetch('./official-routes.json');if(!res.ok)throw Error('HTTP '+res.status);
- const data=await res.json();if(!Array.isArray(data))throw Error('Catalogo non valido');
+ let data;
+ if(nativeMode){
+  // WKWebView custom URL schemes can reject fetch() even for same-origin resources.
+  // XMLHttpRequest is supported by WKURLSchemeHandler for bundled JSON.
+  data=await new Promise((resolve,reject)=>{
+   const xhr=new XMLHttpRequest();
+   xhr.open('GET','./official-routes.json',true);
+   xhr.onload=()=>{
+    if(xhr.status!==0&&(xhr.status<200||xhr.status>=300)){reject(Error('Academy HTTP '+xhr.status));return}
+    try{resolve(JSON.parse(xhr.responseText))}catch(e){reject(e)}
+   };
+   xhr.onerror=()=>reject(Error('Catalogo Academy locale non accessibile'));
+   xhr.send();
+  });
+ }else{
+  const res=await fetch('./official-routes.json');
+  if(!res.ok)throw Error('HTTP '+res.status);
+  data=await res.json();
+ }if(!Array.isArray(data))throw Error('Catalogo non valido');
  academy=data;const ids=new Set(data.map(r=>r.id)),stats={};
  for(const category of Object.keys(ACADEMY_EXPECTED))stats[category]=data.filter(r=>r.category===category).length;
  const complete=data.length===787&&ids.size===787&&Object.keys(ACADEMY_EXPECTED).every(k=>stats[k]===ACADEMY_EXPECTED[k])&&data.every(r=>Array.isArray(r.points)&&r.points.length>=2);
