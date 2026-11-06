@@ -7,7 +7,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,att
 L.control.zoom({position:'topright'}).addTo(map);
 let academy=[], selectedOfficial=null, feed=null, current=null, watcher=null, simulation=null, simIndex=0, locationMarker=null, accuracyCircle=null, lineLayer=null, stopLayer=null;
 let nextStopIdx=0,lastFix=null,lastSpokenStop=-1,lastSpokenTurn=-1,lastProgress=0,lastAlong=0, turns=[];
-let navigationFullscreen=false,lastNavHeading=null,lastCameraAt=0,lastCameraPoint=null,lastMatchedAt=0,hasMatchedFix=false,realGpsFix=null;
+let navigationFullscreen=false,lastNavHeading=null,lastCameraAt=0,lastCameraPoint=null,lastMatchedAt=0,hasMatchedFix=false,realGpsFix=null,realGpsFixAt=0;
 function enterNavigationView(){
  navigationFullscreen=true;
  document.body.classList.add('navigating');
@@ -99,7 +99,7 @@ function followStableCamera(position,isDemo=false,force=false){
 function recenterOnRealGPS(){
  // The location button must NEVER recenter on the GPX projection.
  // Live geolocation is authoritative for the user's actual position.
- if(realGpsFix){
+ if(realGpsFix&&Date.now()-realGpsFixAt<10000){
   const fix=realGpsFix;
   if(navigationFullscreen){
    lastCameraPoint=null;
@@ -117,7 +117,7 @@ function recenterOnRealGPS(){
   if(!Number.isFinite(c.latitude)||!Number.isFinite(c.longitude)||c.accuracy>120){
    toast('Posizione GPS troppo imprecisa, riprova');return;
   }
-  realGpsFix={lat:c.latitude,lng:c.longitude};
+  realGpsFix={lat:c.latitude,lng:c.longitude};realGpsFixAt=Date.now();
   if(navigationFullscreen){lastCameraPoint=null;followStableCamera(realGpsFix,false,true)}
   else map.setView([c.latitude,c.longitude],16,{animate:false});
   toast('Mappa centrata sulla tua posizione GPS');
@@ -545,7 +545,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  const {points,dists,offsets,stops}=current;
  if(!isDemo&&accuracy>110){$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
  lastFix=p;
- if(!isDemo)realGpsFix={lat:p.lat,lng:p.lng};
+ if(!isDemo){realGpsFix={lat:p.lat,lng:p.lng};realGpsFixAt=Date.now();}
  const speed=speedEstimate(p,reportedSpeed,isDemo);
  // Keep the center on the GPS position even when the vehicle is off the Academy line.
  // Poor fixes are rejected above; the heading still comes from the GPX.
