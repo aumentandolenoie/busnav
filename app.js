@@ -84,16 +84,17 @@ function stableRouteMatch(p,points,dists,speed,isDemo){
 }
 function followStableCamera(position,isDemo=false,force=false){
  if(!navigationFullscreen||!position)return;
- // The blue dot represents the device's measured GPS position, not its projection on
- // the Academy GPX. GPX matching is ONLY for route progress, stops and map bearing.
+ // The camera follows the actual GPS fix. Compare against the position
+ // LAST RENDERED on the map, not the last raw fix: small movements accumulate.
  const fix={lat:position.lat,lng:position.lng};
  if(!Number.isFinite(fix.lat)||!Number.isFinite(fix.lng))return;
  if(!lastCameraPoint){
   map.setView([fix.lat,fix.lng],Math.max(16,map.getZoom()),{animate:false});
- }else if(force||metres(lastCameraPoint,fix)>8){
+  lastCameraPoint=fix;
+ }else if(force||metres(lastCameraPoint,fix)>=3){
   map.panTo([fix.lat,fix.lng],{animate:false});
+  lastCameraPoint=fix;
  }
- lastCameraPoint=fix;
  $('navigationPosition').hidden=false;
 }
 function recenterOnRealGPS(){
