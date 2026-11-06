@@ -14,7 +14,7 @@ function enterNavigationView(){
  $('navFullscreenBar').hidden=false;
  $('headingStatus').textContent='↑ Attesa direzione';
  $('followToggle').checked=true;
- requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(current?.points?.length){const initial=current.points[0];if(!hasMatchedFix)map.setView([initial.lat,initial.lng],Math.max(map.getZoom(),16),{animate:false});}});
+ requestAnimationFrame(()=>{map.invalidateSize({pan:false});/* Await first reliable GPS fix before centring; avoid jumping to the GPX origin. */});
 }
 function leaveNavigationView(){
  if(!navigationFullscreen)return;
