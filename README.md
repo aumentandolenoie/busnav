@@ -107,3 +107,8 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - **Test automatici:** `node --test tests/*.test.cjs` controlla catalogo di **787 GPX (557/29/201)**, ID univoci, integrità minima di tutti i tracciati, sintassi JS, ID dell'interfaccia, interpolazione GPX ai capolinea e presenza delle funzionalità fondamentali. Workflow `.github/workflows/smoke.yml` esegue i controlli sui push e sulle PR verso `main`.
 - Nessuna modifica a `official-routes.json`, nomenclature Academy, fermate GTFS Busitalia/MOM o contenuti del catalogo.
 - **Limite:** i test automatizzati verificano la logica e l'integrità strutturale, ma non sostituiscono prove GPS/voce/rotazione su iPhone.
+
+## Fix inseguimento GPS continuo (v13)
+- La mappa segue la posizione GPS reale; per evitare micro-oscillazioni usa una soglia di 3 metri **rispetto all'ultimo punto realmente visualizzato**. I piccoli movimenti si accumulano e provocano il ricentramento, invece di lasciare la cartografia immobile.
+- Il pulsante di localizzazione manuale continua a forzare il ricentramento sul GPS reale, mentre il GPX Academy resta la fonte del percorso, della direzione e delle fermate.
+- Nuovo test automatico per verificare che una sequenza di aggiornamenti GPS piccoli e consecutivi sposti effettivamente la mappa.
