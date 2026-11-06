@@ -99,3 +99,11 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - Durante la navigazione a tutto schermo, il puntatore blu fisso rappresenta le coordinate GPS ricevute. La camera segue i fix reali validi con una zona morta di 8 m per limitare oscillazioni, mentre il GPX Academy continua a definire direzione di marcia, avanzamento, fermate e annunci vocali.
 - La simulazione percorre il GPX e non è una localizzazione reale. Il pulsante ⌖ utilizza sempre un fix GPS reale (quando disponibile), anche se si sta provando la simulazione.
 - Non usare la posizione o le svolte sperimentali come istruzioni stradali certificate.
+
+## Audit prestazioni, accessibilità e test di regressione (v12)
+- **Correzione geometrica:** `pointAt` restituisce sempre il punto finale, e non l'inizio del GPX, quando la distanza richiesta raggiunge o supera la lunghezza del percorso.
+- **Ottimizzazione GPS:** `renderStops()` aggiorna l'elenco delle fermate solo al cambiamento della fermata corrente, riducendo l'attività DOM sui dispositivi mobili.
+- **Accessibilità e leggibilità:** evidenziazione della fermata attiva, focus visibile per tastiera, aree cliccabili di almeno 44 px, testo informativo più leggibile sui telefoni, etichetta esplicita per il pulsante GPS, preferenza di sistema per movimento ridotto.
+- **Test automatici:** `node --test tests/*.test.cjs` controlla catalogo di **787 GPX (557/29/201)**, ID univoci, integrità minima di tutti i tracciati, sintassi JS, ID dell'interfaccia, interpolazione GPX ai capolinea e presenza delle funzionalità fondamentali. Workflow `.github/workflows/smoke.yml` esegue i controlli sui push e sulle PR verso `main`.
+- Nessuna modifica a `official-routes.json`, nomenclature Academy, fermate GTFS Busitalia/MOM o contenuti del catalogo.
+- **Limite:** i test automatizzati verificano la logica e l'integrità strutturale, ma non sostituiscono prove GPS/voce/rotazione su iPhone.
