@@ -80,3 +80,10 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - Il caricamento UMD di Leaflet Rotate `@tomickigrzegorz/leaflet-rotate@0.3.0` e l'API `setHeading`, `setBearing`, `stopHeadingUp` sono stati confrontati con la documentazione del progetto.
 - In caso di permesso GPS negato, si interrompe la sessione e si torna ai selettori, con pulsanti nuovamente utilizzabili. Errori di posizione temporanei mostrano un avviso senza terminare forzatamente il tracciato.
 - Alla fine della simulazione, la navigazione viene chiusa correttamente, GPS/voce si fermano e i pulsanti vengono riabilitati. Su iPhone restano necessari test reali del GPS, rotazione mappa e uscita dall'interfaccia.
+
+## Stabilizzazione orientamento e inseguimento GPS (v9)
+- L'orientamento heading-up è calcolato **solo sulla geometria GPX Academy**, su un intervallo lungo 140 m circa. Il `coords.heading` del dispositivo non determina più direttamente la rotazione.
+- Una zona morta di circa 12° e un cambio massimo di circa 12° per aggiornamento riducono oscillazioni e rotazioni dovute a curve minime e rumorosità GPS.
+- Il centro della navigazione è proiettato sul GPX Academy, non sulle coordinate GPS grezze. I ricentramenti vengono limitati (24 metri / 2,5 secondi) e animati. L'ingresso in navigazione attende il primo fix valido prima di centrare e regolare lo zoom.
+- Un filtro di avanzamento confronta la posizione con un segmento vicino all'ultima posizione confermata e respinge salti implausibili verso altri punti dello stesso percorso, specie negli incroci e in tratte sovrapposte. I fix GPS poco precisi non inizializzano il riferimento di navigazione.
+- Nessuna modifica alla geometria dei GPX o ai dati delle fermate Busitalia. La navigazione rimane sperimentale: verificare sul campo da fermi e non usarla come fonte di manovre autorizzate.
