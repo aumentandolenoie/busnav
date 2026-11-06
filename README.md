@@ -93,3 +93,9 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - La mappa viene centrata senza animazione sulla posizione proiettata sul GPX dopo ogni aggiornamento affidabile. I movimenti di pochi metri vengono smorzati e lo scorrimento manuale viene disattivato durante la navigazione, così il puntatore non può sparire fuori dallo schermo.
 - La cartografia resta orientata al senso di marcia lungo il GPX; la freccia punta verso la parte alta dello schermo. Il normale indicatore GPS e il trascinamento ritornano quando termini la navigazione.
 - Il puntatore appare solo dopo un primo GPS sufficientemente affidabile. Se il GPS è fuori percorso, la posizione può rimanere ferma sull'ultimo punto valido: verificare sempre lo stato GPS. Non è una posizione certificata.
+
+## Ricentramento sulla posizione GPS reale (v11)
+- Il pulsante ⌖ centra sulla **posizione GPS del dispositivo**, non sul punto proiettato sul GPX Academy. Se il dato è vecchio di almeno 10 secondi, richiede un nuovo fix ad alta accuratezza e rifiuta quello con incertezza superiore a 120 m.
+- Durante la navigazione a tutto schermo, il puntatore blu fisso rappresenta le coordinate GPS ricevute. La camera segue i fix reali validi con una zona morta di 8 m per limitare oscillazioni, mentre il GPX Academy continua a definire direzione di marcia, avanzamento, fermate e annunci vocali.
+- La simulazione percorre il GPX e non è una localizzazione reale. Il pulsante ⌖ utilizza sempre un fix GPS reale (quando disponibile), anche se si sta provando la simulazione.
+- Non usare la posizione o le svolte sperimentali come istruzioni stradali certificate.
