@@ -29,6 +29,7 @@ function leaveNavigationView(){
  $('navigationPosition').hidden=true;
  map.dragging.enable();
  if(locationMarker)locationMarker.setStyle({opacity:1,fillOpacity:1});
+ if(accuracyCircle&&!map.hasLayer(accuracyCircle))accuracyCircle.addTo(map);
  if(typeof map.setHeading==='function')map.setHeading(null);
  if(typeof map.stopHeadingUp==='function')map.stopHeadingUp();
  if(typeof map.setBearing==='function')map.setBearing(0);
