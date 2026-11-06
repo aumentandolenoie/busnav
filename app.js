@@ -151,23 +151,34 @@ function buildAcademyMatches(chosen){
   const match=matchStopsStrict(x.stops,pts,dists);
   if(match.ok)results.push({trip:x.trip,legs:[x],stops:x.stops,averageError:x.meanError,coverage:x.span/total,match});
  }
- // Build only consecutive contiguous pairs, not arbitrary concatenations.
- const ordered=segments.sort((a,b)=>a.start-b.start||b.end-a.end),seen=new Set();
- for(const a of ordered){
-  if(a.start>Math.max(700,total*.12)||a.end>total*.94)continue;
-  for(const b of ordered){
-   if(b===a||b.end<=a.end+400||b.start<a.end-260||b.start>a.end+2200)continue;
-   const junctionDistance=metres(a.last,b.first);
-   if(junctionDistance>320)continue;
-   const extent={start:a.start,end:b.end,span:b.end-a.start};
-   if(!full(extent))continue;
-   const sameJunction=junctionDistance<35||(junctionDistance<100&&String(a.last.stop_name||'').trim().toLocaleLowerCase('it')===String(b.first.stop_name||'').trim().toLocaleLowerCase('it'));const joined=a.stops.concat(b.stops.slice(sameJunction?1:0));
-   const match=matchStopsStrict(joined,pts,dists);
-   if(!match.ok)continue;
-   const key=joined.map(x=>Math.round(x.stop.lat*10000)+':'+Math.round(x.stop.lng*10000)).join('|');
-   if(seen.has(key))continue;seen.add(key);
-   results.push({trip:a.trip,legs:[a,b],stops:joined,averageError:(a.meanError+b.meanError)/2,coverage:extent.span/total,match});
+ // Explore up to four segments when a whole Academy route is split into multiple GTFS trips.
+ // Never interpolate invented stops and never join geographically disconnected legs.
+ const ordered=segments.sort((a,b)=>a.start-b.start||b.end-a.end);
+ const seen=new Set();
+ let frontier=ordered.filter(x=>x.start<Math.max(700,total*.12)).map(x=>({legs:[x],stops:x.stops,start:x.start,end:x.end,error:x.meanError}));
+ for(let depth=2;depth<=4&&frontier.length;depth++){
+  const next=[];
+  for(const chain of frontier){
+   const last=chain.legs.at(-1);
+   for(const leg of ordered){
+    if(chain.legs.includes(leg)||leg.end<=last.end+400||leg.start<last.end-260||leg.start>last.end+2200)continue;
+    const gap=metres(last.last,leg.first);
+    if(gap>320)continue;
+    const sameStop=gap<35||(gap<100&&String(last.last.stop_name||'').trim().toLocaleLowerCase('it')===String(leg.first.stop_name||'').trim().toLocaleLowerCase('it'));
+    const stops=chain.stops.concat(leg.stops.slice(sameStop?1:0));
+    const candidate={legs:[...chain.legs,leg],stops,start:chain.start,end:leg.end,error:(chain.error*(depth-1)+leg.meanError)/depth};
+    if(full({start:candidate.start,end:candidate.end,span:candidate.end-candidate.start})){
+     const match=matchStopsStrict(stops,pts,dists);
+     if(!match.ok)continue;
+     const key=stops.map(x=>Math.round(x.stop.lat*10000)+':'+Math.round(x.stop.lng*10000)).join('|');
+     if(seen.has(key))continue;seen.add(key);
+     results.push({trip:chain.legs[0].trip,legs:candidate.legs,stops,averageError:candidate.error,coverage:(candidate.end-candidate.start)/total,match});
+    }else if(depth<4&&candidate.end<total*.96)next.push(candidate);
+   }
   }
+  // Limit combinatorial growth on networks with many overlapping service variants.
+  next.sort((a,b)=>b.end-a.end||a.error-b.error);
+  frontier=next.slice(0,120);
  }
  results.sort((a,b)=>b.coverage-a.coverage||a.averageError-b.averageError);
  return {results:results.slice(0,80),segments:segments.length,groupCount};
@@ -182,7 +193,7 @@ function findGtfsForAcademy(){
   results.forEach((x,i)=>{
    const id='academy-match-'+i;academyGtfsMatches.set(id,x);
    const codes=x.legs.map(l=>feed.routesById.get(l.trip.route_id)?.route_short_name||'?').join(' + ');
-   options.push([id,(x.legs.length>1?'2 tratte':'Corsa unica')+' · '+codes+' · '+x.stops.length+' fermate · copertura '+Math.round(x.coverage*100)+'% · scarto '+Math.round(x.averageError)+' m']);
+   options.push([id,(x.legs.length>1?x.legs.length+' tratte':'Corsa unica')+' · '+codes+' · '+x.stops.length+' fermate · copertura '+Math.round(x.coverage*100)+'% · scarto '+Math.round(x.averageError)+' m']);
   });
   setOptions($('academyGtfsTrip'),options,'Scegli una sequenza di fermate…');
   $('academyGtfsStatus').textContent=results.length?
