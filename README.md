@@ -119,3 +119,9 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - Le svolte sperimentali possono essere annunciate da circa 230 m, evitando di sovrapporsi agli annunci delle fermate. La prossima fermata può essere annunciata anche con deviazioni GPS moderate (entro 100 m dal GPX), ma non quando il tracciamento è inattendibile.
 - **Prerequisito:** soltanto i GPX Academy ai quali è stata associata una sequenza di fermate GTFS Busitalia possono pronunciare i nomi delle fermate; in caso contrario, compare un avviso esplicito.
 - Nessuna modifica a GPX Academy, conteggi catalogo o alle fermate GTFS; Safari iOS può comunque sospendere TTS con display bloccato o pagina in background.
+
+## Recupero automatico GPS sul GPX e annunci vocali (v15)
+- La distinzione fra *fuori percorso* e *posizione fuori dalla finestra locale di ricerca* viene eseguita usando la distanza dal **GPX intero**. Una finestra locale rimasta indietro dopo salti GPS non deve bloccare definitivamente gli avvisi.
+- Se il GPS è vicino al GPX ma molto avanti rispetto all'ultima progressione, due rilevamenti consecutivi e coerenti permettono il riallineamento automatico, con avvisi momentaneamente sospesi durante la verifica. Non vengono inventate posizioni o fermate.
+- Quando il GPS è realmente oltre 180 m dalla geometria, l'app indica la distanza dal GPX e sospende gli avvisi. La mappa continua a seguire la posizione reale.
+- Test di regressione con avanzamento normale, salto GPS di oltre 500 m sul GPX, recupero automatico e vera deviazione fuori percorso. Catalogo dei 787 GPX e feed fermate Busitalia invariati.
