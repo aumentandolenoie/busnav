@@ -67,7 +67,7 @@ function filterAcademyRoutes(){
 }
 let academyGtfsMatches=new Map();
 function resetAcademyGtfs(){
- academyGtfsMatches=new Map();
+ academyGtfsMatches=new Map();$('academyDiff').hidden=true;$('academyDiffList').replaceChildren();
  setOptions($('academyGtfsTrip'),[],'Nessuna corsa verificata');
  $('findGtfsAcademy').disabled=!selectedOfficial||!feed;
  $('mergeOfficial').disabled=true;
@@ -139,6 +139,60 @@ function candidateGtfsSegments(chosen,pts,dists){
  }
  return {segments,groupCount:groups.size};
 }
+function samePhysicalStop(a,b){
+ if(!a||!b||!Number.isFinite(a.lat)||!Number.isFinite(b.lat))return false;
+ const distance=metres(a,b);
+ if(distance>35)return false;
+ const names=[a.stop_name,b.stop_name].map(v=>String(v||'').normalize('NFKD').toUpperCase().replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,''));
+ return (a.stop_id&&a.stop_id===b.stop_id)||(names[0]&&names[0]===names[1]);
+}
+function stopSequenceKey(stops){return stops.map(x=>[x.stop?.stop_id||'',Math.round(x.stop?.lat*100000||0),Math.round(x.stop?.lng*100000||0)].join(':')).join('|')}
+function makeInfoLine(parent,value,strong=false){
+ const item=document.createElement('p');item.className='help';item.textContent=value;if(strong)item.style.fontWeight='700';parent.append(item);
+}
+function describeMatch(x){
+ return x.legs.map((l,i)=>{
+  const route=feed.routesById.get(l.trip.route_id);
+  const first=l.stops[0]?.stop?.stop_name||'?';
+  const last=l.stops.at(-1)?.stop?.stop_name||'?';
+  return (i+1)+'. '+(route?.route_short_name||'?')+' '+first+' → '+last+' ('+l.stops.length+' fermate)';
+ }).join(' | ');
+}
+function hasStopInSequence(stop,seq){return seq.some(item=>samePhysicalStop(stop,item.stop))}
+function renderAcademyStopComparison(){
+ const panel=$('academyDiff'),root=$('academyDiffList');
+ root.replaceChildren();
+ const results=[...academyGtfsMatches.entries()];
+ panel.hidden=results.length<2;
+ if(results.length<2)return;
+ const selected=academyGtfsMatches.get($('academyGtfsTrip').value)||results[0][1];
+ const all=results.map(([id,x])=>x.stops);
+ const common=selected.stops.filter(st=>all.every(seq=>hasStopInSequence(st.stop,seq)));
+ makeInfoLine(root,results.length+' varianti geograficamente compatibili. '+common.length+' fermate della variante selezionata risultano comuni a tutte. Questo confronto non certifica le fermate in servizio.',true);
+ // Compare each variant against the currently selected sequence, not just total counts.
+ for(const [id,x] of results){
+  const wrapper=document.createElement('section');wrapper.className='academy-diff-item';
+  const title=document.createElement('strong');
+  const idx=results.findIndex(([key])=>key===id)+1;
+  title.textContent='Variante '+idx+(x===selected?' (selezionata)':'')+' · '+x.stops.length+' fermate';
+  wrapper.append(title);
+  makeInfoLine(wrapper,describeMatch(x));
+  const notInSelected=x.stops.filter(st=>!hasStopInSequence(st.stop,selected.stops));
+  const missingFromX=selected.stops.filter(st=>!hasStopInSequence(st.stop,x.stops));
+  const shared=x.stops.filter(st=>hasStopInSequence(st.stop,selected.stops)).length;
+  if(x===selected){makeInfoLine(wrapper,'Riferimento del confronto: '+shared+' fermate.');}
+  else {
+   makeInfoLine(wrapper,'In comune con la selezionata: '+shared+' · Solo in questa: '+notInSelected.length+' · Mancanti rispetto alla selezionata: '+missingFromX.length);
+   for(const [label,rows] of [['Solo in questa variante',notInSelected],['Presenti nella selezionata ma non in questa',missingFromX]]){
+    if(!rows.length)continue;
+    const p=document.createElement('p');p.className='help';
+    p.textContent=label+': '+rows.map(st=>st.stop?.stop_name||st.stop?.stop_id||'Fermata senza nome').join('; ');
+    wrapper.append(p);
+   }
+  }
+  root.append(wrapper);
+ }
+}
 function buildAcademyMatches(chosen){
  const pts=chosen.points.map(([lat,lng])=>({lat,lng})),dists=shapeMetrics(pts),total=dists.at(-1)||1;
  const {segments,groupCount}=candidateGtfsSegments(chosen,pts,dists);
@@ -160,13 +214,13 @@ function buildAcademyMatches(chosen){
     if(chain.legs.includes(leg)||leg.end<=last.end+400||leg.start<last.end-260||leg.start>last.end+2200)continue;
     const gap=metres(last.last,leg.first);
     if(gap>320)continue;
-    const sameStop=gap<35||(gap<100&&String(last.last.stop_name||'').trim().toLocaleLowerCase('it')===String(leg.first.stop_name||'').trim().toLocaleLowerCase('it'));
+    const sameStop=samePhysicalStop(last.last,leg.first);
     const stops=chain.stops.concat(leg.stops.slice(sameStop?1:0));
     const candidate={legs:[...chain.legs,leg],stops,start:chain.start,end:leg.end,error:(chain.error*(depth-1)+leg.meanError)/depth};
     if(full({start:candidate.start,end:candidate.end,span:candidate.end-candidate.start})){
      const match=matchStopsStrict(stops,pts,dists);
      if(!match.ok)continue;
-     const key=stops.map(x=>Math.round(x.stop.lat*10000)+':'+Math.round(x.stop.lng*10000)).join('|');
+     const key=stopSequenceKey(stops);
      if(seen.has(key))continue;seen.add(key);
      results.push({trip:chain.legs[0].trip,legs:candidate.legs,stops,averageError:candidate.error,coverage:(candidate.end-candidate.start)/total,match});
     }else if(depth<4&&candidate.end<total*.96)next.push(candidate);
@@ -177,21 +231,23 @@ function buildAcademyMatches(chosen){
   frontier=next.slice(0,120);
  }
  results.sort((a,b)=>b.coverage-a.coverage||a.averageError-b.averageError);
- return {results:results.slice(0,80),segments:segments.length,groupCount};
+ return {results,segments:segments.length,groupCount};
 }
 function findGtfsForAcademy(){
  if(!selectedOfficial||!feed)return;
  const button=$('findGtfsAcademy');button.disabled=true;
  $('academyGtfsStatus').textContent='Confronto delle fermate GTFS con il GPX Academy…';
+ academyGtfsMatches=new Map();$('academyDiff').hidden=true;$('academyDiffList').replaceChildren();
  try{
   const {results,segments,groupCount}=buildAcademyMatches(selectedOfficial);
   academyGtfsMatches=new Map();const options=[];
   results.forEach((x,i)=>{
    const id='academy-match-'+i;academyGtfsMatches.set(id,x);
    const codes=x.legs.map(l=>feed.routesById.get(l.trip.route_id)?.route_short_name||'?').join(' + ');
-   options.push([id,(x.legs.length>1?x.legs.length+' tratte':'Corsa unica')+' · '+codes+' · '+x.stops.length+' fermate · copertura '+Math.round(x.coverage*100)+'% · scarto '+Math.round(x.averageError)+' m']);
+   options.push([id,'Variante '+(i+1)+' · '+(x.legs.length>1?x.legs.length+' tratte':'Corsa unica')+' · '+codes+' · '+x.stops.length+' fermate · copertura '+Math.round(x.coverage*100)+'% · scarto '+Math.round(x.averageError)+' m']);
   });
   setOptions($('academyGtfsTrip'),options,'Scegli una sequenza di fermate…');
+  renderAcademyStopComparison();
   $('academyGtfsStatus').textContent=results.length?
    results.length+' combinazioni geometriche compatibili; controlla fermate, direzione e variante. La combinazione non prova una corsa diretta dello stesso autobus.':
    'Nessuna corrispondenza completa ('+segments+' segmenti compatibili da '+groupCount+' sequenze GTFS). Il GPX non viene modificato.';
@@ -202,6 +258,7 @@ function findGtfsForAcademy(){
 $('findGtfsAcademy').addEventListener('click',findGtfsForAcademy);
 $('academyGtfsTrip').addEventListener('change',()=>{
  $('mergeOfficial').disabled=!selectedOfficial||!academyGtfsMatches.has($('academyGtfsTrip').value);
+ renderAcademyStopComparison();
 });
 function onAcademySelected(){
  const cat=$('academyCategory').value,line=$('academyLine').value;

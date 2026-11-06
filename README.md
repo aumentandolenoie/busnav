@@ -55,3 +55,10 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - Il **GTFS principale** dev'essere quello Busitalia / BusOne relativo a Busitalia. Le sequenze delle fermate vengono estratte **solo** da questo feed: GTFS aggiuntivi (MOM) sono tenuti separati e non possono aggiungere fermate proprie. Le fermate in comune sono incluse quando esistono nel GTFS principale Busitalia; non vengono duplicate da MOM.
 - Il service worker ora aggiorna i file del progetto via rete con cache di ripiego, per ridurre il rischio di codice obsoleto dopo il deploy.
 - I percorsi GPX Academy non sono modificati. Navigazione e svolte restano sperimentali e non autorizzano manovre stradali.
+
+## Confronto varianti di fermate Busitalia (E060 e altre linee Academy)
+- Dopo la ricerca delle corse GTFS compatibili, il pannello **Confronta le fermate delle varianti** mostra per ogni proposta i segmenti GTFS, il numero di fermate in comune, quelle presenti solo in quella variante e quelle assenti rispetto alla selezionata. Il confronto cambia selezionando un'altra variante.
+- Il raccordo tra segmenti elimina un duplicato soltanto se due fermate sono entro 35 metri **e** hanno lo stesso stop_id o lo stesso nome normalizzato. La sola vicinanza non basta.
+- La deduplicazione delle combinazioni tiene conto degli stop_id oltre che delle coordinate, per distinguere fermate molto vicine.
+- Non viene selezionata automaticamente la combinazione col maggior numero di fermate o con il minore scarto geometrico. I GTFS MOM supplementari restano esclusi dalle fermate associate; il feed principale deve essere Busitalia/BusOne BIV.
+- I dati reali delle quattro combinazioni viste nell'app non sono conservati nella repository: i loro nomi effettivi saranno confrontabili nel pannello dopo l'import GTFS. Verificare sempre le fermate con la documentazione ufficiale della corsa.
