@@ -50,3 +50,23 @@ test('no removal of PWA offline fallback',()=>{
  assert.match(sw, /caches\.match/);
  assert.match(html, /manifest\.webmanifest/);
 });
+
+test('GPS follow camera accumulates small movements instead of stalling',()=>{
+ const code=sourceOf('followStableCamera');
+ const calls=[];
+ const map={
+  getZoom:()=>16,
+  setView:(p)=>calls.push(['initial',p]),
+  panTo:(p)=>calls.push(['follow',p])
+ };
+ const display={hidden:true};
+ const metres=(a,b)=>Math.hypot((b.lat-a.lat)*111194,(b.lng-a.lng)*80000);
+ const follow=new Function('map','$','metres',`let navigationFullscreen=true,lastCameraPoint=null; ${code};return followStableCamera;`)(map,()=>display,metres);
+ const starting=45.40;
+ for(let i=0;i<=10;i++)follow({lat:starting+i*0.000012,lng:11.88},false,false); // ~1.33 m/update
+ assert.ok(calls.length>=4,'Camera must move after several small GPS updates');
+ assert.equal(calls[0][0],'initial');
+ assert.ok(calls.some(c=>c[0]==='follow'));
+ assert.ok(Math.abs(calls.at(-1)[1][0]-(starting+10*0.000012))<0.00004);
+ assert.equal(display.hidden,false);
+});
