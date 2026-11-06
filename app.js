@@ -339,11 +339,11 @@ function selectTrip(){stopNavigation();const trip=tripsInDirection().find(t=>t.t
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderStops(){if(!current)return;if(!current.stops.length){$('stopList').innerHTML='<p class="empty">GPX Academy: importa e associa una corsa GTFS per vedere le fermate.</p>';return}const frag=document.createDocumentFragment();current.stops.forEach((s,i)=>{const el=document.createElement('div');el.className='stop-row '+(i<nextStopIdx?'done':i===nextStopIdx?'current':'');el.innerHTML=`<div class="stop-num">${i+1}</div><div><strong>${escapeHTML(s.stop.stop_name)}</strong><small>${escapeHTML(s.arrival||'')} · ${escapeHTML(s.stop.stop_id)}</small></div>`;frag.append(el)});$('stopList').replaceChildren(frag)}
 // GPS-like spoken guidance. All distances are measured along the Academy GPX.
-let voiceQueue=[],voiceBusy=false,voiceGeneration=0,voiceUnlocked=false;
+let voiceQueue=[],voiceBusy=false,voiceGeneration=0,voiceUnlocked=false,activeVoicePriority=null,firstVoiceFix=true;
 let spokenStopStages=new Map(),lastVoiceTime=0,lastPositionSample=null,filteredSpeed=0;
 function resetVoiceGuidance(){
  voiceGeneration++;voiceQueue=[];voiceBusy=false;spokenStopStages.clear();
- lastVoiceTime=0;lastPositionSample=null;filteredSpeed=0;
+ lastVoiceTime=0;lastPositionSample=null;filteredSpeed=0;activeVoicePriority=null;firstVoiceFix=true;
  if('speechSynthesis'in window)try{speechSynthesis.cancel()}catch(e){console.warn(e)}
 }
 function setupVoice(){
@@ -353,8 +353,14 @@ function setupVoice(){
 }
 function enqueueVoice(message,priority='normal'){
  if(!$('voiceToggle').checked||!setupVoice())return false;
- // Stops always take priority over experimental turn hints.
- if(priority==='stop')voiceQueue=voiceQueue.filter(x=>x.priority!=='turn');
+ // Stop warnings preempt speculative curve announcements; they never preempt another stop.
+ if(priority==='stop'){
+  voiceQueue=voiceQueue.filter(x=>x.priority!=='turn');
+  if(voiceBusy&&activeVoicePriority==='turn'){
+   voiceGeneration++;voiceBusy=false;activeVoicePriority=null;
+   try{speechSynthesis.cancel()}catch(e){console.warn(e)}
+  }
+ }
  if(priority==='turn'&&(voiceBusy||voiceQueue.some(x=>x.priority==='stop')))return false;
  if(voiceQueue.length>3)voiceQueue=voiceQueue.slice(-2);
  voiceQueue.push({message,priority});
@@ -363,7 +369,7 @@ function enqueueVoice(message,priority='normal'){
 function drainVoice(){
  if(voiceBusy||!voiceQueue.length||!('speechSynthesis'in window))return;
  const item=voiceQueue.shift(),generation=voiceGeneration;
- voiceBusy=true;
+ voiceBusy=true;activeVoicePriority=item.priority;
  try{
   const speech=new SpeechSynthesisUtterance(item.message);
   speech.lang='it-IT';speech.rate=1.02;speech.pitch=1;
@@ -371,10 +377,10 @@ function drainVoice(){
   const italian=voices.find(v=>v.lang.toLowerCase()==='it-it')||voices.find(v=>v.lang.toLowerCase().startsWith('it'));
   if(italian)speech.voice=italian;
   let completed=false;
-  const finish=()=>{if(completed||generation!==voiceGeneration)return;completed=true;voiceBusy=false;drainVoice()};
+  const finish=()=>{if(completed||generation!==voiceGeneration)return;completed=true;voiceBusy=false;activeVoicePriority=null;drainVoice()};
   speech.onend=finish;speech.onerror=finish;
   speechSynthesis.speak(speech);
- }catch(e){voiceBusy=false;console.warn('Sintesi vocale:',e);drainVoice()}
+ }catch(e){voiceBusy=false;activeVoicePriority=null;console.warn('Sintesi vocale:',e);drainVoice()}
 }
 function speak(message,priority='normal'){return enqueueVoice(message,priority)}
 function niceDistance(m){return m<1000?Math.round(Math.max(0,m)/10)*10+' m':(m/1000).toFixed(1)+' km'}
@@ -429,6 +435,11 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false){
   if(ahead.d<Math.max(near.d+20,55))near=ahead;
  }
  const along=near.along;
+ // A capolinea is often also GTFS stop #1: on departure, the next alert is stop #2.
+ if(firstVoiceFix){
+  firstVoiceFix=false;
+  if(stops.length>1&&offsets[0]<=50&&Math.abs(along-offsets[0])<30)nextStopIdx=1;
+ }
  lastAlong=Math.max(lastAlong,along-30);
  $('gpsStatus').textContent=isDemo?'Simulazione':accuracy?'GPS ±'+Math.round(accuracy)+' m':'GPS attivo';
  $('navStatus').textContent=current.trip.trip_headsign||'Corsa in corso';
