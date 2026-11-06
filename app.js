@@ -87,12 +87,12 @@ function academyRouteCodes(r){
  return keys;
 }
 function gtfsFitsAcademyCode(r,route){
- const gtfs=normAcademyCode(route.route_short_name||route.route_long_name);
- if(!gtfs)return false;
- const keys=academyRouteCodes(r);
- if(keys.has(gtfs))return true;
- // No broad fuzzy matching: 10 must never be matched to 110, etc.
- return [...keys].some(x=>/^\d+[A-Z]+$/.test(x)&&x.replace(/[A-Z]+$/,'')===gtfs);
+ const codes=academyRouteCodes(r);
+ const family=code=>String(code||'').replace(/^(\d+)[A-Z]+$/,'$1');
+ const keys=new Set([...codes].flatMap(c=>[c,family(c)]));
+ const raw=String(route?.route_short_name||route?.route_long_name||'');
+ return raw.split(/[\/;,]+/).flatMap(v=>[v,v.split(/[_-]/)[0]]).map(normAcademyCode)
+  .some(code=>code&&(keys.has(code)||keys.has(family(code))));
 }
 function timeOfTrip(t){
  const x=feed.timesByTrip.get(t.trip_id)||[];
@@ -119,15 +119,10 @@ function evaluateGtfsSegment(stops,points,dists){
  return {start:offsets[0],end:offsets.at(-1),span,meanError:errors.reduce((x,y)=>x+y,0)/errors.length,first:stops[0].stop,last:stops.at(-1).stop,stops};
 }
 function candidateGtfsSegments(chosen,pts,dists){
- const aliases=academyRouteCodes(chosen);
- // E060 Busitalia is also the MOM 101 Padova–Treviso pool route.
- // Numeric alias is specific to this corridor and still requires geometry validation.
- if(aliases.has('60')||aliases.has('060'))aliases.add('101');
+ // Only the Busitalia/primary feed provides stop sequences. Supplemental MOM is excluded.
  const groups=new Map();
  for(const route of feed.routes){
-  const rawCode=String(route.route_short_name||'');
-  const codes=rawCode.split(/[\/;,]+/).flatMap(part=>[normAcademyCode(part),normAcademyCode(part.split(/[_-]/)[0])]).filter(Boolean);
-  if(!codes.some(code=>aliases.has(code)||((/^(\d+)[A-Z]+$/.exec(code)?.[1])&&aliases.has(/^(\d+)[A-Z]+$/.exec(code)[1]))))continue;
+  if(route._stopAuthority==='supplemental'||!gtfsFitsAcademyCode(chosen,route))continue;
   for(const t of feed.tripsByRoute.get(route.route_id)||[]){
    const a=feed.timesByTrip.get(t.trip_id)||[];
    if(a.length<2)continue;
@@ -218,7 +213,7 @@ function onAcademySelected(){
  selectedOfficial=academy.find(r=>String(r.id)===$('academyRoute').value&&r.category===cat&&academyGroupName(r)===line)||null;
  $('showOfficial').disabled=!selectedOfficial;
  resetAcademyGtfs();
- if(selectedOfficial)$('officialInfo').textContent=selectedOfficial.category+', linea '+selectedOfficial.line+', variante '+(selectedOfficial.variant||'—')+': '+selectedOfficial.name+'. Per abbinare le fermate seleziona una corsa GTFS corrispondente.';
+ if(selectedOfficial){$('officialInfo').textContent=selectedOfficial.category+', linea '+selectedOfficial.line+', variante '+(selectedOfficial.variant||'—')+': '+selectedOfficial.name+'. Puoi avviare il GPS direttamente su questo GPX.';showAcademyRoute(false);}
  else $('officialInfo').textContent='Scegli categoria, linea e percorso effettivo.';
 }
 $('academyCategory').addEventListener('change',()=>{$('academySearch').value='';filterAcademy()});
@@ -227,7 +222,7 @@ $('academySearch').addEventListener('input',filterAcademyRoutes);
 $('academyRoute').addEventListener('change',onAcademySelected);
 function selectedGTFS(){return tripsInDirection().find(t=>t.trip_id===$('tripSelect').value)}
 function showAcademyRoute(merge=false){const chosen=selectedOfficial;if(!chosen){toast('Seleziona un GPX Academy');return}const points=chosen.points.map(([lat,lng])=>({lat,lng}));const dists=shapeMetrics(points);let stops=[],offsets=[],diagnostic='GPX Academy senza fermate. Per aggiungerle, carica il GTFS e associa una corsa precisa.';let trip={trip_headsign:chosen.name};let reliable=false;
-if(merge){if(!feed){toast('Prima importa il GTFS');return}const academyMatch=academyGtfsMatches.get($('academyGtfsTrip').value);const gt=academyMatch?.trip||selectedGTFS();if(!gt){toast('Seleziona una corsa GTFS corrispondente');return}const gtfsRoute=feed.routesById.get(gt.route_id);const num=normAcademyCode(gtfsRoute?.route_short_name||'');const officialNum=[...academyRouteCodes(chosen)].join(', ');if(!academyMatch&&!gtfsFitsAcademyCode(chosen,gtfsRoute||{})){$('officialInfo').textContent=`Abbinamento bloccato: linea GTFS ${num} diversa dal GPX ${officialNum}. Seleziona la corsa corretta.`;toast('Linea GPX e GTFS non corrispondono');return}
+if(merge){if(!feed){toast('Prima importa il GTFS');return}const academyMatch=academyGtfsMatches.get($('academyGtfsTrip').value);const gt=academyMatch?.trip||selectedGTFS();if(!gt){toast('Seleziona una corsa GTFS corrispondente');return}const gtfsRoute=feed.routesById.get(gt.route_id);const num=normAcademyCode(gtfsRoute?.route_short_name||'');const officialNum=[...academyRouteCodes(chosen)].join(', ');if(gtfsRoute?._stopAuthority==='supplemental'){$('officialInfo').textContent='Le fermate MOM non sono utilizzate. Importa Busitalia come feed principale; le fermate comuni sono già nel suo GTFS.';toast('Fermate MOM escluse');return}if(!academyMatch&&!gtfsFitsAcademyCode(chosen,gtfsRoute||{})){$('officialInfo').textContent=`Abbinamento bloccato: linea GTFS ${num} diversa dal GPX ${officialNum}. Seleziona la corsa corretta.`;toast('Linea GPX e GTFS non corrispondono');return}
 const candidates=academyMatch?.stops||(feed.timesByTrip.get(gt.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));if(candidates.length<2){toast('Nessuna sequenza di fermate disponibile');return}const match=matchStopsStrict(candidates,points,dists);diagnostic=match.message;if(!match.ok){$('officialInfo').textContent=diagnostic;toast('Abbinamento non affidabile: navigazione fermate non abilitata');return}stops=candidates;offsets=match.offsets;trip={...gt,trip_headsign:academyMatch?.legs?.length>1?chosen.name:gt.trip_headsign};reliable=true}
 stopNavigation();current={trip,stops,points,dists,offsets,fallback:false,academy:chosen,reliable};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastAlong=0;turns=computeTurns(points,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#0da2a5',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);map.fitBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length?stops.length+' fermate':'Fermate non associate';$('navStatus').textContent='GPX Academy caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'GPX senza fermate';$('nextDetail').textContent=merge?'GPS e simulazione disponibili':'Associa prima una corsa GTFS per gli annunci';$('nextDistance').textContent='—';$('demoBtn').disabled=false;$('startNav').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent='Svolte geometriche sperimentali (non stradali)';$('officialInfo').textContent=diagnostic;toast(merge?'GPX Academy e fermate GTFS associati':'Tracciato GPX Academy visualizzato');}
 function matchStopsStrict(stops,points,dists){let offsets=[],last=-1,outliers=0,maxError=0,backward=0;const total=dists.at(-1);for(const st of stops){const p=st.stop;const start=Math.max(0,dists.findIndex(d=>d>=Math.max(0,last-30))-1);const near=nearestOnShape(p,points,dists,start);const global=nearestOnShape(p,points,dists);if(global.along<last-150 && global.d+25<near.d)backward++;
@@ -255,7 +250,7 @@ function appendOfficialFeed(base,additional){
  const prefix='source'+(++gtfsImportSequence)+':';
  const stops=new Map();
  for(const [id,s] of additional.stopsById)stops.set(prefix+id,{...s,stop_id:prefix+id});
- const routes=additional.routes.map(r=>({...r,route_id:prefix+r.route_id}));
+ const routes=additional.routes.map(r=>({...r,route_id:prefix+r.route_id,_stopAuthority:'supplemental'}));
  const routesById=new Map([...base.routesById,...routes.map(r=>[r.route_id,r])]);
  const tripsByRoute=new Map(base.tripsByRoute);
  for(const [routeId,trips] of additional.tripsByRoute)tripsByRoute.set(prefix+routeId,trips.map(t=>({...t,trip_id:prefix+t.trip_id,route_id:prefix+t.route_id,shape_id:prefix+(t.shape_id||''),service_id:prefix+(t.service_id||'')})));
@@ -265,13 +260,13 @@ function appendOfficialFeed(base,additional){
  for(const [id,pts] of additional.shapesById)shapesById.set(prefix+id,pts);
  return {...base,routes:[...base.routes,...routes],routesById,tripsByRoute,timesByTrip,shapesById,stopsById:new Map([...base.stopsById,...stops]),sources:(base.sources||1)+1,updated:new Date().toISOString()};
 }
-function handleFeed(f,append=false){feed=append&&feed?appendOfficialFeed(feed,f):f;resetAcademyGtfs();const routes=feed.routes.filter(r=>feed.tripsByRoute.has(r.route_id)).sort((a,b)=>(a.route_short_name||a.route_long_name).localeCompare(b.route_short_name||b.route_long_name,'it',{numeric:true}));setOptions($('routeSelect'),routes.map(r=>[r.route_id,(r.route_short_name||'—')+' · '+(r.route_long_name||'Percorso')]),'Scegli una linea…');$('dataStatus').textContent=routes.length+' linee';status(`Pronto: ${routes.length} linee, ${feed.stopsById.size} fermate, ${feed.sources||1} feed. I GPX Academy restano invariati.`);$('routeSelect').dispatchEvent(new Event('change'));}
+function handleFeed(f,append=false){if(!append||!feed)f={...f,routes:f.routes.map(r=>({...r,_stopAuthority:'busitalia'})),sources:1};feed=append&&feed?appendOfficialFeed(feed,f):f;resetAcademyGtfs();const routes=feed.routes.filter(r=>feed.tripsByRoute.has(r.route_id)).sort((a,b)=>(a.route_short_name||a.route_long_name).localeCompare(b.route_short_name||b.route_long_name,'it',{numeric:true}));setOptions($('routeSelect'),routes.map(r=>[r.route_id,(r.route_short_name||'—')+' · '+(r.route_long_name||'Percorso')]),'Scegli una linea…');$('dataStatus').textContent=routes.length+' linee';status(`Pronto: ${routes.length} linee, ${feed.stopsById.size} fermate, ${feed.sources||1} feed. I GPX Academy restano invariati.`);$('routeSelect').dispatchEvent(new Event('change'));}
 function groupTrips(){if(!feed)return[];const trips=feed.tripsByRoute.get($('routeSelect').value)||[];const groups=new Map();for(const t of trips){const label=(t.trip_headsign||'Direzione '+(t.direction_id||'0')).trim();const key=(t.direction_id||'')+'|'+label;if(!groups.has(key))groups.set(key,{label,trips:[]});groups.get(key).trips.push(t)}return [...groups.entries()].map(([key,g])=>[key,g.label+' ('+g.trips.length+' corse)']);}
 function tripsInDirection(){const trips=feed?.tripsByRoute.get($('routeSelect').value)||[];return trips.filter(t=>((t.direction_id||'')+'|'+(t.trip_headsign||'Direzione '+(t.direction_id||'0')).trim())===$('directionSelect').value)}
 function tripLabel(t){const times=feed.timesByTrip.get(t.trip_id)||[];const a=times[0]?.departure||'—';const b=times.at(-1)?.arrival||'—';const n=times.length;return `${a} → ${b} · ${n} fermate · ${t.service_id||'servizio'}`}
-$('routeSelect').addEventListener('change',()=>{stopNavigation();$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value);setOptions($('directionSelect'),groupTrips(),'Scegli direzione…');setOptions($('tripSelect'),[],'—');$('showRoute').disabled=true;$('startNav').disabled=true;clearRoute()});
-$('directionSelect').addEventListener('change',()=>{$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value);const trips=tripsInDirection().filter(t=>(feed.timesByTrip.get(t.trip_id)||[]).length>1);trips.sort((a,b)=>(feed.timesByTrip.get(a.trip_id)?.[0]?.departure||'').localeCompare(feed.timesByTrip.get(b.trip_id)?.[0]?.departure||''));setOptions($('tripSelect'),trips.map(t=>[t.trip_id,tripLabel(t)]),'Scegli corsa…');$('showRoute').disabled=true;$('startNav').disabled=true;clearRoute()});
-$('tripSelect').addEventListener('change',()=>{const ok=!!$('tripSelect').value;$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value)&&(!ok||!selectedOfficial);$('showRoute').disabled=!ok;if(current?.academy){$('startNav').disabled=false;return} $('startNav').disabled=!ok;if(ok)selectTrip();else clearRoute()});
+$('routeSelect').addEventListener('change',()=>{if(!current?.academy)stopNavigation();$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value);setOptions($('directionSelect'),groupTrips(),'Scegli direzione…');setOptions($('tripSelect'),[],'—');$('showRoute').disabled=true;$('startNav').disabled=!current?.academy;if(!current?.academy)clearRoute()});
+$('directionSelect').addEventListener('change',()=>{$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value);const trips=tripsInDirection().filter(t=>(feed.timesByTrip.get(t.trip_id)||[]).length>1);trips.sort((a,b)=>(feed.timesByTrip.get(a.trip_id)?.[0]?.departure||'').localeCompare(feed.timesByTrip.get(b.trip_id)?.[0]?.departure||''));setOptions($('tripSelect'),trips.map(t=>[t.trip_id,tripLabel(t)]),'Scegli corsa…');$('showRoute').disabled=true;$('startNav').disabled=!current?.academy;if(!current?.academy)clearRoute()});
+$('tripSelect').addEventListener('change',()=>{const ok=!!$('tripSelect').value;$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value)&&(!ok||!selectedOfficial);$('showRoute').disabled=!ok;if(current?.academy){$('startNav').disabled=false;return} $('startNav').disabled=!ok;if(ok)selectTrip();else if(!current?.academy)clearRoute()});
 function clearRoute(){current=null;if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=stopLayer=null;$('stopList').innerHTML='<p class="empty">Seleziona una corsa per vedere le fermate.</p>';$('stopCount').textContent='—';$('nextName').textContent='—';$('nextDetail').textContent='Carica una linea per iniziare';$('nextDistance').textContent='—';$('navStatus').textContent='Seleziona una corsa';$('progressBar').style.width='0%';$('progressLabel').textContent='0 / 0 fermate';$('turnHint').textContent='Percorso non attivo'}
 const rad=Math.PI/180;function metres(a,b){let dlat=(b.lat-a.lat)*rad,dlng=(b.lng-a.lng)*rad,s=Math.sin(dlat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dlng/2)**2;return 12742000*Math.atan2(Math.sqrt(s),Math.sqrt(1-s))}
 function project(p,a,b){const x=(b.lng-a.lng)*111320*Math.cos((p.lat+a.lat)/2*rad),y=(b.lat-a.lat)*111320;const px=(p.lng-a.lng)*111320*Math.cos((p.lat+a.lat)/2*rad),py=(p.lat-a.lat)*111320;let t=(x*x+y*y)?Math.max(0,Math.min(1,(px*x+py*y)/(x*x+y*y))):0;return {t,d:Math.hypot(px-x*t,py-y*t)}}
