@@ -781,7 +781,38 @@ function startGPS(){
  $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
 }
 function startDemo(){if(!current)return;stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
-$('loadFeed').addEventListener('click',async()=>{const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');try{const res=await fetch(FEED);if(!res.ok)throw Error('HTTP '+res.status);const blob=await res.blob();if(blob.size<1000)throw Error('File ZIP troppo piccolo');const f=await getGTFS(blob);handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente')}catch(err){status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');toast('Download non riuscito (possibile blocco CORS o rete)')}finally{btn.disabled=false}});
+async function downloadGTFSBlob(){
+ if(!nativeMode){
+  const res=await fetch(FEED);
+  if(!res.ok)throw Error('HTTP '+res.status);
+  return await res.blob();
+ }
+ // Native URLSession fetches GTFS and WKURLSchemeHandler returns it locally.
+ return await new Promise((resolve,reject)=>{
+  const xhr=new XMLHttpRequest();
+  xhr.open('GET','./gtfs.zip',true);xhr.responseType='blob';
+  xhr.onload=()=>{
+   if(xhr.status!==0&&(xhr.status<200||xhr.status>=300)){
+    reject(Error('GTFS HTTP '+xhr.status));return;
+   }
+   resolve(xhr.response);
+  };
+  xhr.onerror=()=>reject(Error('Download GTFS nativo fallito'));
+  xhr.send();
+ });
+}
+$('loadFeed').addEventListener('click',async()=>{
+ const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');
+ try{
+  const blob=await downloadGTFSBlob();
+  if(!blob||blob.size<1000)throw Error('File ZIP troppo piccolo');
+  const f=await getGTFS(blob);
+  handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente');
+ }catch(err){
+  status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');
+  toast('Download non riuscito (verifica la rete o importa ZIP)');
+ }finally{btn.disabled=false}
+});
 $('fileFeed').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{status('Importazione ZIP…');const f=await getGTFS(file);handleFeed(f);saveZip(file).catch(()=>{});toast('GTFS importato')}catch(err){status('Errore importazione: '+err.message)}e.target.value=''});
 $('extraFeed').addEventListener('change',async e=>{
  const file=e.target.files?.[0];if(!file)return;
