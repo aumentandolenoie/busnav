@@ -68,6 +68,8 @@ function updateNavigationHeading(points,dists,along){
 }
 function stableRouteMatch(p,points,dists,speed,isDemo){
  const now=Date.now(),global=nearestOnShape(p,points,dists);
+ // True off-route must be evaluated globally before accepting any local projection.
+ if(global.d>180){recoveryCandidate=null;return {...global,offRoute:true}}
  if(!hasMatchedFix){
   if(global.d>140)return {...global,offRoute:global.d>180,waiting:true};
   hasMatchedFix=true;lastMatchedAt=now;recoveryCandidate=null;
@@ -83,7 +85,7 @@ function stableRouteMatch(p,points,dists,speed,isDemo){
  const start=Math.max(0,(i0<0?points.length-2:i0)-2);
  const end=Math.min(points.length-1,Math.max(start+1,(i1<0?points.length-1:i1)+2));
  const local=nearestOnShape(p,points,dists,start,end);
- if(local.d<=Math.max(95,global.d+30)&&local.along>=lastAlong-75){
+ if(local.d<=Math.max(95,Math.min(145,global.d+30))&&local.along>=lastAlong-75){
   recoveryCandidate=null;
   return local;
  }
