@@ -125,9 +125,9 @@ function candidateGtfsSegments(chosen,pts,dists){
  if(aliases.has('60')||aliases.has('060'))aliases.add('101');
  const groups=new Map();
  for(const route of feed.routes){
-  const code=normAcademyCode(route.route_short_name||'');
-  const family=/^(\d+)[A-Z]+$/.exec(code)?.[1];
-  if(!code||(!aliases.has(code)&&!(family&&aliases.has(family))))continue;
+  const rawCode=String(route.route_short_name||'');
+  const codes=rawCode.split(/[\/;,]+/).flatMap(part=>[normAcademyCode(part),normAcademyCode(part.split(/[_-]/)[0])]).filter(Boolean);
+  if(!codes.some(code=>aliases.has(code)||((/^(\d+)[A-Z]+$/.exec(code)?.[1])&&aliases.has(/^(\d+)[A-Z]+$/.exec(code)[1]))))continue;
   for(const t of feed.tripsByRoute.get(route.route_id)||[]){
    const a=feed.timesByTrip.get(t.trip_id)||[];
    if(a.length<2)continue;
