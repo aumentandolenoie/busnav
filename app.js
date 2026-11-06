@@ -126,7 +126,8 @@ function candidateGtfsSegments(chosen,pts,dists){
  const groups=new Map();
  for(const route of feed.routes){
   const code=normAcademyCode(route.route_short_name||'');
-  if(!code||!aliases.has(code))continue;
+  const family=/^(\d+)[A-Z]+$/.exec(code)?.[1];
+  if(!code||(!aliases.has(code)&&!(family&&aliases.has(family))))continue;
   for(const t of feed.tripsByRoute.get(route.route_id)||[]){
    const a=feed.timesByTrip.get(t.trip_id)||[];
    if(a.length<2)continue;
