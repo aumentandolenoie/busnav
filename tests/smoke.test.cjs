@@ -103,7 +103,7 @@ test('navigation keeps voice reactivation and turns available',()=>{
  assert.match(markup,/id="voiceAvailability"/);
  assert.match(js,/function activateNavigationVoice/);
  assert.match(js,/renderAcademyStopComparison/);
- assert.match(js,/d<230&&idx!==lastSpokenTurn/);
+ assert.match(js,/planTurnVoice\(turn,turnIndex,d,speed,near.d/);
  assert.match(js,/planStopVoice\(nextStopIdx,remaining,speed,false,isDemo\)/);
 });
 
@@ -136,4 +136,31 @@ test('map matcher re-acquires a real route position after GPS skips several hund
  assert.ok(run.recovery.along>run.normal.along+500);
  assert.ok(run.resumed.along>=run.recovery.along-75);
  assert.equal(run.off.offRoute,true,'Actual GPS drift >180m must suspend guidance');
+});
+
+test('turn cues are staged, deduplicated and stop-prioritized',()=>{
+ const fns=['speechDistance','turnAlertDistance','planTurnVoice'].map(sourceOf).join('\n');
+ const calls=[];
+ const run=new Function('calls',`
+  const spokenTurnStages=new Map();
+  let lastSpokenTurn=-1;
+  const $=id=>({checked:true});
+  const speak=(msg,priority)=>{calls.push({msg,priority});return true};
+  ${fns}
+  return {guide:planTurnVoice,lead:turnAlertDistance,stages:spokenTurnStages};
+ `)(calls);
+ const turn={side:'destra'};
+ run.guide(turn,0,320,20,12,Infinity);
+ run.guide(turn,0,260,20,12,Infinity);
+ run.guide(turn,0,70,20,12,Infinity);
+ run.guide(turn,0,45,20,12,Infinity);
+ assert.equal(calls.length,2,'Exactly one early and one short-range turn notice');
+ assert.equal(calls[0].priority,'turn');
+ assert.match(calls[0].msg,/destra/);
+ assert.equal(run.stages.get(0),2);
+ run.guide({side:'sinistra'},1,170,10,10,90);
+ assert.equal(calls.length,2,'Stop announcement must take precedence over turns');
+ run.guide({side:'sinistra'},1,150,10,10,Infinity);
+ assert.equal(calls.length,3);
+ assert.match(calls[2].msg,/sinistra/);
 });
