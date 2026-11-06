@@ -62,3 +62,9 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - La deduplicazione delle combinazioni tiene conto degli stop_id oltre che delle coordinate, per distinguere fermate molto vicine.
 - Non viene selezionata automaticamente la combinazione col maggior numero di fermate o con il minore scarto geometrico. I GTFS MOM supplementari restano esclusi dalle fermate associate; il feed principale deve essere Busitalia/BusOne BIV.
 - I dati reali delle quattro combinazioni viste nell'app non sono conservati nella repository: i loro nomi effettivi saranno confrontabili nel pannello dopo l'import GTFS. Verificare sempre le fermate con la documentazione ufficiale della corsa.
+
+## Navigazione vocale (prototipo)
+- Il GPS continua a seguire la geometria GPX Academy, senza dipendere dal percorso GTFS. Le distanze delle fermate sono calcolate **lungo il percorso**, non in linea d'aria.
+- Gli annunci della prossima fermata iniziano con un anticipo adattivo di **140–400 metri** (circa 22 secondi alla velocità stimata, con soglie limitate). L'avviso viene emesso una sola volta per fermata; è prevista una seconda chiamata quando si è entro 65 metri e c'è spazio nella coda vocale. Saltare o raggiungere in ritardo la soglia può ridurre gli annunci.
+- La voce italiana è preferita quando il browser la rende disponibile; puoi attivarla e verificare l'audio con **Prova voce**. Gli annunci alle fermate hanno priorità rispetto alle indicazioni di svolta, sempre sperimentali. Se il GPS è molto impreciso o fuori percorso, non genera nuovi annunci.
+- Safari iOS può interrompere la sintesi vocale quando la pagina va in background o il dispositivo è bloccato; nessuna garanzia di ascolto continuativo. L'app non è un navigatore professionale e non deve essere usata per decidere manovre o distrarsi dalla guida.
