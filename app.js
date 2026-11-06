@@ -191,7 +191,23 @@ const routesById=new Map(routes.map(r=>[r.route_id,r]));const tripsByRoute=new M
 return {routes,routesById,tripsByRoute,timesByTrip,shapesById,stopsById,calendar:files.calendar||[],calendarDates:files.calendar_dates||[],updated:new Date().toISOString()};}
 function asOption(value,label){const opt=document.createElement('option');opt.value=value;opt.textContent=label;return opt}
 function setOptions(element,options,placeholder){element.replaceChildren();if(placeholder)element.add(asOption('',placeholder));for(const [val,lab] of options)element.add(asOption(val,lab));element.disabled=!options.length;}
-function handleFeed(f){feed=f;resetAcademyGtfs();const routes=f.routes.filter(r=>f.tripsByRoute.has(r.route_id)).sort((a,b)=>(a.route_short_name||a.route_long_name).localeCompare(b.route_short_name||b.route_long_name,'it',{numeric:true}));setOptions($('routeSelect'),routes.map(r=>[r.route_id,(r.route_short_name||'—')+' · '+(r.route_long_name||'Percorso')]),'Scegli una linea…');$('dataStatus').textContent=routes.length+' linee';status(`Pronto: ${routes.length} linee, ${f.stopsById.size} fermate. Seleziona la linea.`);$('routeSelect').dispatchEvent(new Event('change'));}
+// Namespace GTFS identifiers on import: agency files can reuse the same IDs.
+let gtfsImportSequence=0;
+function appendOfficialFeed(base,additional){
+ const prefix='source'+(++gtfsImportSequence)+':';
+ const stops=new Map();
+ for(const [id,s] of additional.stopsById)stops.set(prefix+id,{...s,stop_id:prefix+id});
+ const routes=additional.routes.map(r=>({...r,route_id:prefix+r.route_id}));
+ const routesById=new Map([...base.routesById,...routes.map(r=>[r.route_id,r])]);
+ const tripsByRoute=new Map(base.tripsByRoute);
+ for(const [routeId,trips] of additional.tripsByRoute)tripsByRoute.set(prefix+routeId,trips.map(t=>({...t,trip_id:prefix+t.trip_id,route_id:prefix+t.route_id,shape_id:prefix+(t.shape_id||''),service_id:prefix+(t.service_id||'')})));
+ const timesByTrip=new Map(base.timesByTrip);
+ for(const [id,entries] of additional.timesByTrip)timesByTrip.set(prefix+id,entries.map(e=>({...e,stop:e.stop?stops.get(prefix+e.stop.stop_id):null})));
+ const shapesById=new Map(base.shapesById);
+ for(const [id,pts] of additional.shapesById)shapesById.set(prefix+id,pts);
+ return {...base,routes:[...base.routes,...routes],routesById,tripsByRoute,timesByTrip,shapesById,stopsById:new Map([...base.stopsById,...stops]),sources:(base.sources||1)+1,updated:new Date().toISOString()};
+}
+function handleFeed(f,append=false){feed=append&&feed?appendOfficialFeed(feed,f):f;resetAcademyGtfs();const routes=f.routes.filter(r=>f.tripsByRoute.has(r.route_id)).sort((a,b)=>(a.route_short_name||a.route_long_name).localeCompare(b.route_short_name||b.route_long_name,'it',{numeric:true}));setOptions($('routeSelect'),routes.map(r=>[r.route_id,(r.route_short_name||'—')+' · '+(r.route_long_name||'Percorso')]),'Scegli una linea…');$('dataStatus').textContent=routes.length+' linee';status(`Pronto: ${routes.length} linee, ${feed.stopsById.size} fermate, ${feed.sources||1} feed. I GPX Academy restano invariati.`);$('routeSelect').dispatchEvent(new Event('change'));}
 function groupTrips(){if(!feed)return[];const trips=feed.tripsByRoute.get($('routeSelect').value)||[];const groups=new Map();for(const t of trips){const label=(t.trip_headsign||'Direzione '+(t.direction_id||'0')).trim();const key=(t.direction_id||'')+'|'+label;if(!groups.has(key))groups.set(key,{label,trips:[]});groups.get(key).trips.push(t)}return [...groups.entries()].map(([key,g])=>[key,g.label+' ('+g.trips.length+' corse)']);}
 function tripsInDirection(){const trips=feed?.tripsByRoute.get($('routeSelect').value)||[];return trips.filter(t=>((t.direction_id||'')+'|'+(t.trip_headsign||'Direzione '+(t.direction_id||'0')).trim())===$('directionSelect').value)}
 function tripLabel(t){const times=feed.timesByTrip.get(t.trip_id)||[];const a=times[0]?.departure||'—';const b=times.at(-1)?.arrival||'—';const n=times.length;return `${a} → ${b} · ${n} fermate · ${t.service_id||'servizio'}`}
@@ -232,6 +248,12 @@ function startGPS(){if(!current)return;stopNavigation();if(!('geolocation'in nav
 function startDemo(){if(!current)return;stopNavigation();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point);simIndex+=advance;if(simIndex>dist+90){clearInterval(simulation);simulation=null;toast('Simulazione completata');$('stopNav').disabled=false}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 $('loadFeed').addEventListener('click',async()=>{const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');try{const res=await fetch(FEED);if(!res.ok)throw Error('HTTP '+res.status);const blob=await res.blob();if(blob.size<1000)throw Error('File ZIP troppo piccolo');const f=await getGTFS(blob);handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente')}catch(err){status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');toast('Download non riuscito (possibile blocco CORS o rete)')}finally{btn.disabled=false}});
 $('fileFeed').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{status('Importazione ZIP…');const f=await getGTFS(file);handleFeed(f);saveZip(file).catch(()=>{});toast('GTFS importato')}catch(err){status('Errore importazione: '+err.message)}e.target.value=''});
+$('extraFeed').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{status('Importazione GTFS aggiuntivo '+file.name+'…');const f=await getGTFS(file);handleFeed(f,true);toast('GTFS aggiuntivo integrato: '+file.name)}
+ catch(err){status('Errore importazione GTFS aggiuntivo: '+err.message)}
+ e.target.value='';
+});
 $('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',()=>{if(lastFix)map.setView([lastFix.lat,lastFix.lng],16);else if(lineLayer)map.fitBounds(lineLayer.getBounds(),{padding:[50,50]})});
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('lineapilot-db',1);req.onupgradeneeded=()=>req.result.createObjectStore('feeds');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function saveZip(blob){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readwrite');tx.objectStore('feeds').put(blob,'biv');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
