@@ -48,3 +48,10 @@ Testare uno o più abbinamenti GPX/GTFS reali, scegliere il percorso della corsa
 
 ### Stato della verifica
 Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unione di 3 tratti, rifiuto di sequenze invertite e rifiuto di raccordi geometricamente distanti. **Non** è ancora stata verificata su file GTFS ufficiali reali l'associazione effettiva per tutte le varianti E060, né il funzionamento in browser iOS.
+
+## Correzioni E060 (60Z/60V) e GPS Academy
+- Codici GTFS con suffissi (60Z, E060-Z, E060_1) riconosciuti come famiglia **60** solo per trovare le fermate compatibili; non vengono confusi con 160 o 61. L'abbinamento resta soggetto al controllo sulla geometria GPX.
+- La selezione del GPX Academy apre subito il tracciato sulla mappa e abilita Avvia GPS/Simula corsa anche senza scegliere né visualizzare una corsa GTFS. L'eventuale selezione GTFS non deve disattivare il tracciato Academy.
+- Il **GTFS principale** dev'essere quello Busitalia / BusOne relativo a Busitalia. Le sequenze delle fermate vengono estratte **solo** da questo feed: GTFS aggiuntivi (MOM) sono tenuti separati e non possono aggiungere fermate proprie. Le fermate in comune sono incluse quando esistono nel GTFS principale Busitalia; non vengono duplicate da MOM.
+- Il service worker ora aggiorna i file del progetto via rete con cache di ripiego, per ridurre il rischio di codice obsoleto dopo il deploy.
+- I percorsi GPX Academy non sono modificati. Navigazione e svolte restano sperimentali e non autorizzano manovre stradali.
