@@ -23,7 +23,7 @@ function leaveNavigationView(){
  if(typeof map.setHeading==='function')map.setHeading(null);
  if(typeof map.stopHeadingUp==='function')map.stopHeadingUp();
  if(typeof map.setBearing==='function')map.setBearing(0);
- requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(lineLayer)map.fitBounds(lineLayer.getBounds(),{padding:[40,40]});});
+ requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(lineLayer&&lineLayer.getBounds().isValid())map.fitBounds(lineLayer.getBounds(),{padding:[40,40]});});
 }
 function headingFromGPX(points,dists,along){
  const total=dists.at(-1)||0;
@@ -518,9 +518,26 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
   else accuracyCircle.setLatLng([p.lat,p.lng]).setRadius(accuracy)
  }
 }
-function stopNavigation(){leaveNavigationView();if(watcher!==null){navigator.geolocation.clearWatch(watcher);watcher=null}if(simulation){clearInterval(simulation);simulation=null}resetVoiceGuidance();$('stopNav').disabled=true;$('startNav').disabled=!current;$('demoBtn').disabled=!current;$('gpsStatus').textContent='GPS inattivo';}
-function startGPS(){if(!current)return;stopNavigation();setupVoice();if(!('geolocation'in navigator)){toast('GPS non disponibile nel browser');return}if(!window.isSecureContext){toast('Per il GPS occorre HTTPS oppure localhost');return}lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();enterNavigationView();$('gpsStatus').textContent='Ricerca GPS…';watcher=navigator.geolocation.watchPosition(pos=>{const p={lat:pos.coords.latitude,lng:pos.coords.longitude};updatePosition(p,pos.coords.accuracy,pos.coords.speed,false,pos.coords.heading)},err=>{toast('GPS: '+err.message);$('gpsStatus').textContent='GPS non disponibile'},{enableHighAccuracy:true,maximumAge:1000,timeout:15000});$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;}
-function startDemo(){if(!current)return;stopNavigation();setupVoice();enterNavigationView();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){clearInterval(simulation);simulation=null;toast('Simulazione completata');$('stopNav').disabled=false}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
+function stopNavigation(){
+ // Immediately stop browser position updates and speech on manual exit.
+ if(watcher!==null){navigator.geolocation.clearWatch(watcher);watcher=null}
+ if(simulation){clearInterval(simulation);simulation=null}
+ resetVoiceGuidance();leaveNavigationView();
+ $('stopNav').disabled=true;$('startNav').disabled=!current;$('demoBtn').disabled=!current;
+ $('gpsStatus').textContent='GPS inattivo';
+}
+function startGPS(){if(!current)return;stopNavigation();setupVoice();if(!('geolocation'in navigator)){toast('GPS non disponibile nel browser');return}if(!window.isSecureContext){toast('Per il GPS occorre HTTPS oppure localhost');return}lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();enterNavigationView();$('gpsStatus').textContent='Ricerca GPS…';watcher=navigator.geolocation.watchPosition(pos=>{const p={lat:pos.coords.latitude,lng:pos.coords.longitude};updatePosition(p,pos.coords.accuracy,pos.coords.speed,false,pos.coords.heading)},err=>{
+  const reason=err.message||'Errore di localizzazione';
+  const wasWatching=watcher!==null;
+  if(err.code===1){ // permission denied: no GPS can be received
+   stopNavigation();$('navStatus').textContent='GPS non autorizzato';
+  }else{
+   $('gpsStatus').textContent='GPS temporaneamente non disponibile';
+   if(wasWatching)toast('Segnale GPS non disponibile: '+reason);
+  }
+  if(err.code===1)toast('GPS non autorizzato: '+reason);
+ },{enableHighAccuracy:true,maximumAge:1000,timeout:15000});$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;}
+function startDemo(){if(!current)return;stopNavigation();setupVoice();enterNavigationView();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 $('loadFeed').addEventListener('click',async()=>{const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');try{const res=await fetch(FEED);if(!res.ok)throw Error('HTTP '+res.status);const blob=await res.blob();if(blob.size<1000)throw Error('File ZIP troppo piccolo');const f=await getGTFS(blob);handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente')}catch(err){status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');toast('Download non riuscito (possibile blocco CORS o rete)')}finally{btn.disabled=false}});
 $('fileFeed').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{status('Importazione ZIP…');const f=await getGTFS(file);handleFeed(f);saveZip(file).catch(()=>{});toast('GTFS importato')}catch(err){status('Errore importazione: '+err.message)}e.target.value=''});
 $('extraFeed').addEventListener('change',async e=>{
