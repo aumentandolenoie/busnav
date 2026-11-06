@@ -112,3 +112,10 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - La mappa segue la posizione GPS reale; per evitare micro-oscillazioni usa una soglia di 3 metri **rispetto all'ultimo punto realmente visualizzato**. I piccoli movimenti si accumulano e provocano il ricentramento, invece di lasciare la cartografia immobile.
 - Il pulsante di localizzazione manuale continua a forzare il ricentramento sul GPS reale, mentre il GPX Academy resta la fonte del percorso, della direzione e delle fermate.
 - Nuovo test automatico per verificare che una sequenza di aggiornamenti GPS piccoli e consecutivi sposti effettivamente la mappa.
+
+## Ripristino annunci vocali durante la navigazione (v14)
+- Il pulsante **Riattiva voce** è disponibile anche nella vista navigazione: è un'interazione utente diretta che può consentire a Safari iOS di sbloccare la sintesi vocale. Anche l'avvio GPS e la simulazione inviano un breve annuncio iniziale.
+- L'app indica se la sintesi non parte oppure se è in riproduzione. Un timeout evita che un annuncio mai avviato blocchi per sempre la coda.
+- Le svolte sperimentali possono essere annunciate da circa 230 m, evitando di sovrapporsi agli annunci delle fermate. La prossima fermata può essere annunciata anche con deviazioni GPS moderate (entro 100 m dal GPX), ma non quando il tracciamento è inattendibile.
+- **Prerequisito:** soltanto i GPX Academy ai quali è stata associata una sequenza di fermate GTFS Busitalia possono pronunciare i nomi delle fermate; in caso contrario, compare un avviso esplicito.
+- Nessuna modifica a GPX Academy, conteggi catalogo o alle fermate GTFS; Safari iOS può comunque sospendere TTS con display bloccato o pagina in background.
