@@ -1,0 +1,38 @@
+name: LineaPilot iOS unsigned IPA
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'scripts/prepare-ios.sh'
+      - 'scripts/build-ios-unsigned.sh'
+      - 'app.js'
+      - 'index.html'
+      - 'style.css'
+      - 'official-routes.json'
+      - '.github/workflows/ios-ipa.yml'
+permissions:
+  contents: read
+jobs:
+  build-ios:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare web assets
+        run: bash scripts/prepare-ios.sh
+      - name: Install XcodeGen
+        run: |
+          command -v xcodegen >/dev/null || brew install xcodegen
+          (cd ios && xcodegen generate)
+      - name: Compile unsigned iOS device app and package IPA
+        run: bash scripts/build-ios-unsigned.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: LineaPilot-iOS-unsigned
+          path: |
+            build/ios/LineaPilot-unsigned.ipa
+            build/ios/xcodebuild.log
+          if-no-files-found: warn
