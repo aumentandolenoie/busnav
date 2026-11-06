@@ -70,3 +70,39 @@ test('GPS follow camera accumulates small movements instead of stalling',()=>{
  assert.ok(Math.abs(calls.at(-1)[1][0]-(starting+10*0.000012))<0.00004);
  assert.equal(display.hidden,false);
 });
+
+test('advance stop calls are queued once and another stop is announced',()=>{
+ const funcs=['stopAlertDistance','speechDistance','planStopVoice'].map(sourceOf).join('\n');
+ const calls=[];
+ const elements={voiceToggle:{checked:true}};
+ const mock=new Function('current','spokenStopStages','enqueueVoice','$','calls',`
+  let lastSpokenStop=-1,voiceBusy=false,voiceQueue=[];
+  ${funcs}
+  return {say:planStopVoice,threshold:stopAlertDistance};
+ `)(
+  {stops:[{stop:{stop_name:'Noale'}},{stop:{stop_name:'Treviso'}}]},
+  new Map(),
+  (msg,priority)=>{calls.push({msg,priority});return true},
+  id=>elements[id],
+  calls
+ );
+ mock.say(0,340,16,false,false);
+ mock.say(0,300,16,false,false);
+ mock.say(0,40,16,false,false);
+ mock.say(1,260,12,false,false);
+ assert.equal(calls.length,3);
+ assert.match(calls[0].msg,/Noale/);
+ assert.match(calls[1].msg,/Fermata in arrivo: Noale/);
+ assert.match(calls[2].msg,/Treviso/);
+ assert.ok(mock.threshold(16)>300);
+});
+test('navigation keeps voice reactivation and turns available',()=>{
+ const markup=fs.readFileSync('index.html','utf8');
+ assert.match(markup,/id="activateNavVoice"/);
+ assert.match(markup,/id="voiceNavStatus"/);
+ assert.match(markup,/id="voiceAvailability"/);
+ assert.match(js,/function activateNavigationVoice/);
+ assert.match(js,/renderAcademyStopComparison/);
+ assert.match(js,/d<230&&idx!==lastSpokenTurn/);
+ assert.match(js,/planStopVoice\(nextStopIdx,remaining,speed,false,isDemo\)/);
+});
