@@ -13,7 +13,7 @@ function nativePost(data){
 window.lineaPilotNativeReceive=(type,data)=>{
  if(!nativeActive)return;
  if(type==='location'&&data&&Number.isFinite(data.lat)&&Number.isFinite(data.lng)){
-  updatePosition({lat:data.lat,lng:data.lng},data.accuracy||0,data.speed,null===data.speed?false:false,data.heading);
+  updatePosition({lat:data.lat,lng:data.lng},data.accuracy||0,data.speed,false,data.heading);
  }else if(type==='status'&&data?.message){
   $('gpsStatus').textContent=data.message;
   setVoiceStatus(data.message);
