@@ -161,7 +161,7 @@ function buildAcademyMatches(chosen){
    if(junctionDistance>320)continue;
    const extent={start:a.start,end:b.end,span:b.end-a.start};
    if(!full(extent))continue;
-   const joined=a.stops.concat(b.stops.slice(junctionDistance<100?1:0));
+   const sameJunction=junctionDistance<35||(junctionDistance<100&&String(a.last.stop_name||'').trim().toLocaleLowerCase('it')===String(b.first.stop_name||'').trim().toLocaleLowerCase('it'));const joined=a.stops.concat(b.stops.slice(sameJunction?1:0));
    const match=matchStopsStrict(joined,pts,dists);
    if(!match.ok)continue;
    const key=joined.map(x=>Math.round(x.stop.lat*10000)+':'+Math.round(x.stop.lng*10000)).join('|');
