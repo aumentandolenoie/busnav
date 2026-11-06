@@ -338,24 +338,135 @@ function computeTurns(pts,dists){const list=[];const total=dists.at(-1)||0;for(l
 function selectTrip(){stopNavigation();const trip=tripsInDirection().find(t=>t.trip_id===$('tripSelect').value);if(!trip)return;const stops=(feed.timesByTrip.get(trip.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));let points=feed.shapesById.get(trip.shape_id)||[];let fallback=false;if(points.length<2){points=stops.map(s=>({lat:s.stop.lat,lng:s.stop.lng}));fallback=true}if(points.length<2){toast('La corsa non ha una geometria valida');return}const dists=shapeMetrics(points),offsets=stopOffsets(stops,points,dists);current={trip,stops,points,dists,offsets,fallback};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastProgress=0;lastAlong=0;turns=fallback?[]:computeTurns(points,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#2869ed',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);map.fitBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length+' fermate';$('navStatus').textContent='Percorso caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'—';$('nextDetail').textContent='Avvia il GPS o la simulazione';$('nextDistance').textContent='—';$('demoBtn').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent=fallback?'Shape assente · svolte disabilitate':'Svolte indicative dalla shape';if(fallback)toast('ATTENZIONE: tracciato mancante; collegamento semplificato tra fermate, non valido per la guida');}
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderStops(){if(!current)return;if(!current.stops.length){$('stopList').innerHTML='<p class="empty">GPX Academy: importa e associa una corsa GTFS per vedere le fermate.</p>';return}const frag=document.createDocumentFragment();current.stops.forEach((s,i)=>{const el=document.createElement('div');el.className='stop-row '+(i<nextStopIdx?'done':i===nextStopIdx?'current':'');el.innerHTML=`<div class="stop-num">${i+1}</div><div><strong>${escapeHTML(s.stop.stop_name)}</strong><small>${escapeHTML(s.arrival||'')} · ${escapeHTML(s.stop.stop_id)}</small></div>`;frag.append(el)});$('stopList').replaceChildren(frag)}
-function speak(text){if(!$('voiceToggle').checked||!('speechSynthesis'in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='it-IT';u.rate=1.02;speechSynthesis.speak(u)}catch(e){console.warn(e)}}
+// GPS-like spoken guidance. All distances are measured along the Academy GPX.
+let voiceQueue=[],voiceBusy=false,voiceGeneration=0,voiceUnlocked=false;
+let spokenStopStages=new Map(),lastVoiceTime=0,lastPositionSample=null,filteredSpeed=0;
+function resetVoiceGuidance(){
+ voiceGeneration++;voiceQueue=[];voiceBusy=false;spokenStopStages.clear();
+ lastVoiceTime=0;lastPositionSample=null;filteredSpeed=0;
+ if('speechSynthesis'in window)try{speechSynthesis.cancel()}catch(e){console.warn(e)}
+}
+function setupVoice(){
+ if(!('speechSynthesis'in window))return false;
+ voiceUnlocked=true;
+ return true;
+}
+function enqueueVoice(message,priority='normal'){
+ if(!$('voiceToggle').checked||!setupVoice())return false;
+ // Stops always take priority over experimental turn hints.
+ if(priority==='stop')voiceQueue=voiceQueue.filter(x=>x.priority!=='turn');
+ if(priority==='turn'&&(voiceBusy||voiceQueue.some(x=>x.priority==='stop')))return false;
+ if(voiceQueue.length>3)voiceQueue=voiceQueue.slice(-2);
+ voiceQueue.push({message,priority});
+ drainVoice();return true;
+}
+function drainVoice(){
+ if(voiceBusy||!voiceQueue.length||!('speechSynthesis'in window))return;
+ const item=voiceQueue.shift(),generation=voiceGeneration;
+ voiceBusy=true;
+ try{
+  const speech=new SpeechSynthesisUtterance(item.message);
+  speech.lang='it-IT';speech.rate=1.02;speech.pitch=1;
+  const voices=speechSynthesis.getVoices();
+  const italian=voices.find(v=>v.lang.toLowerCase()==='it-it')||voices.find(v=>v.lang.toLowerCase().startsWith('it'));
+  if(italian)speech.voice=italian;
+  let completed=false;
+  const finish=()=>{if(completed||generation!==voiceGeneration)return;completed=true;voiceBusy=false;drainVoice()};
+  speech.onend=finish;speech.onerror=finish;
+  speechSynthesis.speak(speech);
+ }catch(e){voiceBusy=false;console.warn('Sintesi vocale:',e);drainVoice()}
+}
+function speak(message,priority='normal'){return enqueueVoice(message,priority)}
 function niceDistance(m){return m<1000?Math.round(Math.max(0,m)/10)*10+' m':(m/1000).toFixed(1)+' km'}
-function updatePosition(p,accuracy=0){if(!current)return;lastFix=p;const {points,dists,offsets,stops}=current;let near=nearestOnShape(p,points,dists);if(near.d>180){$('gpsStatus').textContent='Fuori percorso';$('navStatus').textContent='GPS lontano dal tracciato';$('turnHint').textContent='Verifica percorso / deviazione';return} // prevent backward jumps in repeated geometry
-if(near.along+100<lastAlong){const start=Math.max(0,dists.findIndex(d=>d>=lastAlong)-3);const ahead=nearestOnShape(p,points,dists,start);if(ahead.d<Math.max(near.d+20,55))near=ahead}
-const along=near.along;lastAlong=Math.max(lastAlong,along-30);$('gpsStatus').textContent=accuracy?'GPS ±'+Math.round(accuracy)+' m':'Simulazione';$('navStatus').textContent=current.trip.trip_headsign||'Corsa in corso';
-while(nextStopIdx<stops.length-1&&along>offsets[nextStopIdx]+35){nextStopIdx++;renderStops()}
-if(nextStopIdx===stops.length-1&&along>offsets[nextStopIdx]+55){nextStopIdx=stops.length;renderStops()}
-const done=stops.length>0&&nextStopIdx>=stops.length;const remaining=done?0:offsets[nextStopIdx]-along;
-$('nextName').textContent=!stops.length?'Nessuna fermata associata':done?'Capolinea raggiunto':stops[nextStopIdx].stop.stop_name;
-$('nextDetail').textContent=!stops.length?'Solo geometria GPX':done?'Fine della corsa':`Fermata ${nextStopIdx+1} di ${stops.length}`;
-$('nextDistance').textContent=!stops.length?'—':done?'✓':niceDistance(remaining);
-$('progressBar').style.width=(Math.min(100,Math.max(0,along/(dists.at(-1)||1)*100)))+'%';$('progressLabel').textContent=`${nextStopIdx} / ${stops.length} fermate`;
-if(stops.length&&!done&&remaining>=0&&remaining<180&&nextStopIdx!==lastSpokenStop&&near.d<65){lastSpokenStop=nextStopIdx;speak('Prossima fermata: '+stops[nextStopIdx].stop.stop_name)}
-const turn=turns.find(t=>t.at>along+20&&t.at<along+450);if(turn){const d=turn.at-along;$('turnHint').textContent=`Svolta indicativa a ${turn.side} tra ${niceDistance(d)}`;const idx=turns.indexOf(turn);if($('turnToggle').checked&&d<120&&idx!==lastSpokenTurn){lastSpokenTurn=idx;speak('Possibile svolta a '+turn.side+' tra circa '+niceDistance(d))}}else $('turnHint').textContent=done?'Corsa completata':'Segui il tracciato blu';
-if($('followToggle').checked)map.panTo([p.lat,p.lng],{animate:true,duration:.35});if(!locationMarker){locationMarker=L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:3,fillColor:'#0c55eb',fillOpacity:1}).addTo(map)}else locationMarker.setLatLng([p.lat,p.lng]);if(accuracy){if(!accuracyCircle)accuracyCircle=L.circle([p.lat,p.lng],{radius:accuracy,weight:1,color:'#4288ff',fillOpacity:.08}).addTo(map);else accuracyCircle.setLatLng([p.lat,p.lng]).setRadius(accuracy)} }
-function stopNavigation(){if(watcher!==null){navigator.geolocation.clearWatch(watcher);watcher=null}if(simulation){clearInterval(simulation);simulation=null}if('speechSynthesis'in window)speechSynthesis.cancel();$('stopNav').disabled=true;$('startNav').disabled=!current;$('demoBtn').disabled=!current;$('gpsStatus').textContent='GPS inattivo';}
-function startGPS(){if(!current)return;stopNavigation();if(!('geolocation'in navigator)){toast('GPS non disponibile nel browser');return}if(!window.isSecureContext){toast('Per il GPS occorre HTTPS oppure localhost');return}lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();$('gpsStatus').textContent='Ricerca GPS…';watcher=navigator.geolocation.watchPosition(pos=>{const p={lat:pos.coords.latitude,lng:pos.coords.longitude};updatePosition(p,pos.coords.accuracy)},err=>{toast('GPS: '+err.message);$('gpsStatus').textContent='GPS non disponibile'},{enableHighAccuracy:true,maximumAge:1000,timeout:15000});$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;}
-function startDemo(){if(!current)return;stopNavigation();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point);simIndex+=advance;if(simIndex>dist+90){clearInterval(simulation);simulation=null;toast('Simulazione completata');$('stopNav').disabled=false}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
+function speechDistance(m){return m<1000?Math.max(50,Math.round(m/50)*50)+' metri':(m/1000).toFixed(1).replace('.',',')+' chilometri'}
+function speedEstimate(p,reportedSpeed,isDemo){
+ if(isDemo)return 13.9; // simulated 50 km/h for meaningful advance-alert tests
+ const now=Date.now();
+ let value=Number.isFinite(reportedSpeed)&&reportedSpeed>=0?reportedSpeed:null;
+ if(value===null&&lastPositionSample){
+  const elapsed=(now-lastPositionSample.at)/1000;
+  if(elapsed>=1&&elapsed<=20){const move=metres(p,lastPositionSample.p)/elapsed;if(move<38)value=move}
+ }
+ lastPositionSample={p,at:now};
+ if(value!==null)filteredSpeed=filteredSpeed?filteredSpeed*.65+value*.35:value;
+ return Math.max(0,filteredSpeed);
+}
+function stopAlertDistance(mps){
+ // 18-25 seconds of notice, bounded for urban and extra-urban speeds.
+ return Math.max(140,Math.min(400,Math.round((Math.max(mps,6)*22)/10)*10));
+}
+function planStopVoice(stopIndex,remaining,mps,offRoute,isDemo){
+ if(offRoute||!$('voiceToggle').checked||stopIndex<0||remaining<0)return;
+ const stop=current?.stops[stopIndex]?.stop;
+ if(!stop)return;
+ const threshold=stopAlertDistance(mps);
+ let stage=spokenStopStages.get(stopIndex)||0;
+ // Only trigger the first announcement once within the early warning window.
+ if(stage===0&&remaining<=threshold){
+  if(enqueueVoice('Tra '+speechDistance(remaining)+', prossima fermata: '+stop.stop_name+'.','stop')){
+   spokenStopStages.set(stopIndex,1);lastSpokenStop=stopIndex;
+  }
+  stage=spokenStopStages.get(stopIndex)||0;
+ }
+ // Optional final cue at short range; never at the same update as the first cue.
+ if(stage===1&&remaining<=65&&remaining>=8&&lastSpokenStop===stopIndex&&
+    (mps>2||isDemo)&&!voiceBusy&&!voiceQueue.length){
+  if(enqueueVoice('Fermata in arrivo: '+stop.stop_name+'.','stop'))spokenStopStages.set(stopIndex,2);
+ }
+}
+function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false){
+ if(!current)return;
+ lastFix=p;const {points,dists,offsets,stops}=current;
+ const speed=speedEstimate(p,reportedSpeed,isDemo);
+ let near=nearestOnShape(p,points,dists);
+ if(near.d>180){$('gpsStatus').textContent='Fuori percorso';$('navStatus').textContent='GPS lontano dal tracciato';$('turnHint').textContent='Verifica percorso / deviazione';return}
+ if(!isDemo&&accuracy>110){$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
+ // Prefer forward map matching around crossings, without trusting a large GPS jump.
+ if(near.along+100<lastAlong){
+  const ix=dists.findIndex(d=>d>=lastAlong);
+  const start=Math.max(0,(ix<0?dists.length-1:ix)-3);
+  const ahead=nearestOnShape(p,points,dists,start);
+  if(ahead.d<Math.max(near.d+20,55))near=ahead;
+ }
+ const along=near.along;
+ lastAlong=Math.max(lastAlong,along-30);
+ $('gpsStatus').textContent=isDemo?'Simulazione':accuracy?'GPS ±'+Math.round(accuracy)+' m':'GPS attivo';
+ $('navStatus').textContent=current.trip.trip_headsign||'Corsa in corso';
+ // This value must move forward only once the stop is actually passed.
+ while(nextStopIdx<stops.length&&along>offsets[nextStopIdx]+35)nextStopIdx++;
+ renderStops();
+ const done=stops.length>0&&nextStopIdx>=stops.length;
+ const remaining=done?0:Math.max(0,offsets[nextStopIdx]-along);
+ $('nextName').textContent=!stops.length?'Nessuna fermata associata':done?'Capolinea raggiunto':stops[nextStopIdx].stop.stop_name;
+ $('nextDetail').textContent=!stops.length?'Solo geometria GPX':done?'Fine della corsa':'Fermata '+(nextStopIdx+1)+' di '+stops.length;
+ $('nextDistance').textContent=!stops.length?'—':done?'✓':niceDistance(remaining);
+ $('progressBar').style.width=Math.min(100,Math.max(0,along/(dists.at(-1)||1)*100))+'%';
+ $('progressLabel').textContent=nextStopIdx+' / '+stops.length+' fermate';
+ if(stops.length&&!done&&near.d<65){
+  planStopVoice(nextStopIdx,remaining,speed,near.d>65,isDemo);
+ }
+ const turn=turns.find(t=>t.at>along+20&&t.at<along+450);
+ if(turn){
+  const d=turn.at-along;
+  $('turnHint').textContent='Possibile svolta a '+turn.side+' tra '+niceDistance(d);
+  const idx=turns.indexOf(turn);
+  // Do not interrupt a stop announcement or narrate a turn close to a stop.
+  if($('turnToggle').checked&&d<140&&idx!==lastSpokenTurn&&!voiceBusy&&
+      (!stops.length||done||remaining>220)&&near.d<50){
+   if(speak('Possibile svolta a '+turn.side+' tra circa '+speechDistance(d)+'.','turn'))lastSpokenTurn=idx;
+  }
+ }else $('turnHint').textContent=done?'Corsa completata':'Segui il tracciato GPX';
+ if($('followToggle').checked)map.panTo([p.lat,p.lng],{animate:true,duration:.35});
+ if(!locationMarker)locationMarker=L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:3,fillColor:'#0c55eb',fillOpacity:1}).addTo(map);
+ else locationMarker.setLatLng([p.lat,p.lng]);
+ if(accuracy&&!isDemo){
+  if(!accuracyCircle)accuracyCircle=L.circle([p.lat,p.lng],{radius:accuracy,weight:1,color:'#4288ff',fillOpacity:.08}).addTo(map);
+  else accuracyCircle.setLatLng([p.lat,p.lng]).setRadius(accuracy)
+ }
+}
+function stopNavigation(){if(watcher!==null){navigator.geolocation.clearWatch(watcher);watcher=null}if(simulation){clearInterval(simulation);simulation=null}resetVoiceGuidance();$('stopNav').disabled=true;$('startNav').disabled=!current;$('demoBtn').disabled=!current;$('gpsStatus').textContent='GPS inattivo';}
+function startGPS(){if(!current)return;stopNavigation();setupVoice();if(!('geolocation'in navigator)){toast('GPS non disponibile nel browser');return}if(!window.isSecureContext){toast('Per il GPS occorre HTTPS oppure localhost');return}lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();$('gpsStatus').textContent='Ricerca GPS…';watcher=navigator.geolocation.watchPosition(pos=>{const p={lat:pos.coords.latitude,lng:pos.coords.longitude};updatePosition(p,pos.coords.accuracy,pos.coords.speed,false)},err=>{toast('GPS: '+err.message);$('gpsStatus').textContent='GPS non disponibile'},{enableHighAccuracy:true,maximumAge:1000,timeout:15000});$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;}
+function startDemo(){if(!current)return;stopNavigation();setupVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){clearInterval(simulation);simulation=null;toast('Simulazione completata');$('stopNav').disabled=false}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 $('loadFeed').addEventListener('click',async()=>{const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');try{const res=await fetch(FEED);if(!res.ok)throw Error('HTTP '+res.status);const blob=await res.blob();if(blob.size<1000)throw Error('File ZIP troppo piccolo');const f=await getGTFS(blob);handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente')}catch(err){status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');toast('Download non riuscito (possibile blocco CORS o rete)')}finally{btn.disabled=false}});
 $('fileFeed').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{status('Importazione ZIP…');const f=await getGTFS(file);handleFeed(f);saveZip(file).catch(()=>{});toast('GTFS importato')}catch(err){status('Errore importazione: '+err.message)}e.target.value=''});
 $('extraFeed').addEventListener('change',async e=>{
@@ -364,6 +475,8 @@ $('extraFeed').addEventListener('change',async e=>{
  catch(err){status('Errore importazione GTFS aggiuntivo: '+err.message)}
  e.target.value='';
 });
+$('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceToggle').checked){toast('Attiva prima gli annunci vocali');return}if(!speak('Prova audio LineaPilot. Tra duecento metri, prossima fermata.','stop'))toast('Sintesi vocale non disponibile: controlla il volume e le impostazioni di Safari');});
+$('voiceToggle').addEventListener('change',()=>{if(!$('voiceToggle').checked)resetVoiceGuidance()});
 $('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',()=>{if(lastFix)map.setView([lastFix.lat,lastFix.lng],16);else if(lineLayer)map.fitBounds(lineLayer.getBounds(),{padding:[50,50]})});
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('lineapilot-db',1);req.onupgradeneeded=()=>req.result.createObjectStore('feeds');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function saveZip(blob){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readwrite');tx.objectStore('feeds').put(blob,'biv');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
