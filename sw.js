@@ -1,4 +1,4 @@
-const CACHE='lineapilot-shell-v18';
+const CACHE='lineapilot-shell-v19';
 const CORE=['./','./index.html','./style.css','./app.js','./icon.svg','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{

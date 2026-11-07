@@ -254,7 +254,7 @@ function resetAcademyGtfs(){
  setOptions($('academyGtfsTrip'),[],'Nessuna corsa verificata');
  $('findGtfsAcademy').disabled=!selectedOfficial||!feed;
  $('mergeOfficial').disabled=true;
- $('academyGtfsStatus').textContent=feed?'Seleziona un GPX e cerca le corse GTFS compatibili.':'Carica un GTFS per trovare le fermate.';
+ $('academyGtfsStatus').textContent=feed?'Seleziona un GPX e cerca le corse GTFS compatibili.':'Le fermate Busitalia vengono caricate automaticamente.';
 }
 function normAcademyCode(s){
  const x=String(s||'').trim().toUpperCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');
@@ -461,7 +461,7 @@ $('academyLine').addEventListener('change',()=>{$('academySearch').value='';filt
 $('academySearch').addEventListener('input',filterAcademyRoutes);
 $('academyRoute').addEventListener('change',onAcademySelected);
 function selectedGTFS(){return tripsInDirection().find(t=>t.trip_id===$('tripSelect').value)}
-function showAcademyRoute(merge=false){const chosen=selectedOfficial;if(!chosen){toast('Seleziona un GPX Academy');return}const points=chosen.points.map(([lat,lng])=>({lat,lng}));const dists=shapeMetrics(points);let stops=[],offsets=[],diagnostic='GPX Academy senza fermate. Per aggiungerle, carica il GTFS e associa una corsa precisa.';let trip={trip_headsign:chosen.name};let reliable=false;
+function showAcademyRoute(merge=false){const chosen=selectedOfficial;if(!chosen){toast('Seleziona un GPX Academy');return}const points=chosen.points.map(([lat,lng])=>({lat,lng}));const dists=shapeMetrics(points);let stops=[],offsets=[],diagnostic='GPX pronto. Per annunciare le fermate scegli una sequenza GTFS Busitalia verificata.';let trip={trip_headsign:chosen.name};let reliable=false;
 if(merge){if(!feed){toast('Prima importa il GTFS');return}const academyMatch=academyGtfsMatches.get($('academyGtfsTrip').value);const gt=academyMatch?.trip||selectedGTFS();if(!gt){toast('Seleziona una corsa GTFS corrispondente');return}const gtfsRoute=feed.routesById.get(gt.route_id);const num=normAcademyCode(gtfsRoute?.route_short_name||'');const officialNum=[...academyRouteCodes(chosen)].join(', ');if(gtfsRoute?._stopAuthority==='supplemental'){$('officialInfo').textContent='Le fermate MOM non sono utilizzate. Importa Busitalia come feed principale; le fermate comuni sono già nel suo GTFS.';toast('Fermate MOM escluse');return}if(!academyMatch&&!gtfsFitsAcademyCode(chosen,gtfsRoute||{})){$('officialInfo').textContent=`Abbinamento bloccato: linea GTFS ${num} diversa dal GPX ${officialNum}. Seleziona la corsa corretta.`;toast('Linea GPX e GTFS non corrispondono');return}
 const candidates=academyMatch?.stops||(feed.timesByTrip.get(gt.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));if(candidates.length<2){toast('Nessuna sequenza di fermate disponibile');return}const match=matchStopsStrict(candidates,points,dists);diagnostic=match.message;if(!match.ok){$('officialInfo').textContent=diagnostic;toast('Abbinamento non affidabile: navigazione fermate non abilitata');return}stops=candidates;offsets=match.offsets;trip={...gt,trip_headsign:academyMatch?.legs?.length>1?chosen.name:gt.trip_headsign};reliable=true}
 stopNavigation();current={trip,stops,points,dists,offsets,fallback:false,academy:chosen,reliable};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastAlong=0;turns=computeTurns(points,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#0da2a5',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);map.fitBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length?stops.length+' fermate':'Fermate non associate';$('navStatus').textContent='GPX Academy caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'GPX senza fermate';$('nextDetail').textContent=merge?'GPS e simulazione disponibili':'Associa prima una corsa GTFS per gli annunci';$('nextDistance').textContent='—';$('demoBtn').disabled=false;$('startNav').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent='Svolte geometriche sperimentali (non stradali)';$('officialInfo').textContent=diagnostic;toast(merge?'GPX Academy e fermate GTFS associati':'Tracciato GPX Academy visualizzato');}
@@ -809,7 +809,7 @@ window.lineaPilotGTFSReceive=(id,type,payload)=>{
   pending.reject(Error(String(payload||'Errore download nativo')));
  }
 };
-async function downloadGTFSBlob(){
+async function downloadGTFSBlob(forceDownload=false){
  if(!nativeMode){
   const res=await fetch(FEED);
   if(!res.ok)throw Error('HTTP '+res.status);
@@ -825,31 +825,13 @@ async function downloadGTFSBlob(){
    }
   },180000);
   nativeGtfsPending={id,resolve,reject,parts:[],total:0,timeout};
-  if(!nativePost({type:'downloadGTFS',id})){
+  if(!nativePost({type:'downloadGTFS',id,refresh:forceDownload})){
    clearTimeout(timeout);nativeGtfsPending=null;
    reject(Error('Comunicazione con il motore iOS non disponibile'));
   }
  });
 }
-$('loadFeed').addEventListener('click',async()=>{
- const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');
- try{
-  const blob=await downloadGTFSBlob();
-  if(!blob||blob.size<1000)throw Error('File ZIP troppo piccolo');
-  const f=await getGTFS(blob);
-  handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente');
- }catch(err){
-  status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');
-  toast('Download non riuscito (verifica la rete o importa ZIP)');
- }finally{btn.disabled=false}
-});
-$('fileFeed').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{status('Importazione ZIP…');const f=await getGTFS(file);handleFeed(f);saveZip(file).catch(()=>{});toast('GTFS importato')}catch(err){status('Errore importazione: '+err.message)}e.target.value=''});
-$('extraFeed').addEventListener('change',async e=>{
- const file=e.target.files?.[0];if(!file)return;
- try{status('Importazione GTFS aggiuntivo '+file.name+'…');const f=await getGTFS(file);handleFeed(f,true);toast('GTFS aggiuntivo integrato: '+file.name)}
- catch(err){status('Errore importazione GTFS aggiuntivo: '+err.message)}
- e.target.value='';
-});
+// GTFS is loaded automatically during startup; manual upload controls are removed.
 document.addEventListener('visibilitychange',()=>{
  if(!navigationFullscreen)return;
  if(document.hidden)setVoiceStatus('Schermo non attivo: GPS e voce potrebbero sospendersi',true);
@@ -863,9 +845,77 @@ $('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceTo
 $('voiceToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked});if(!$('voiceToggle').checked){resetVoiceGuidance();setVoiceStatus('Voce disattivata')}else setVoiceStatus('Premi Riattiva voce')});
 $('turnToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked})});
 $('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',recenterOnRealGPS);
-function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('lineapilot-db',1);req.onupgradeneeded=()=>req.result.createObjectStore('feeds');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
-async function saveZip(blob){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readwrite');tx.objectStore('feeds').put(blob,'biv');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
-async function restoreZip(){try{const db=await openDB();const blob=await new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readonly');const req=tx.objectStore('feeds').get('biv');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(blob){status('Ripristino dati salvati…');handleFeed(await getGTFS(blob));toast('GTFS recuperato dalla memoria del dispositivo')}}catch(err){console.warn('Cache GTFS:',err)}}
+function openDB(){return new Promise((resolve,reject)=>{
+ const req=indexedDB.open('lineapilot-db',1);
+ req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('feeds'))req.result.createObjectStore('feeds')};
+ req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||Error('Database GTFS non accessibile'));
+})}
+async function saveZip(blob){
+ const db=await openDB();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction('feeds','readwrite');
+  tx.objectStore('feeds').put(blob,'biv');
+  tx.oncomplete=()=>{db.close();resolve()};
+  tx.onerror=()=>{db.close();reject(tx.error||Error('Salvataggio GTFS fallito'))};
+ });
+}
+async function readCachedZip(){
+ const db=await openDB();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction('feeds','readonly'),req=tx.objectStore('feeds').get('biv');
+  req.onsuccess=()=>{db.close();resolve(req.result||null)};
+  req.onerror=()=>{db.close();reject(req.error||Error('Lettura GTFS salvato fallita'))};
+ });
+}
+let feedInitialization=null;
+function setFeedState(state,title,detail){
+ const el=$('feedTitle'),dot=$('feedDot');
+ el.textContent=title;
+ dot.dataset.state=state;
+ $('retryFeed').hidden=state!=='error';
+ if(detail)status(detail);
+ $('dataStatus').textContent=state==='ready'?'GTFS pronto':state==='error'?'GTFS non disponibile':'GTFS…';
+}
+async function initializeGTFS(forceDownload=false){
+ if(feedInitialization)return feedInitialization;
+ feedInitialization=(async()=>{
+  $('retryFeed').hidden=true;
+  setFeedState('loading','Preparazione fermate…','Controllo dei dati Busitalia salvati sul dispositivo.');
+  try{
+   let needsRefresh=forceDownload;
+   if(!forceDownload){
+    let cached=null;
+    try{cached=await readCachedZip()}catch(e){console.warn('Cache GTFS non accessibile:',e)}
+    if(cached&&cached.size>=1000){
+     try{
+      const parsed=await getGTFS(cached);
+      handleFeed(parsed);
+      setFeedState('ready','Fermate disponibili','GTFS Busitalia già presente sul dispositivo: nessun download necessario.');
+      return true;
+     }catch(err){needsRefresh=true;console.warn('GTFS in cache non valido, recupero nuovi dati:',err)}
+    }
+   }
+   setFeedState('loading','Caricamento fermate…','Download GTFS Busitalia automatico in corso.');
+   const zip=await downloadGTFSBlob(needsRefresh);
+   if(!zip||zip.size<1000)throw Error('Archivio GTFS vuoto o non valido');
+   const parsed=await getGTFS(zip);
+   handleFeed(parsed);
+   let cached=true;
+   try{await saveZip(zip)}catch(err){cached=false;console.warn('GTFS non salvabile:',err)}
+   setFeedState('ready','Fermate disponibili',cached
+    ?'GTFS Busitalia pronto e conservato per i prossimi avvii.'
+    :'GTFS Busitalia pronto; la memoria locale non è disponibile e potrebbe essere necessario riscaricarlo.');
+   return true;
+  }catch(err){
+   console.error('Caricamento GTFS:',err);
+   setFeedState('error','Fermate non disponibili','Errore GTFS Busitalia: '+(err?.message||String(err))+
+    '. Il catalogo Academy resta utilizzabile, ma gli annunci delle fermate richiedono il GTFS.');
+   return false;
+  }finally{feedInitialization=null}
+ })();
+ return feedInitialization;
+}
+$('retryFeed').addEventListener('click',()=>initializeGTFS(true));
 if(!nativeMode&&'serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(console.warn);
-restoreZip();
 loadAcademy();
+initializeGTFS();

@@ -48,3 +48,12 @@ Il download GTFS nella versione nativa viene ora effettuato direttamente da `URL
 ### LiveContainer: Core Location senza crash (fix)
 
 Se il log contiene `Invalid parameter not satisfying: !stayUp || CLClientIsBackgroundable(...)`, l'app ospitante non è autorizzata agli aggiornamenti di posizione in background. La voce `UIBackgroundModes=location` della IPA ospitata non basta: LiveContainer usa il processo e le capacità dell'app host. LineaPilot rileva il caricamento di `LiveContainerShared` e avvia **solo GPS in primo piano**, senza impostare `allowsBackgroundLocationUpdates=true`. In un'installazione standalone con la modalità `location` nel bundle, continua a richiedere la modalità background. Il comportamento reale di SideStore e le autorizzazioni iOS restano da verificare. Non usare LiveContainer per convalidare gli annunci a schermo bloccato.
+
+### Interfaccia semplificata e GTFS automatico (v19)
+
+- All'avvio la PWA cerca il GTFS Busitalia in IndexedDB, lo verifica e lo utilizza senza download se valido. Se manca o non è valido lo scarica automaticamente. Nella versione iOS Swift conserva inoltre una copia ZIP nella cartella Cache dell'app, utile quando IndexedDB della WebView non è disponibile.
+- Se il download fallisce l'app mostra il motivo e presenta **Riprova caricamento fermate**. Il catalogo GPX Academy resta utilizzabile, ma senza GTFS non vengono annunciati i nomi delle fermate.
+- Sono stati rimossi dal layout i pulsanti di download/importazione ZIP e la sezione visuale di selezione servizio GTFS. Restano inalterati gli indici GTFS interni necessari per ricercare le varianti compatibili con i GPX Academy, senza usare MOM per le fermate.
+- La selezione GPX apre la mappa automaticamente; i controlli per trovare e associare una sequenza fermate Busitalia restano espliciti perché più varianti possono essere compatibili e non vanno associate arbitrariamente.
+- Le impostazioni vocali e l'elenco fermate sono ora sezioni richiudibili, con controlli GPS subito sotto il selettore Academy.
+- La PWA continua a funzionare; l'IPA aggiornata richiede una nuova build e il collaudo effettivo su LiveContainer/SideStore.

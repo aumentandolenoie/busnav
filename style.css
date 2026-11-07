@@ -52,3 +52,46 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
 #voiceNavStatus{display:block;border-radius:10px;background:#122746ee;color:#e4f1ff;padding:8px 11px;font-size:11px;line-height:1.3;max-width:52%;overflow-wrap:anywhere}
 #voiceNavStatus[data-problem="yes"]{color:#ffd8a0;border:1px solid #a66b33}
 @media(max-width:440px){.voice-navigation-controls{top:calc(max(12px,env(safe-area-inset-top)) + 119px)}#activateNavVoice{font-size:11px;padding:9px}#voiceNavStatus{font-size:10px}}
+
+/* LineaPilot: focused route-first dashboard, with automatic Busitalia GTFS. */
+[hidden]{display:none!important}
+.sidebar-scroll{padding-top:18px}
+.sidebar-scroll>h1{font-size:24px;margin-bottom:5px}
+.sidebar-scroll>.sub{margin-bottom:14px}
+.network-status{display:grid;gap:6px;margin-bottom:17px;padding:12px 14px;border:1px solid #35547c;background:linear-gradient(135deg,#172b48,#14233c);border-radius:14px}
+.network-status-head{display:flex;align-items:center;gap:9px;font-size:12px;color:#f1f6ff}
+.network-status p{margin:0;color:#a9bddb;font-size:11px;line-height:1.45}
+.status-dot{width:9px;height:9px;flex:none;border-radius:50%;background:#e1b65b;box-shadow:0 0 0 4px #e1b65b25}
+.status-dot[data-state="ready"]{background:#43dba0;box-shadow:0 0 0 4px #43dba025}
+.status-dot[data-state="error"]{background:#ff8585;box-shadow:0 0 0 4px #ff858525}
+#retryFeed{font-size:12px;margin-top:7px;min-height:42px;background:#2b3f61}
+.match-panel{background:#121f36;border:1px solid #2b4263;border-radius:14px;margin-top:14px;padding:13px;display:grid;gap:11px}
+.match-panel .section-title{margin-bottom:0}
+.match-panel>.help{margin:0}
+.match-panel label{margin-bottom:0!important}
+.match-panel button{width:100%}
+.match-panel button:enabled#mergeOfficial{background:#225a82;border-color:#418bb9}
+.secondary-action{background:#1e365a}
+.navigation-actions{display:grid;gap:8px;margin-top:12px;padding:0 0 14px}
+.navigation-actions>#startNav{font-size:15px;min-height:52px}
+.navigation-actions .button-row button{min-height:45px}
+.advanced-panel,.stops-panel{padding:10px 0}
+.advanced-panel>summary,.stops-panel>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;color:#c3d3ef;font-weight:700;font-size:12px;min-height:44px}
+.advanced-panel>summary::-webkit-details-marker,.stops-panel>summary::-webkit-details-marker{display:none}
+.advanced-panel>summary:after,.stops-panel>summary:after{content:"⌄";color:#9daed0;font-size:18px}
+.advanced-panel[open]>summary:after,.stops-panel[open]>summary:after{content:"⌃"}
+.advanced-panel[open],.stops-panel[open]{padding-bottom:16px}
+.stops-panel .stop-list{margin-top:10px}
+.legacy-service-fields{display:none!important}
+@media(max-width:800px){
+ main{display:flex;flex-direction:column;height:auto}
+ .sidebar{order:1}
+ .map-wrap{order:2;height:56dvh;min-height:330px}
+ .sidebar-scroll{padding:16px 16px 4px}
+ .sidebar-scroll>h1{font-size:24px}
+ .sidebar-footer{display:none}
+ .panel{padding:12px 0}
+ .network-status{margin-bottom:12px}
+ .match-panel{padding:12px;margin-top:10px}
+ .navigation-actions{padding-bottom:6px}
+}

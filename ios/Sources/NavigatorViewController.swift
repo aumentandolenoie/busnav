@@ -63,7 +63,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
         case "downloadGTFS":
             guard let id = body["id"] as? String, id.hasPrefix("gtfs-"),
                   id.count < 96, id.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }) else { return }
-            downloadGTFS(requestId: id)
+            downloadGTFS(requestId: id, refresh: body["refresh"] as? Bool ?? false)
         case "testVoice":
             navigation.testVoice()
         default:
@@ -73,8 +73,21 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
 
     // A native download avoids CORS / blob XHR restrictions on custom schemes.
     // WebKit receives small, ordered chunks; it never needs to perform a ZIP request.
-    private func downloadGTFS(requestId: String) {
+    private var cachedGTFSURL: URL? {
+        guard let folder = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else { return nil }
+        return folder.appendingPathComponent("lineapilot-busitalia-gtfs.zip")
+    }
+
+    private func downloadGTFS(requestId: String, refresh: Bool) {
         gtfsDownload?.cancel()
+        // Native cache is essential when the WKWebView's IndexedDB storage is
+        // unavailable (notably inside some app containers).
+        if !refresh, let url = cachedGTFSURL,
+           let cached = try? Data(contentsOf: url),
+           cached.count >= 1000, cached.starts(with: [0x50, 0x4b]) {
+            sendGTFSChunks(cached, requestId: requestId, offset: 0)
+            return
+        }
         var request = URLRequest(url: gtfsURL)
         request.timeoutInterval = 60
         request.cachePolicy = .reloadIgnoringLocalCacheData
@@ -100,6 +113,10 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
                 guard data.starts(with: [0x50, 0x4b]) else {
                     self.deliverGTFS(requestId, "error", "Il server ha risposto, ma non con uno ZIP")
                     return
+                }
+                if let destination = self.cachedGTFSURL {
+                    do { try data.write(to: destination, options: .atomic) }
+                    catch { NSLog("LineaPilot GTFS cache unavailable: %@", error.localizedDescription) }
                 }
                 self.sendGTFSChunks(data, requestId: requestId, offset: 0)
             }

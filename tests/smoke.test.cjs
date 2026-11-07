@@ -213,7 +213,7 @@ test('native GTFS ZIP uses URLSession bridge, not custom-scheme XHR',()=>{
 });
 test('native GTFS chunk assembly accepts ZIP bytes and handles errors',()=>{
  const a=js.indexOf('let nativeGtfsPending=null;');
- const b=js.indexOf('async function downloadGTFSBlob()',a);
+ const b=js.indexOf('async function downloadGTFSBlob(',a);
  assert.ok(a>=0&&b>a);
  const code=js.slice(a,b);
  const run=new Function('Blob','atob',`
@@ -249,4 +249,68 @@ test('Core Location does not request unsupported background mode in LiveContaine
  assert.doesNotMatch(swift,/manager\.allowsBackgroundLocationUpdates = true/);
  assert.match(swift,/guard active, !locationUpdatesStarted else \{ return \}/);
  assert.match(swift,/GPS attivo in primo piano.*LiveContainer/);
+});
+
+test('simplified UI hides legacy GTFS imports and service selection without losing internal selectors',()=>{
+ assert.doesNotMatch(html,/id="loadFeed"/);
+ assert.doesNotMatch(html,/id="fileFeed"/);
+ assert.doesNotMatch(html,/id="extraFeed"/);
+ assert.doesNotMatch(html,/SELEZIONA IL SERVIZIO/);
+ assert.match(html,/id="feedTitle"/);
+ assert.match(html,/id="retryFeed"/);
+ assert.match(html,/id="findGtfsAcademy"/);
+ assert.match(html,/id="academyGtfsTrip"/);
+ assert.match(html,/id="mergeOfficial"/);
+ assert.match(html,/class="legacy-service-fields" hidden/);
+ assert.match(html,/id="startNav"/);
+ assert.match(html,/id="demoBtn"/);
+ assert.match(html,/id="stopNav"/);
+ assert.match(js,/initializeGTFS\(\);/);
+ assert.doesNotMatch(js,/\$\('loadFeed'\)/);
+ assert.doesNotMatch(js,/\$\('fileFeed'\)/);
+ assert.doesNotMatch(js,/\$\('extraFeed'\)/);
+});
+test('GTFS startup restores cache without download and can refresh invalid data',async()=>{
+ const code=sourceOf('initializeGTFS');
+ const create=(cache,decode,download)=>{
+  const calls={downloads:[],handled:0,states:[],saved:0};
+  const run=new Function('readCachedZip','getGTFS','handleFeed','setFeedState','downloadGTFSBlob','saveZip','$','console',
+   'let feedInitialization=null; '+code+';return initializeGTFS;')(
+    async()=>cache,
+    decode,
+    ()=>calls.handled++,
+    (state,title,detail)=>calls.states.push({state,title,detail}),
+    async force=>{calls.downloads.push(force);return await download(force)},
+    async()=>calls.saved++,
+    ()=>({hidden:true}),
+    {warn(){},error(){}}
+   );
+  return {run,calls};
+ };
+ const cached=new Blob([Buffer.alloc(2000)]);
+ const loaded=create(cached,async()=>({routes:[]}),async()=>{throw Error('Should not download')});
+ assert.equal(await loaded.run(),true);
+ assert.equal(loaded.calls.downloads.length,0);
+ assert.equal(loaded.calls.handled,1);
+ assert.equal(loaded.calls.states.at(-1).state,'ready');
+ const missing=create(null,async()=>({routes:[]}),async()=>cached);
+ assert.equal(await missing.run(),true);
+ assert.deepEqual(missing.calls.downloads,[false]);
+ assert.equal(missing.calls.saved,1);
+ let count=0;
+ const corrupt=create(cached,async()=>{if(!count++)throw Error('Corrupt ZIP');return {routes:[]}},async()=>cached);
+ assert.equal(await corrupt.run(),true);
+ assert.deepEqual(corrupt.calls.downloads,[true]);
+ const failed=create(null,async()=>({routes:[]}),async()=>{throw Error('Senza rete')});
+ assert.equal(await failed.run(),false);
+ assert.equal(failed.calls.states.at(-1).state,'error');
+ assert.match(failed.calls.states.at(-1).detail,/Senza rete/);
+});
+test('native iOS caches validated GTFS ZIP to disk and supports retry refresh',()=>{
+ const swift=fs.readFileSync('ios/Sources/NavigatorViewController.swift','utf8');
+ assert.match(swift,/lineapilot-busitalia-gtfs\.zip/);
+ assert.match(swift,/if !refresh, let url = cachedGTFSURL/);
+ assert.match(swift,/cached\.starts\(with:/);
+ assert.match(swift,/try data\.write\(to: destination, options: \.atomic\)/);
+ assert.match(swift,/body\["refresh"\] as\? Bool \?\? false/);
 });
