@@ -397,7 +397,7 @@ test('native Italian voices and manual update download are available',()=>{
  const swift=fs.readFileSync('ios/Sources/NativeNavigation.swift','utf8');
  const ctrl=fs.readFileSync('ios/Sources/NavigatorViewController.swift','utf8');
  assert.match(swift,/AVSpeechSynthesisVoice\.speechVoices\(\)/);
- assert.match(swift,/voice\.language\.lowercased\(\)\.hasPrefix\("it"\)/);
+ assert.match(swift,/\.language\.lowercased\(\)\.hasPrefix\("it"\)/);
  assert.match(swift,/utterance\.rate/);
  assert.match(ctrl,/case "listVoices"/);
  assert.match(ctrl,/case "checkUpdates"/);
