@@ -366,6 +366,18 @@ const ACADEMY_DOCUMENTS={
 };
 const sortIt=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true,sensitivity:'base'});
 function academyGroupName(r){return String(r.line||'Altri percorsi').trim();}
+function academyDisplayName(r){
+ // GPX metadata may omit its numeric file identity (e.g. 1278) or contain
+ // a stale/different internal title. Preserve both provenance and geometry.
+ const name=String(r.name||'Percorso senza nome').trim();
+ const code=String(r.variant||'').trim();
+ if(!/^\d{2,5}$/.test(code))return name;
+ const prefix=new RegExp('^'+code+'\\s*(?:[|·-]|$)');
+ if(prefix.test(name))return name;
+ const existing=/^\d{2,5}\s*[|·-]/.test(name);
+ return existing?'GPX '+code+' · '+name:code+' | '+name;
+}
+
 async function loadAcademy(){try{
  let data;
  if(nativeMode){
@@ -428,7 +440,7 @@ function filterAcademyRoutes(){
  }
  const q=$('academySearch').value.trim().toLocaleLowerCase('it');
  const matches=academy.filter(r=>r.category===cat&&academyGroupName(r)===line&&(!q||[r.name,r.variant,r.filename].join(' ').toLocaleLowerCase('it').includes(q))).sort((a,b)=>sortIt(a.name,b.name));
- setOptions($('academyRoute'),matches.map(r=>[String(r.id),r.name]),'Scegli percorso…');
+ setOptions($('academyRoute'),matches.map(r=>[String(r.id),academyDisplayName(r)]),'Scegli percorso…');
  if(matches.some(r=>String(r.id)===previous))$('academyRoute').value=previous;
  $('academyCount').textContent=matches.length+' percorsi trovati in '+cat+' / '+line+' (nessun limite ai risultati)';
  onAcademySelected();
@@ -705,7 +717,7 @@ function onAcademySelected(){
  selectedOfficial=academy.find(r=>String(r.id)===$('academyRoute').value&&r.category===cat&&academyGroupName(r)===line)||null;
  $('showOfficial').disabled=!selectedOfficial;
  resetAcademyGtfs();
- if(selectedOfficial){$('officialInfo').textContent=selectedOfficial.category+', linea '+selectedOfficial.line+', variante '+(selectedOfficial.variant||'—')+': '+selectedOfficial.name+'. Puoi avviare il GPS direttamente su questo GPX.';showAcademyRoute(false);}
+ if(selectedOfficial){$('officialInfo').textContent=selectedOfficial.category+', linea '+selectedOfficial.line+', variante '+(selectedOfficial.variant||'—')+': '+academyDisplayName(selectedOfficial)+'. Puoi avviare il GPS direttamente su questo GPX.';showAcademyRoute(false);}
  else $('officialInfo').textContent='Scegli categoria, linea e percorso effettivo.';
 }
 $('academyCategory').addEventListener('change',()=>{$('academySearch').value='';filterAcademy()});
