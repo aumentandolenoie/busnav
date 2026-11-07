@@ -16,6 +16,7 @@ test -f "$APP/Info.plist"
 test -s "$APP/Web/official-routes.json"
 test -s "$APP/Web/winter-turns.json"
 test -s "$APP/Web/winter.js"
+plutil -replace CFBundleDisplayName -string "LineaPilot Turni" "$APP/Info.plist"
 /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist" | grep -qx "app.lineapilot.turni.experiment"
 /usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "$APP/Info.plist" | grep -qx "LineaPilot Turni"
 mkdir -p build/ios/Payload
