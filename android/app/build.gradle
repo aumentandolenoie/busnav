@@ -10,8 +10,23 @@ android {
         versionCode 1
         versionName '0.1'
     }
+    signingConfigs {
+        persistent {
+            if (System.getenv('ANDROID_SIGNING_STORE_FILE')) {
+                storeFile file(System.getenv('ANDROID_SIGNING_STORE_FILE'))
+                storePassword System.getenv('ANDROID_SIGNING_STORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_SIGNING_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_SIGNING_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
-        debug { debuggable true }
+        debug {
+            debuggable true
+            if (System.getenv('ANDROID_SIGNING_STORE_FILE')) {
+                signingConfig signingConfigs.persistent
+            }
+        }
         release { minifyEnabled false }
     }
     compileOptions {
