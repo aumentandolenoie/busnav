@@ -13,7 +13,7 @@
 <section class="panel winter-panel" id="winterPanel">
  <div class="section-title"><span>01</span> TURNO INVERNALE <span class="tag">TEST</span></div>
  <p class="help">Percorsi e orari dai PDF del 2026/27. Solo i GPX Academy stabiliscono il tragitto; le fermate vengono dal GTFS Busitalia.</p>
- <div class="winter-status" id="winterStatus" role="status" aria-live="polite">Caricamento catalogo dei turni…</div>
+ <div class="winter-status" id="winterStatus" role="status" aria-live="polite">Lettura del catalogo invernale già incluso nell’app…</div>
  <label>Tipo di servizio<select id="winterCategory"><option value="">Scegli Urbano, Extraurbano o Colli…</option><option value="Urbano">Urbano</option><option value="Extraurbano">Extraurbano</option><option value="Colli">Colli</option></select></label>
  <label>Giornata<select id="winterDay" disabled><option value="">Seleziona prima il servizio…</option><option value="F">Feriale (lunedì–venerdì)</option><option value="S">Sabato</option><option value="D">Festivo</option></select></label>
  <label>Codice turno<select id="winterTurn" disabled><option value="">Scegli prima il giorno…</option></select></label>
@@ -21,10 +21,10 @@
  <p id="winterJourneyInfo" class="help" aria-live="polite"></p>
  <label id="winterGpxWrap" hidden>GPX Academy corrispondente<select id="winterGpx" disabled><option value="">Verifica del percorso…</option></select></label>
  <p id="winterMappingStatus" class="help" role="status" aria-live="polite">Nessuna corsa selezionata.</p>
- <details class="winter-import"><summary>Importazione iniziale catalogo PDF</summary>
-  <p class="help">Per questa prima versione sperimentale, importa una volta il file JSON estratto dai tre PDF invernali. Viene salvato solo su questo dispositivo. Nessun dato modifica i GPX.</p>
+ <details class="winter-import"><summary>Aggiorna o correggi il catalogo PDF (opzionale)</summary>
+  <p class="help">Il catalogo invernale è già incluso nell’app. Puoi importare un JSON corretto per fare prove; viene salvato solo sul dispositivo e non modifica i GPX.</p>
   <label>Catalogo turni invernali (JSON)<input type="file" id="winterImport" accept=".json,application/json"></label>
-  <button type="button" id="winterClear" class="secondary-action">Cancella catalogo sperimentale locale</button>
+  <button type="button" id="winterClear" class="secondary-action">Ripristina catalogo incluso nell’app</button>
  </details>
 </section>
 <details class="panel advanced-panel winter-manual" id="winterManual"><summary>⚙ Scelta manuale Academy e fermate (alternativa)</summary>
