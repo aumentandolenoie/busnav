@@ -39,6 +39,9 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
 
     @objc private func didBecomeActive() {
         if let lastLocation { deliverLocation(lastLocation) }
+        // Recheck published IPA updates after a return from the background.
+        // The JS side throttles network requests to once per 10 minutes.
+        webView.evaluateJavaScript("window.lineaPilotCheckUpdatesOnResume && window.lineaPilotCheckUpdatesOnResume()", completionHandler: nil)
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
