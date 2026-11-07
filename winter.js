@@ -287,6 +287,7 @@ function winterUseAcademy(route,explicit=false){
   if(needsApproval){
    winterEl('winterGpxWrap').hidden=false;
    winterEl('winterGpx').value='';
+   winterEl('mergeOfficial').disabled=true;
    winterStatus('GPX proposto: il PDF non certifica automaticamente il tracciato. Seleziona e conferma il GPX corretto; il sistema ricorderà la scelta.',true);
    return;
   }
