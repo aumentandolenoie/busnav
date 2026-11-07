@@ -83,11 +83,22 @@ function winterRouteMatches(cat,leg){
  return candidates.map(route=>({route,score:winterRank(route,leg)}))
   .sort((a,b)=>b.score-a.score||a.route.name.localeCompare(b.route.name,'it'));
 }
+function winterClearActiveRoute(){
+ ++winterRun;
+ if(current){stopNavigation();current=null}
+ selectedOfficial=null;
+ turns=[];
+ winterEl('startNav').disabled=true;
+ winterEl('demoBtn').disabled=true;
+ winterEl('stopNav').disabled=true;
+ winterEl('nextDetail').textContent='Scegli una corsa invernale e verifica il GPX Academy.';
+}
 function winterStatus(message,problem=false){
  winterEl('winterMappingStatus').textContent=message;
  winterEl('winterMappingStatus').dataset.problem=problem?'yes':'no';
 }
 function winterRefresh(){
+ winterClearActiveRoute();
  winterSelection=null;winterSelectedLeg=null;winterOptions=[];winterGpxCandidates=[];
  winterEl('winterGpxWrap').hidden=true;
  winterEl('winterJourneyWrap').hidden=true;
@@ -99,6 +110,7 @@ function winterRefresh(){
  winterRefreshTurns();
 }
 function winterRefreshTurns(){
+ winterClearActiveRoute();
  const cat=winterEl('winterCategory').value,day=winterEl('winterDay').value;
  setOptions(winterEl('winterTurn'),[],'Scegli un codice turno…');
  setOptions(winterEl('winterJourney'),[],'Scegli un turno…');
@@ -113,6 +125,7 @@ function winterRefreshTurns(){
  if(!choices.length)winterStatus('Il PDF non contiene corse classificate per questi filtri. Usa la scelta manuale Academy.',true);
 }
 function winterRefreshJourneys(){
+ winterClearActiveRoute();
  winterSelectedLeg=null;winterEl('winterGpxWrap').hidden=true;
  const idx=Number(winterEl('winterTurn').value);
  winterSelection=winterEl('winterTurn').value!==''?winterOptions[idx]:null;
@@ -141,6 +154,7 @@ function winterRefreshJourneys(){
  }
 }
 function winterSelectJourney(){
+ winterClearActiveRoute();
  if(!winterSelection)return;
  const idx=Number(winterEl('winterJourney').value);
  const item=winterEl('winterJourney')._winterRoutes?.[idx];
