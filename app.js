@@ -11,6 +11,7 @@ function nativePost(data){
  catch(e){console.warn('Native bridge:',e);return false}
 }
 window.lineaPilotNativeReceive=(type,data)=>{
+ if(type==='voices'){applyVoiceOptions(data?.voices||[],'ios');return}
  if(!nativeActive)return;
  if(type==='location'&&data&&Number.isFinite(data.lat)&&Number.isFinite(data.lng)){
   updatePosition({lat:data.lat,lng:data.lng},data.accuracy||0,data.speed,false,data.heading);
@@ -19,6 +20,102 @@ window.lineaPilotNativeReceive=(type,data)=>{
   setVoiceStatus(data.message);
  }
 };
+
+// Italian voice preferences are local per device, never tied to the GPX.
+const voicePreferences=(()=>{
+ try{
+  const data=JSON.parse(localStorage.getItem('lineapilot-voice')||'{}');
+  return {id:typeof data.id==='string'?data.id:'',rate:Number.isFinite(+data.rate)?Math.min(1.25,Math.max(.75,+data.rate)):1};
+ }catch{return {id:'',rate:1}}
+})();
+let availableItalianVoices=[];
+function persistVoicePreferences(){
+ try{localStorage.setItem('lineapilot-voice',JSON.stringify(voicePreferences))}catch{}
+}
+function applyVoiceOptions(list,source){
+ const dropdown=$('voiceSelect'),saved=voicePreferences.id;
+ availableItalianVoices=list.filter(v=>String(v.lang||'').toLowerCase().startsWith('it'));
+ dropdown.replaceChildren();
+ const automatic=document.createElement('option');automatic.value='';automatic.textContent='Automatica · migliore voce italiana';dropdown.add(automatic);
+ availableItalianVoices.sort((a,b)=>(b.quality||0)-(a.quality||0)||String(a.name).localeCompare(String(b.name),'it'));
+ for(const voice of availableItalianVoices){
+  const o=document.createElement('option');o.value=voice.id;o.textContent=voice.name+(voice.enhanced?' · qualità alta':'');
+  dropdown.add(o);
+ }
+ if(saved&&availableItalianVoices.some(v=>v.id===saved))dropdown.value=saved;
+ else dropdown.value='';
+ dropdown.disabled=!availableItalianVoices.length;
+}
+function loadItalianVoices(){
+ if(nativeMode){nativePost({type:'listVoices'});return}
+ if(!('speechSynthesis'in window))return;
+ applyVoiceOptions(speechSynthesis.getVoices().filter(v=>String(v.lang).toLowerCase().startsWith('it'))
+  .map(v=>({id:v.voiceURI,name:v.name,lang:v.lang,quality:v.localService?2:1,enhanced:false})),'web');
+}
+function syncVoiceSettings(){
+ voicePreferences.id=$('voiceSelect').value;
+ voicePreferences.rate=Math.min(1.25,Math.max(.75,Number($('voiceRate').value)||1));
+ $('voiceRateValue').textContent=voicePreferences.rate.toFixed(2).replace('.',',')+'×';
+ persistVoicePreferences();
+ if(nativeMode)nativePost({type:'settings',voiceId:voicePreferences.id,rate:voicePreferences.rate});
+}
+$('voiceRate').value=String(voicePreferences.rate);
+$('voiceRateValue').textContent=voicePreferences.rate.toFixed(2).replace('.',',')+'×';
+$('voiceSelect').addEventListener('change',syncVoiceSettings);
+$('voiceRate').addEventListener('input',syncVoiceSettings);
+$('refreshVoices').addEventListener('click',loadItalianVoices);
+if('speechSynthesis'in window) {
+ speechSynthesis.addEventListener?.('voiceschanged',loadItalianVoices);
+ loadItalianVoices();
+}
+if(nativeMode)loadItalianVoices();
+
+// App installation updates are explicit opt-in downloads, never silent installs.
+// GitHub 'latest' ignores prereleases: use the releases list for test IPA/APK.
+const RELEASES_URL='https://api.github.com/repos/aumentandolenoie/busnav/releases?per_page=40';
+let availableUpdate=null;
+async function checkForAppUpdates(manual=false){
+ const tag=String(window.LINEAPILOT_BUILD_TAG||'');
+ const platform=tag.startsWith('ios-preview-')?'ios':tag.startsWith('android-preview-')?'android':null;
+ if(!platform){
+  if(manual)$('updateStatus').textContent='La versione web si aggiorna al ricaricamento della pagina.';
+  return;
+ }
+ try{
+  if(manual)$('updateStatus').textContent='Controllo nuove versioni…';
+  const response=await fetch(RELEASES_URL,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const releases=await response.json();
+  const names=platform==='ios'?['LineaPilot-unsigned.ipa']:['LineaPilot-debug.apk'];
+  const matching=releases.filter(r=>!r.draft&&r.tag_name?.startsWith(platform+'-preview-')&&
+    r.assets?.some(a=>names.includes(a.name)&&a.browser_download_url?.startsWith('https://github.com/aumentandolenoie/busnav/releases/download/')));
+  matching.sort((a,b)=>Date.parse(b.published_at||b.created_at)-Date.parse(a.published_at||a.created_at));
+  const newest=matching[0],installed=matching.find(r=>r.tag_name===tag);
+  if(!newest||!installed||newest.tag_name===tag||
+    Date.parse(newest.published_at||newest.created_at)<=Date.parse(installed.published_at||installed.created_at)){
+    if(manual)$('updateStatus').textContent=installed?'LineaPilot è aggiornato.':'Impossibile verificare la versione installata: consulta le release GitHub.';
+    return;
+  }
+  const asset=newest.assets.find(a=>names.includes(a.name));
+  if(!asset)return;
+  availableUpdate={tag:newest.tag_name,url:asset.browser_download_url};
+  if(!manual&&localStorage.getItem('lineapilot-dismissed-update')===newest.tag_name)return;
+  $('appUpdateTitle').textContent='Aggiornamento LineaPilot disponibile';
+  $('appUpdateDetail').textContent='Nuova build '+newest.tag_name.split('-').at(-1)+' · installazione manuale richiesta';
+  $('appUpdateBanner').hidden=false;
+  $('updateStatus').textContent='Nuova versione disponibile.';
+ }catch(e){
+  if(manual)$('updateStatus').textContent='Verifica aggiornamenti non riuscita: '+e.message;
+  console.warn('Aggiornamenti:',e);
+ }
+}
+$('checkUpdates').addEventListener('click',()=>checkForAppUpdates(true));
+$('appUpdateOpen').addEventListener('click',()=>{if(availableUpdate)window.location.href=availableUpdate.url});
+$('appUpdateDismiss').addEventListener('click',()=>{
+ $('appUpdateBanner').hidden=true;
+ if(availableUpdate)try{localStorage.setItem('lineapilot-dismissed-update',availableUpdate.tag)}catch{}
+});
+if(window.LINEAPILOT_BUILD_TAG)setTimeout(()=>checkForAppUpdates(),4500);
 
 const map=L.map('map',{zoomControl:false,rotate:true,touchRotate:false,dragRotate:false,shiftKeyRotate:false}).setView([45.4064,11.8768],12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
@@ -711,9 +808,10 @@ function drainVoice(){
  setVoiceStatus('Annuncio in preparazione…');
  try{
   const speech=new SpeechSynthesisUtterance(item.message);
-  speech.lang='it-IT';speech.rate=1.02;speech.pitch=1;
+  speech.lang='it-IT';speech.rate=voicePreferences.rate;speech.pitch=1;
   const voices=speechSynthesis.getVoices();
-  const italian=voices.find(v=>v.lang.toLowerCase()==='it-it')||voices.find(v=>v.lang.toLowerCase().startsWith('it'));
+  const italian=voices.find(v=>v.voiceURI===voicePreferences.id&&v.lang.toLowerCase().startsWith('it'))||
+   voices.find(v=>v.lang.toLowerCase()==='it-it')||voices.find(v=>v.lang.toLowerCase().startsWith('it'));
   if(italian)speech.voice=italian;
   let completed=false,started=false;
   const finish=(error=null)=>{
@@ -889,7 +987,7 @@ function startGPS(){
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
   enterNavigationView();
   nativeActive=true;
-  const ok=nativePost({type:'start',route,voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked});
+  const ok=nativePost({type:'start',route,voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
   if(!ok){nativeActive=false;leaveNavigationView();toast('Impossibile avviare il GPS nativo');return}
   $('gpsStatus').textContent='GPS nativo in avvio…';
   setVoiceStatus('Voce nativa pronta: annunci anche con schermo bloccato se autorizzati');
@@ -973,7 +1071,7 @@ document.addEventListener('visibilitychange',()=>{
  }
 });
 $('activateNavVoice').addEventListener('click',activateNavigationVoice);
-$('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceToggle').checked){toast('Attiva prima gli annunci vocali');return}if(nativeMode){nativePost({type:'testVoice'});return}if(!speak('Prova audio LineaPilot. Tra duecento metri, prossima fermata.','stop'))toast('Sintesi vocale non disponibile: controlla il volume e le impostazioni di Safari');});
+$('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceToggle').checked){toast('Attiva prima gli annunci vocali');return}if(nativeMode){syncVoiceSettings();nativePost({type:'testVoice'});return}if(!speak('Prova audio LineaPilot. Tra duecento metri, prossima fermata.','stop'))toast('Sintesi vocale non disponibile: controlla il volume e le impostazioni di Safari');});
 $('voiceToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked});if(!$('voiceToggle').checked){resetVoiceGuidance();setVoiceStatus('Voce disattivata')}else setVoiceStatus('Premi Riattiva voce')});
 $('turnToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked})});
 $('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',recenterOnRealGPS);
