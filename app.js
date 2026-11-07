@@ -412,6 +412,7 @@ async function loadAcademy(){try{
  $('academyCount').textContent=complete?'Catalogo completo: 787/787 GPX (557 Extraurbano, 29 Colli, 201 Urbano).':'ATTENZIONE: catalogo incompleto o non valido ('+data.length+'/787).';
  $('officialInfo').textContent=complete?'Seleziona categoria, linea e variante. Le due sezioni documentali contengono PDF, non tracciati GPS.':'Controllare official-routes.json prima della navigazione.';
  filterAcademy();
+ window.dispatchEvent(new CustomEvent('lineapilot:academy-ready'));
 }catch(e){$('academyCount').textContent='Catalogo GPX non disponibile';$('officialInfo').textContent='Errore caricamento GPX: '+e.message}}
 function filterAcademy(){
  const category=$('academyCategory').value;
