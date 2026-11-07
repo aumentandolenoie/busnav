@@ -4,7 +4,13 @@ import AVFoundation
 import MachO
 
 struct NativeRoute: Decodable {
-    struct Turn: Decodable { let at: Double; let side: String }
+    struct Turn: Decodable {
+        let at: Double
+        let side: String
+        let kind: String?
+        let text: String?
+        let verifiedRoad: Bool?
+    }
     let points: [[Double]]        // Latitude, longitude in canonical Academy order
     let offsets: [Double]         // Metres along the canonical GPX
     let stops: [String]           // Busitalia GTFS names only, no MOM supplements
@@ -211,10 +217,18 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
                 let lead = max(150, min(350, max(speed, 6) * 18))
                 let stage = turnStages[index, default: 0]
                 if stage == 0 && distance <= lead && !synthesizer.isSpeaking {
-                    speak("Possibile svolta a \(turn.side) tra circa \(Int(distance.rounded())) metri.")
+                    if turn.verifiedRoad == true, let message = turn.text, !message.isEmpty {
+                        speak("Tra circa \(Int(distance.rounded())) metri, \(message).")
+                    } else {
+                        speak("Possibile svolta a \(turn.side) tra circa \(Int(distance.rounded())) metri.")
+                    }
                     turnStages[index] = 1
                 } else if stage == 1 && distance <= 85 && !synthesizer.isSpeaking {
-                    speak("Possibile svolta a \(turn.side) tra poco.")
+                    if turn.verifiedRoad == true, let message = turn.text, !message.isEmpty {
+                        speak("Tra poco, \(message).")
+                    } else {
+                        speak("Possibile svolta a \(turn.side) tra poco.")
+                    }
                     turnStages[index] = 2
                 }
                 break
