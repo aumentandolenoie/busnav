@@ -64,14 +64,21 @@ function winterLineFamily(raw){
  return normAcademyCode(match?'E'+match[1]:text);
 }
 function winterNormalizedRouteName(route){
- // Prefer the GPX stored title for geographical identity, but ignore the
- // printed filename number, which is a track ID, not a Busitalia route code.
- return winterNorm(String(route.name||'').replace(/^\\s*\\d{2,5}\\s*[|·-]\\s*/,''));
+ return winterNorm(academyTrackTitle(route));
+}
+function winterInternalTitle(route){
+ return winterNorm(String(route.name||'').replace(/^\s*\d{2,5}\s*[|·-]\s*/,''));
+}
+function winterAcademyTitlesConsistent(route){
+ // Conflicting geographic descriptions in the GPX filename and embedded
+ // track metadata always require manual review.
+ return winterNormalizedRouteName(route)===winterInternalTitle(route);
 }
 function winterExactAcademyMatches(cat,leg,candidates){
  const target=winterNorm(leg[2]);
  if(!target||!cat||String(leg[4]||'').trim())return [];
- return candidates.filter(x=>winterNormalizedRouteName(x.route)===target);
+ return candidates.filter(x=>winterAcademyTitlesConsistent(x.route)&&
+  winterNormalizedRouteName(x.route)===target);
 }
 function winterRouteMatches(cat,leg){
  const code=winterLineFamily(leg[3]);
