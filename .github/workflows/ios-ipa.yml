@@ -52,7 +52,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="winter-preview-$(git rev-parse --short=12 HEAD)"
-          gh release create "$TAG" build/ios/LineaPilot-unsigned.ipa \
-            --title "LineaPilot iOS unsigned - $TAG" \
+          gh release create "$TAG" build/ios/LineaPilot-Turni-unsigned.ipa \
+            --title "LineaPilot Turni (sperimentale) - $TAG" \
             --notes "Prototipo iOS NON FIRMATO, destinato a test di sideloading con SideStore. Servono firma e autorizzazioni iOS per installarlo. GPS e voce con schermo bloccato da collaudare: non è navigazione certificata." \
             --prerelease --target "$GITHUB_SHA"
