@@ -1,6 +1,7 @@
 import Foundation
 import CoreLocation
 import AVFoundation
+import MachO
 
 struct NativeRoute: Decodable {
     struct Turn: Decodable { let at: Double; let side: String }
@@ -17,6 +18,28 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
     var turnsEnabled = true
 
     private let manager = CLLocationManager()
+    private var locationUpdatesStarted = false
+
+    // LiveContainer launches our Swift code inside a different, signed host app.
+    // The host may lack UIBackgroundModes=location even when LineaPilot's own
+    // Info.plist declares it. Setting allowsBackgroundLocationUpdates=true then
+    // raises an uncaught NSInvalidArgumentException in Core Location.
+    private static let isHostedByLiveContainer: Bool = {
+        for index in 0..<_dyld_image_count() {
+            if let path = _dyld_get_image_name(index) {
+                let image = String(cString: path).lowercased()
+                if image.contains("livecontainershared") || image.contains("livecontainer.app/") {
+                    return true
+                }
+            }
+        }
+        return false
+    }()
+
+    private var canUseBackgroundLocation: Bool {
+        let modes = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String] ?? []
+        return !Self.isHostedByLiveContainer && modes.contains("location")
+    }
     private let synthesizer = AVSpeechSynthesizer()
     private var route: NativeRoute?
     private var distances: [Double] = []
@@ -79,6 +102,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
 
     func stop() {
         active = false
+        locationUpdatesStarted = false
         manager.stopUpdatingLocation()
         manager.allowsBackgroundLocationUpdates = false
         synthesizer.stopSpeaking(at: .immediate)
@@ -91,13 +115,24 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
     }
 
     private func startLocationUpdates() {
-        guard active else { return }
-        // Info.plist includes UIBackgroundModes=location. Start while foregrounded;
-        // Core Location can then keep delivering updates after the screen locks.
-        manager.allowsBackgroundLocationUpdates = true
-        manager.showsBackgroundLocationIndicator = true
+        guard active, !locationUpdatesStarted else { return }
+        // Only a standalone installation whose executing app declares the location
+        // background mode can request continuous updates. In LiveContainer, the
+        // process belongs to the host and enabling this flag crashes Core Location.
+        let backgroundAllowed = canUseBackgroundLocation
+        manager.allowsBackgroundLocationUpdates = backgroundAllowed
+        if backgroundAllowed {
+            manager.showsBackgroundLocationIndicator = true
+        }
         manager.startUpdatingLocation()
-        onStatus?("GPS nativo avviato · audio disponibile anche a schermo bloccato, se iOS lo consente")
+        locationUpdatesStarted = true
+        if Self.isHostedByLiveContainer {
+            onStatus?("GPS attivo in primo piano · LiveContainer non supporta la modalità GPS in background")
+        } else if backgroundAllowed {
+            onStatus?("GPS nativo attivo · modalità background richiesta (da verificare sul dispositivo)")
+        } else {
+            onStatus?("GPS attivo in primo piano · modalità background non disponibile per questa installazione")
+        }
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
