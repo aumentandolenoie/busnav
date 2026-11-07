@@ -82,7 +82,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 if let error {
-                    self.deliverGTFS(requestId, "error", "Rete: \\(error.localizedDescription)")
+                    self.deliverGTFS(requestId, "error", "Rete: \(error.localizedDescription)")
                     return
                 }
                 guard let response = response as? HTTPURLResponse else {
@@ -90,7 +90,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
                     return
                 }
                 guard (200..<300).contains(response.statusCode) else {
-                    self.deliverGTFS(requestId, "error", "Server GTFS: HTTP \\(response.statusCode)")
+                    self.deliverGTFS(requestId, "error", "Server GTFS: HTTP \(response.statusCode)")
                     return
                 }
                 guard let data, data.count >= 1000, data.count <= 100 * 1024 * 1024 else {
@@ -135,7 +135,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
               let json = String(data: jsonData, encoding: .utf8) else { return }
         webView.evaluateJavaScript("""
             if (window.lineaPilotGTFSReceive) {
-              window.lineaPilotGTFSReceive.apply(window, \\(json));
+              window.lineaPilotGTFSReceive.apply(window, \(json));
             }
             """) { _, error in completion?(error) }
     }
