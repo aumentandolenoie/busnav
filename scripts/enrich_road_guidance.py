@@ -20,9 +20,10 @@ MAX_LENGTH_DEVIATION = 0.07
 # Valhalla types: left/right turns and roundabout exit; depart/arrive/continue
 # are deliberately excluded to prevent false instructions along the GPX.
 MANEUVER_TYPES = {
-    9: "left", 10: "left", 11: "left", 12: "left", 13: "left", 14: "left",
-    15: "right", 16: "right", 17: "right", 18: "right",
-    26: "roundabout", 27: "roundabout",
+    9: "right", 10: "right", 11: "right",
+    14: "left", 15: "left", 16: "left",
+    18: "right", 19: "left", 20: "right", 21: "left",
+    23: "right", 24: "left", 26: "roundabout",
 }
 
 
@@ -209,6 +210,8 @@ def main():
     route = next((x for x in catalog if str(x["id"]) == args.route_id), None)
     if not route:
         parser.error("Unknown Academy GPX ID: " + args.route_id)
+    if not all(c.isascii() and (c.isalnum() or c in "-_") for c in args.route_id):
+        parser.error("Academy ID contains unsupported filename characters")
     response = json.loads(args.response_file.read_text(encoding="utf8")) if args.response_file else get_response(args.endpoint, route["points"])
     guidance = convert(route, response)
     args.output_dir.mkdir(parents=True, exist_ok=True)
