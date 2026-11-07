@@ -188,3 +188,13 @@ test('native iOS project and cloud pipeline are available',()=>{
  const workflow=fs.readFileSync('.github/workflows/ios-ipa.yml','utf8');
  assert.match(workflow,/gh release create/);
 });
+
+test('iOS WKWebView permits portrait scrolling to Academy and GTFS controls',()=>{
+ const swift=fs.readFileSync('ios/Sources/NavigatorViewController.swift','utf8');
+ const css=fs.readFileSync('style.css','utf8');
+ assert.match(swift,/webView\.scrollView\.isScrollEnabled = true/);
+ assert.doesNotMatch(swift,/webView\.scrollView\.isScrollEnabled = false/);
+ assert.match(css,/@media\(max-width:800px\)/);
+ assert.match(css,/\.sidebar\{order:2/);
+ assert.match(css,/body\.navigating\{overflow:hidden\}/);
+});

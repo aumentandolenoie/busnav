@@ -36,3 +36,7 @@ Questo primo prototipo richiede internet per mappe OpenStreetMap e dipendenze JS
 La prima compilazione macOS ha raggiunto correttamente `LineaPilot-unsigned.ipa`. Il caricamento con `actions/upload-artifact` era fallito perché la quota di storage Actions del repository era esaurita, non per un errore di compilazione. La pipeline aggiornata carica le IPA come **GitHub prerelease** dopo il merge su `main`, così il file si scarica da **Releases**. Le PR continuano a compilare senza caricare artefatti.
 
 Per l'importazione GTFS automatica nella WKWebView, `BundledSite` serve `gtfs.zip` tramite `URLSession` e usa XMLHttpRequest in JavaScript. La PWA web usa sempre il proprio endpoint HTTPS e non viene alterata.
+
+### Scorrimento in verticale (correzione)
+
+Nell'app iOS la WKWebView deve avere `scrollView.isScrollEnabled = true`: la pagina mobile mostra prima la mappa e poi le sezioni GPX, GTFS e assistente di guida, accessibili con lo scorrimento del dito. In navigazione a tutto schermo continua a essere il CSS `body.navigating` a bloccare lo scorrimento della pagina. Questa correzione non modifica la PWA, i GPX o la gestione GPS.
