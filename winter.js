@@ -56,8 +56,15 @@ function winterRank(route,leg){
  const haystack=new Set(winterParts([route.name,route.filename,route.variant].join(' ')));
  return query.filter(s=>haystack.has(s)).length;
 }
+function winterLineFamily(raw){
+ const text=String(raw||'').toUpperCase().trim();
+ // E060-V and E060-Z are distinct scheduled legs; only their common E060
+ // family is used to discover Academy candidates (never to certify variant).
+ const match=/^E(\\d{3})(?:-[VZ])?$/.exec(text);
+ return normAcademyCode(match?'E'+match[1]:text);
+}
 function winterRouteMatches(cat,leg){
- const code=normAcademyCode(leg[3]);
+ const code=winterLineFamily(leg[3]);
  if(!code)return [];
  const candidates=academy.filter(route=>route.category===cat&&
   [...academyRouteCodes(route)].some(candidate=>candidate===code||
@@ -267,6 +274,16 @@ window.addEventListener('lineapilot:gtfs-ready',()=>{
  if(winterSelection&&winterSelectedLeg&&selectedOfficial)winterUseAcademy(selectedOfficial);
 });
 async function winterLoadBundled(){
+ // An explicitly imported correction takes precedence over the bundled extract.
+ try{
+  const stored=JSON.parse(localStorage.getItem(WINTER_DATA_KEY)||'null');
+  if(winterValidCatalog(stored)){
+   winterCatalog=stored;
+   winterEl('winterStatus').textContent=stored.length+' turni invernali: correzione locale applicata al catalogo incluso.';
+   winterRefreshTurns();
+   return;
+  }
+ }catch{}
  try{
   let rows;
   if(nativeMode){
