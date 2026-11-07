@@ -140,3 +140,11 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - Compilazione: `codemagic.yaml` o `.github/workflows/ios-ipa.yml`; entrambe compilano una **IPA non firmata**. L'azione GitHub pubblica una **prerelease** su `main` per evitare il limite di archiviazione degli artefatti Actions.
 - SideStore firma e installa la IPA con account Apple gratuito, soggetto alle limitazioni di 7 giorni/slot; permessi, audio GPS con iPhone bloccato e accettazione della firma devono essere verificati sul dispositivo.
 - Il progetto nativo è un primo prototipo, non una navigazione stradale certificata e non garantisce ancora continuità a schermo bloccato.
+
+## Interfaccia essenziale e GTFS Busitalia automatico (v19)
+
+- All'apertura l'app carica automaticamente il catalogo Academy e il GTFS Busitalia, utilizzando prima il GTFS locale se disponibile e valido. Se manca, o se la copia locale non è leggibile, recupera lo ZIP dalla fonte Busitalia preesistente. Errori visibili e pulsante di riprova solo in caso di problemi.
+- La PWA memorizza il GTFS in IndexedDB. La versione iOS lo memorizza anche nella cache nativa dell'app per evitare download ripetuti quando la WebView non conserva IndexedDB; il pulsante di riprova forza un nuovo download in caso di errore.
+- I pulsanti per scaricare e importare ZIP e la sezione visuale "Seleziona il servizio" non sono più presenti. I selettori GTFS legacy sono conservati nel DOM ma nascosti, così le funzioni di matching non vengono eliminate né alterate.
+- Il percorso Academy viene mostrato automaticamente dopo la selezione. La variante delle fermate Busitalia va comunque verificata e confermata prima di associarla, perché una corrispondenza geometrica non è necessariamente una corsa unica.
+- Controlli GPS ben visibili, impostazioni vocali ed elenco fermate espandibili, disposizione mobile con i selettori prima della mappa. Nessuna variazione ai 787 GPX, al GPS nativo o alla logica degli annunci.
