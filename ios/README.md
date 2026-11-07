@@ -44,3 +44,7 @@ Nell'app iOS la WKWebView deve avere `scrollView.isScrollEnabled = true`: la pag
 ### Correzione download GTFS su iOS (v18)
 
 Il download GTFS nella versione nativa viene ora effettuato direttamente da `URLSession` verso l'endpoint BusOne Busitalia. Swift verifica lo stato HTTP, la dimensione e la firma ZIP, poi passa i dati binari alla WebView in blocchi base64 di 48 KiB tramite il bridge nativo. La WebView ricompone l'archivio e lo passa al parser GTFS già esistente. Questo evita il fallimento di XMLHttpRequest verso `lineapilot://app/gtfs.zip` su WebKit. Il messaggio nell'app distingue ora errori di rete, HTTP, file ZIP e trasmissione alla WebView. La PWA Vercel mantiene il proprio download HTTP originale. La gestione nativa deve essere verificata anche dentro LiveContainer.
+
+### LiveContainer: Core Location senza crash (fix)
+
+Se il log contiene `Invalid parameter not satisfying: !stayUp || CLClientIsBackgroundable(...)`, l'app ospitante non è autorizzata agli aggiornamenti di posizione in background. La voce `UIBackgroundModes=location` della IPA ospitata non basta: LiveContainer usa il processo e le capacità dell'app host. LineaPilot rileva il caricamento di `LiveContainerShared` e avvia **solo GPS in primo piano**, senza impostare `allowsBackgroundLocationUpdates=true`. In un'installazione standalone con la modalità `location` nel bundle, continua a richiedere la modalità background. Il comportamento reale di SideStore e le autorizzazioni iOS restano da verificare. Non usare LiveContainer per convalidare gli annunci a schermo bloccato.
