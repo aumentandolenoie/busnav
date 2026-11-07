@@ -232,14 +232,28 @@ function winterUseAcademy(route,explicit=false){
  resetAcademyGtfs();
  showAcademyRoute(false); // ORIGINAL Academy geometry, never GTFS-derived.
  const key=winterSig(winterSelection),saved=winterSaved()[key];
+ const fingerprint=academyFingerprint(route.points);
+ const previouslyConfirmed=String(saved?.academyId)===id&&saved?.academyFingerprint===fingerprint;
+ const needsApproval=!explicit&&!previouslyConfirmed;
  if(explicit){
   const rows=winterSaved();
-  rows[key]={academyId:id,academyFingerprint:academyFingerprint(route.points)}; // stops confirmed separately
+  const unchanged=previouslyConfirmed?saved:{};
+  rows[key]={...unchanged,academyId:id,academyFingerprint:fingerprint};
   winterSafeStore(WINTER_CHOICES_KEY,JSON.stringify(rows));
+ }
+ if(needsApproval){
+  // Matching a *name* is a suggestion, not proof of bus-service equivalence.
+  // Never enable GPS navigation until GTFS validates it or the driver confirms.
+  winterEl('startNav').disabled=true;
+  winterEl('demoBtn').disabled=true;
  }
  winterStatus('GPX Academy: '+academyDisplayName(route)+'. Verifica della sequenza fermate GTFS Busitalia…');
  if(!feed){
-  winterStatus('GPX ufficiale caricato. GTFS non ancora disponibile: navigazione senza annunci fermate.');
+  if(needsApproval){
+   winterEl('winterGpxWrap').hidden=false;
+   winterEl('winterGpx').value='';
+   winterStatus('GPX proposto da PDF e nome file, ma senza GTFS non è verificato: confermalo nel menu prima di navigare.',true);
+  }else winterStatus('GPX Academy confermato. GTFS non ancora disponibile: navigazione senza annunci fermate.');
   return;
  }
  try{
@@ -270,12 +284,22 @@ function winterUseAcademy(route,explicit=false){
   }
   renderAcademyStopComparison();
   refreshVariantPreview();
+  if(needsApproval){
+   winterEl('winterGpxWrap').hidden=false;
+   winterEl('winterGpx').value='';
+   winterStatus('GPX proposto: il PDF non certifica automaticamente il tracciato. Seleziona e conferma il GPX corretto; il sistema ricorderà la scelta.',true);
+   return;
+  }
   winterStatus(matches.length?
    matches.length+' sequenze GTFS compatibili. Controlla e conferma le fermate nella sezione manuale.':
    'GTFS non contiene una sequenza completa compatibile: GPS sul GPX disponibile, annunci fermate disabilitati.',true);
   winterEl('winterManual').open=true;
  }catch(err){
-  winterStatus('Impossibile associare le fermate: '+err.message,true);
+  if(needsApproval){
+   winterEl('winterGpxWrap').hidden=false;
+   winterEl('winterGpx').value='';
+  }
+  winterStatus('Impossibile associare le fermate: '+err.message+'. Il percorso Academy resta solo una proposta finché non confermato.',true);
   winterEl('winterManual').open=true;
  }
 }
