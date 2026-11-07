@@ -105,3 +105,18 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
 .variant-stops-list{max-height:240px;overflow:auto;padding-left:23px;margin:8px 0 0;color:#c4d5f0;font-size:12px;line-height:1.6}
 .variant-stops-list li{padding:3px 0;border-bottom:1px solid #ffffff12}
 #academyGtfsTrip{font-size:13px;line-height:1.4;text-overflow:ellipsis}
+
+/* Voice settings and installation update notice. */
+.app-update-banner{position:relative;z-index:1005;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px max(14px,env(safe-area-inset-right)) 12px max(14px,env(safe-area-inset-left));border-bottom:1px solid #608dbe;background:#18365b;color:#fff}
+.app-update-banner>div:first-child{flex:1;min-width:220px}
+.app-update-banner strong{font-size:13px}
+.app-update-banner p{margin:4px 0 0;color:#cddff8;font-size:11px}
+.app-update-banner .button-row{display:flex;gap:8px;align-items:center}
+.app-update-banner button{font-size:12px;min-height:40px;padding:8px 12px}
+#appUpdateOpen{background:#245f95}
+#voiceRate{width:100%;accent-color:#3c96ed;min-height:34px;margin-top:10px}
+#voiceRateValue{color:#b7d4ff;font-weight:700;font-variant-numeric:tabular-nums}
+#voiceSelect{min-height:44px}
+#checkUpdates{font-size:12px;min-height:44px}
+body.navigating .app-update-banner{display:none!important}
+@media(max-width:800px){.app-update-banner{padding:12px 14px}.app-update-banner .button-row{width:100%}.app-update-banner button{flex:1}}
