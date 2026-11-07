@@ -233,7 +233,7 @@ async function winterImportFile(file){
  if(!winterValidCatalog(rows))throw Error('Il file non è il catalogo PDF dei turni previsto');
  winterCatalog=rows;
  const persisted=winterSafeStore(WINTER_DATA_KEY,JSON.stringify(rows));
- winterEl('winterStatus').textContent=rows.length+' schede turno importate dai PDF (2026/27). '+
+ winterEl('winterStatus').textContent=rows.length+' schede turno aggiornate dai PDF (2026/27). '+
   (persisted?'Catalogo salvato sul dispositivo.':'Memoria non disponibile: reimportare al prossimo avvio.');
  winterRefreshTurns();
 }
@@ -248,7 +248,7 @@ winterEl('winterImport').addEventListener('change',async event=>{
 });
 winterEl('winterClear').addEventListener('click',()=>{
  try{localStorage.removeItem(WINTER_DATA_KEY);localStorage.removeItem(WINTER_CHOICES_KEY)}catch{}
- winterResetImportState();
+ winterLoadBundled(); // Reset any override, restore the bundled official-PDF extract.
 });
 winterEl('mergeOfficial').addEventListener('click',()=>{
  if(!winterSelection||!winterSelectedLeg||!current?.reliable||
@@ -266,10 +266,38 @@ winterEl('mergeOfficial').addEventListener('click',()=>{
 window.addEventListener('lineapilot:gtfs-ready',()=>{
  if(winterSelection&&winterSelectedLeg&&selectedOfficial)winterUseAcademy(selectedOfficial);
 });
-try{
- const saved=JSON.parse(localStorage.getItem(WINTER_DATA_KEY)||'null');
- if(winterValidCatalog(saved)){
-  winterCatalog=saved;
-  winterEl('winterStatus').textContent=saved.length+' turni PDF già disponibili sul dispositivo.';
- }else winterResetImportState();
-}catch{winterResetImportState()}
+async function winterLoadBundled(){
+ try{
+  let rows;
+  if(nativeMode){
+   rows=await new Promise((resolve,reject)=>{
+    const xhr=new XMLHttpRequest();xhr.open('GET','./winter-turns.json',true);
+    xhr.onload=()=>{if(xhr.status!==0&&(xhr.status<200||xhr.status>=300)){reject(Error('HTTP '+xhr.status));return}
+     try{resolve(JSON.parse(xhr.responseText))}catch(e){reject(e)}};
+    xhr.onerror=()=>reject(Error('File di turni integrato non accessibile'));xhr.send();
+   });
+  }else{
+   const response=await fetch('./winter-turns.json');
+   if(!response.ok)throw Error('HTTP '+response.status);
+   rows=await response.json();
+  }
+  if(!winterValidCatalog(rows))throw Error('Catalogo integrato non valido');
+  winterCatalog=rows;
+  winterEl('winterStatus').textContent=rows.length+' turni invernali 2026/27 dal PDF integrato. Nessuna importazione necessaria.';
+  winterRefreshTurns();
+  return;
+ }catch(err){
+  console.warn('Catalogo PDF integrato non disponibile:',err);
+ }
+ try{
+  const saved=JSON.parse(localStorage.getItem(WINTER_DATA_KEY)||'null');
+  if(winterValidCatalog(saved)){
+   winterCatalog=saved;
+   winterEl('winterStatus').textContent=saved.length+' turni PDF recuperati dalla memoria locale.';
+   winterRefreshTurns();
+   return;
+  }
+ }catch{}
+ winterResetImportState();
+}
+winterLoadBundled();
