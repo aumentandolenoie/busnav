@@ -148,3 +148,11 @@ Verificata la sintassi JS e testate con dati sintetici: unione di 2 tratti, unio
 - I pulsanti per scaricare e importare ZIP e la sezione visuale "Seleziona il servizio" non sono più presenti. I selettori GTFS legacy sono conservati nel DOM ma nascosti, così le funzioni di matching non vengono eliminate né alterate.
 - Il percorso Academy viene mostrato automaticamente dopo la selezione. La variante delle fermate Busitalia va comunque verificata e confermata prima di associarla, perché una corrispondenza geometrica non è necessariamente una corsa unica.
 - Controlli GPS ben visibili, impostazioni vocali ed elenco fermate espandibili, disposizione mobile con i selettori prima della mappa. Nessuna variazione ai 787 GPX, al GPS nativo o alla logica degli annunci.
+
+## Indicazioni stradali italiane agganciate ai GPX Academy (v21)
+
+La rete stradale OSM/Valhalla viene usata **solo come fonte opzionale di descrizioni delle manovre**. I 787 tracciati GPX Academy restano l'unico itinerario seguito dal GPS e non vengono corretti né ricalcolati. Un generatore Python (`scripts/enrich_road_guidance.py`) accetta esclusivamente il match Valhalla `bus` in `it-IT` e scarta risultati con deviazioni, tagli, lunghezze incoerenti, inversioni del percorso o lingua diversa dall'italiano. Ogni JSON validato contiene soltanto le manovre posizionate in metri sul GPX originale, con fingerprint verificata a ogni utilizzo.
+
+I file approvati in `road-guidance/<academy-id>.json` vengono caricati a richiesta dalla PWA e inseriti nel bundle IPA. Se assenti o rifiutati, resta attiva la precedente segnalazione **indicativa** delle curve GPX. Non si mostra un nome di via o un'uscita di rotatoria inventati. Per generare i file occorre un servizio Valhalla autorizzato/proprio: il nuovo workflow `Prepara manovre italiane (GPX Academy vincolante)` accetta un ID Academy e crea una PR dopo i controlli, usando il secret `VALHALLA_ENDPOINT`. Non usa la demo pubblica in massa. Dettagli in `road-guidance/README.md`.
+
+La presenza di una manovra OSM non certifica l'accessibilità di una strada a un autobus: restano valide prescrizioni e documentazione Busitalia.

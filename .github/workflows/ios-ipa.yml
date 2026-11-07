@@ -11,6 +11,8 @@ on:
       - 'index.html'
       - 'style.css'
       - 'official-routes.json'
+      - 'road-guidance/**'
+      - 'scripts/enrich_road_guidance.py'
       - '.github/workflows/ios-ipa.yml'
   push:
     branches: [main]
@@ -22,6 +24,8 @@ on:
       - 'index.html'
       - 'style.css'
       - 'official-routes.json'
+      - 'road-guidance/**'
+      - 'scripts/enrich_road_guidance.py'
       - '.github/workflows/ios-ipa.yml'
 permissions:
   contents: write

@@ -343,3 +343,40 @@ test('variant selection shows stop preview and does not auto-associate ambiguous
  assert.match(js,/\$\('academyGtfsTrip'\).addEventListener\('change',[\s\S]*?refreshVariantPreview\(\)/);
  assert.match(js,/details\.append\(ol\)/);
 });
+
+test('road guidance validates official Academy fingerprint, language and geometry before playback',()=>{
+ const funcs=['academyFingerprint','validRoadGuidance'].map(sourceOf).join('\n');
+ const api=new Function(funcs+';return {academyFingerprint,validRoadGuidance}')();
+ const points=[[45.0,11.0],[45.0,11.005],[45.005,11.005]];
+ const chosen={id:'academy_demo',points};
+ const fingerprint=api.academyFingerprint(points);
+ const metres=(a,b)=>{const dy=(b[0]-a[0])*111320,dx=(b[1]-a[1])*111320*Math.cos((a[0]+b[0])/2*Math.PI/180);return Math.hypot(dx,dy)};
+ const total=metres(points[0],points[1])+metres(points[1],points[2]);
+ const good={version:1,source:'valhalla-osm',language:'it-IT',
+  academyId:'academy_demo',fingerprint,officialLengthM:Math.round(total),
+  validation:{passed:true,maxDeviationM:10,p95DeviationM:5},
+  turns:[{at:180,kind:'turn',side:'destra',text:'Svolta a destra in Via Roma'}]};
+ assert.equal(api.validRoadGuidance(good,chosen,[0,400,total]),true);
+ assert.equal(api.validRoadGuidance({...good,fingerprint:'wrong'},chosen,[0,400,total]),false);
+ assert.equal(api.validRoadGuidance({...good,language:'en-US'},chosen,[0,400,total]),false);
+ assert.equal(api.validRoadGuidance({...good,validation:{...good.validation,passed:false}},chosen,[0,400,total]),false);
+ assert.equal(api.validRoadGuidance({...good,validation:{passed:true}},chosen,[0,400,total]),false);
+ assert.equal(api.validRoadGuidance({...good,officialLengthM:total+1000},chosen,[0,400,total]),false);
+ assert.equal(api.validRoadGuidance({...good,turns:[{...good.turns[0],text:''}]},chosen,[0,400,total]),false);
+ assert.equal(api.validRoadGuidance({...good,turns:[{...good.turns[0],at:total+10}]},chosen,[0,400,total]),false);
+});
+test('Academy remains the ONLY navigation route for web and native while Italian cues are optional',()=>{
+ assert.match(js,/loadRoadGuidance\(chosen,dists\)/);
+ assert.match(js,/turns=computeTurns\(points,dists\);loadRoadGuidance/);
+ assert.match(js,/String\(current\.academy\.id\)!==id/);
+ assert.match(js,/verifiedRoad:true/);
+ assert.match(js,/turn\.verifiedRoad\?turn\.text:'Possibile svolta a '/);
+ assert.match(js,/points:current\.points\.map\(p=>\[p\.lat,p\.lng\]\)/);
+ const swift=fs.readFileSync('ios/Sources/NativeNavigation.swift','utf8');
+ assert.match(swift,/verifiedRoad: Bool\?/);
+ assert.match(swift,/Tra circa/);
+ assert.match(swift,/let hit = nearest\(location\.coordinate, on: route\.points\)/);
+ const prepare=fs.readFileSync('scripts/prepare-ios.sh','utf8');
+ assert.match(prepare,/road-guidance/);
+ assert.match(prepare,/official-routes\.json/);
+});
