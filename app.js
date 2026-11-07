@@ -12,6 +12,8 @@ function nativePost(data){
 }
 window.lineaPilotNativeReceive=(type,data)=>{
  if(type==='voices'){applyVoiceOptions(data?.voices||[],'ios');return}
+ if(type==='releases'){processAppReleases(data?.releases||[],updateCheckManual);return}
+ if(type==='updateError'){$('updateStatus').textContent='Verifica aggiornamenti non riuscita: '+(data?.message||'Errore rete');return}
  if(!nativeActive)return;
  if(type==='location'&&data&&Number.isFinite(data.lat)&&Number.isFinite(data.lng)){
   updatePosition({lat:data.lat,lng:data.lng},data.accuracy||0,data.speed,false,data.heading);
@@ -73,7 +75,30 @@ if(nativeMode)loadItalianVoices();
 // App installation updates are explicit opt-in downloads, never silent installs.
 // GitHub 'latest' ignores prereleases: use the releases list for test IPA/APK.
 const RELEASES_URL='https://api.github.com/repos/aumentandolenoie/busnav/releases?per_page=40';
-let availableUpdate=null;
+let availableUpdate=null,updateCheckManual=false;
+function processAppReleases(releases,manual=false){
+ const tag=String(window.LINEAPILOT_BUILD_TAG||'');
+ const platform=tag.startsWith('ios-preview-')?'ios':tag.startsWith('android-preview-')?'android':null;
+ if(!platform)return;
+ const assetName=platform==='ios'?'LineaPilot-unsigned.ipa':'LineaPilot-debug.apk';
+ const matching=releases.filter(r=>!r.draft&&r.tag_name?.startsWith(platform+'-preview-')&&
+  r.assets?.some(a=>a.name===assetName&&a.browser_download_url?.startsWith('https://github.com/aumentandolenoie/busnav/releases/download/')));
+ matching.sort((a,b)=>Date.parse(b.published_at||b.created_at)-Date.parse(a.published_at||a.created_at));
+ const newest=matching[0],installed=matching.find(r=>r.tag_name===tag);
+ if(!newest||!installed||newest.tag_name===tag||
+   Date.parse(newest.published_at||newest.created_at)<=Date.parse(installed.published_at||installed.created_at)){
+  if(manual)$('updateStatus').textContent=installed?'LineaPilot è aggiornato.':'Impossibile verificare la versione installata: consulta le release GitHub.';
+  return;
+ }
+ const asset=newest.assets.find(a=>a.name===assetName);
+ if(!asset)return;
+ availableUpdate={tag:newest.tag_name,url:asset.browser_download_url};
+ try{if(!manual&&localStorage.getItem('lineapilot-dismissed-update')===newest.tag_name)return}catch{}
+ $('appUpdateTitle').textContent='Aggiornamento LineaPilot disponibile';
+ $('appUpdateDetail').textContent='Nuova build '+newest.tag_name.split('-').at(-1)+' · installazione manuale richiesta';
+ $('appUpdateBanner').hidden=false;
+ $('updateStatus').textContent='Nuova versione disponibile.';
+}
 async function checkForAppUpdates(manual=false){
  const tag=String(window.LINEAPILOT_BUILD_TAG||'');
  const platform=tag.startsWith('ios-preview-')?'ios':tag.startsWith('android-preview-')?'android':null;
@@ -82,35 +107,24 @@ async function checkForAppUpdates(manual=false){
   return;
  }
  try{
+  updateCheckManual=manual;
   if(manual)$('updateStatus').textContent='Controllo nuove versioni…';
+  if(nativeMode){nativePost({type:'checkUpdates'});return}
   const response=await fetch(RELEASES_URL,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});
   if(!response.ok)throw Error('HTTP '+response.status);
-  const releases=await response.json();
-  const names=platform==='ios'?['LineaPilot-unsigned.ipa']:['LineaPilot-debug.apk'];
-  const matching=releases.filter(r=>!r.draft&&r.tag_name?.startsWith(platform+'-preview-')&&
-    r.assets?.some(a=>names.includes(a.name)&&a.browser_download_url?.startsWith('https://github.com/aumentandolenoie/busnav/releases/download/')));
-  matching.sort((a,b)=>Date.parse(b.published_at||b.created_at)-Date.parse(a.published_at||a.created_at));
-  const newest=matching[0],installed=matching.find(r=>r.tag_name===tag);
-  if(!newest||!installed||newest.tag_name===tag||
-    Date.parse(newest.published_at||newest.created_at)<=Date.parse(installed.published_at||installed.created_at)){
-    if(manual)$('updateStatus').textContent=installed?'LineaPilot è aggiornato.':'Impossibile verificare la versione installata: consulta le release GitHub.';
-    return;
-  }
-  const asset=newest.assets.find(a=>names.includes(a.name));
-  if(!asset)return;
-  availableUpdate={tag:newest.tag_name,url:asset.browser_download_url};
-  if(!manual&&localStorage.getItem('lineapilot-dismissed-update')===newest.tag_name)return;
-  $('appUpdateTitle').textContent='Aggiornamento LineaPilot disponibile';
-  $('appUpdateDetail').textContent='Nuova build '+newest.tag_name.split('-').at(-1)+' · installazione manuale richiesta';
-  $('appUpdateBanner').hidden=false;
-  $('updateStatus').textContent='Nuova versione disponibile.';
+  processAppReleases(await response.json(),manual);
  }catch(e){
   if(manual)$('updateStatus').textContent='Verifica aggiornamenti non riuscita: '+e.message;
   console.warn('Aggiornamenti:',e);
  }
 }
 $('checkUpdates').addEventListener('click',()=>checkForAppUpdates(true));
-$('appUpdateOpen').addEventListener('click',()=>{if(availableUpdate)window.location.href=availableUpdate.url});
+$('appUpdateOpen').addEventListener('click',()=>{
+ if(!availableUpdate)return;
+ if(nativeMode)nativePost({type:'openUpdate',url:availableUpdate.url});
+ else if(window.LineaPilotAndroid)window.LineaPilotAndroid.openExternal(availableUpdate.url);
+ else window.open(availableUpdate.url,'_blank','noopener');
+});
 $('appUpdateDismiss').addEventListener('click',()=>{
  $('appUpdateBanner').hidden=true;
  if(availableUpdate)try{localStorage.setItem('lineapilot-dismissed-update',availableUpdate.tag)}catch{}
