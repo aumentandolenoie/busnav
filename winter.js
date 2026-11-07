@@ -60,7 +60,7 @@ function winterLineFamily(raw){
  const text=String(raw||'').toUpperCase().trim();
  // E060-V and E060-Z are distinct scheduled legs; only their common E060
  // family is used to discover Academy candidates (never to certify variant).
- const match=/^E(\\d{3})(?:-[VZ])?$/.exec(text);
+ const match=/^E(\d{3})(?:-[VZ])?$/.exec(text);
  return normAcademyCode(match?'E'+match[1]:text);
 }
 function winterRouteMatches(cat,leg){
