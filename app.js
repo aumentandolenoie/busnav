@@ -42,7 +42,9 @@ function validRoadGuidance(data,chosen,dists){
   String(data.academyId)!==String(chosen.id)||data.fingerprint!==academyFingerprint(chosen.points)||
   data.validation?.passed!==true||!Array.isArray(data.turns)||!data.turns.length)return false;
  const total=dists.at(-1)||0;
- if(Math.abs(data.officialLengthM-total)>Math.max(80,total*.025))return false;
+ if(!Number.isFinite(data.officialLengthM)||!Number.isFinite(data.validation.maxDeviationM)||
+  !Number.isFinite(data.validation.p95DeviationM)||
+  Math.abs(data.officialLengthM-total)>Math.max(80,total*.025))return false;
  if(data.validation.maxDeviationM>85||data.validation.p95DeviationM>45)return false;
  let previous=-1;
  for(const t of data.turns){
