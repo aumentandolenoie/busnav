@@ -14,7 +14,12 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
         configuration.userContentController.add(self, name: "lineaPilot")
         webView = WKWebView(frame: .zero, configuration: configuration)
         webView.translatesAutoresizingMaskIntoConstraints = false
-        webView.scrollView.isScrollEnabled = false
+        // On iPhone portrait, LineaPilot is a long page: the map appears first,
+        // followed by Academy/GTFS selectors. Disabling the WKWebView scroll
+        // prevented users from reaching those controls in LiveContainer/SideStore.
+        // Fullscreen navigation still locks page scrolling via body.navigating CSS.
+        webView.scrollView.isScrollEnabled = true
+        webView.scrollView.alwaysBounceVertical = false
         webView.isOpaque = false
         webView.backgroundColor = UIColor(red: 0.04, green: 0.07, blue: 0.13, alpha: 1)
         view.addSubview(webView)
