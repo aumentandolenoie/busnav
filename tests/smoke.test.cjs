@@ -420,3 +420,17 @@ test('Android project preserves Academy route and handles voice and geolocation'
  assert.match(script,/official-routes\.json/);
  assert.match(script,/android-preview-/);
 });
+
+test('automatic Italian Apple voice prefers enhanced quality and update checks resume safely',()=>{
+ const swift=fs.readFileSync('ios/Sources/NativeNavigation.swift','utf8');
+ const ios=fs.readFileSync('ios/Sources/NavigatorViewController.swift','utf8');
+ const android=fs.readFileSync('android/app/src/main/java/app/lineapilot/android/MainActivity.java','utf8');
+ assert.match(swift,/\.quality\.rawValue > b\.quality\.rawValue/);
+ assert.match(swift,/utterance\.voice = chosen \?\? automatic/);
+ assert.match(js,/lastUpdateCheck=Date\.now\(\)/);
+ assert.match(js,/window\.lineaPilotCheckUpdatesOnResume=/);
+ assert.match(js,/Date\.now\(\)-lastUpdateCheck>10\*60\*1000/);
+ assert.match(ios,/lineaPilotCheckUpdatesOnResume/);
+ assert.match(android,/protected void onResume\(\)/);
+ assert.match(android,/lineaPilotCheckUpdatesOnResume/);
+});

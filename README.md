@@ -166,3 +166,10 @@ L'IPA e l'APK generati da GitHub Actions incorporano il proprio tag release, ris
 La nuova app Android usa un `WebViewAssetLoader` HTTPS locale con tutti i 787 GPX Academy incorporati, permesso GPS soltanto in primo piano e sintesi vocale nativa italiana. Il GPS **in background Android non è ancora implementato**. La PWA e l'IPA mantengono le rispettive logiche GPS preesistenti. Il GTFS resta caricato automaticamente tramite la rete e salvato nella memoria dell'app.
 
 Il test Android reale, i permessi in uso, le voci offline e il procedimento d'installazione APK devono essere ancora verificati su un dispositivo Android. Per ragioni di sicurezza l'app non modifica in alcun modo i 787 GPX Academy.
+
+### Voci italiane e avviso nuove build (v23)
+- iOS: elenco voci italiane native tramite AVSpeechSynthesizer; scelta automatica privilegia le voci installate di qualità più alta (Siri non è disponibile tramite API pubbliche), oppure selezione esplicita di una voce e velocità.
+- Android: TextToSpeech del sistema, selezione voci italiane installate e velocità; disponibile come APK di test compilata con Gradle. Il GPS Android è previsto **solo con app in primo piano**.
+- IPA e APK: avviso **in-app** quando una nuova release della stessa piattaforma è disponibile; controllo al primo avvio e al ritorno in primo piano (non più di una volta ogni 10 minuti). Il pulsante apre la release GitHub; **non installa automaticamente**.
+- Le IPA unsigned vanno reimportate in LiveContainer/firmate; gli APK debug di GitHub Actions **non garantiscono aggiornamenti sopra la versione precedente** senza una firma Android stabile configurata con i secret `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Se le firme differiscono, Android rifiuta l'aggiornamento in-place e richiede disinstallazione, con possibile perdita dei dati locali. Non suggerire di disinstallare senza aver prima considerato la perdita di dati.
+- L'app non dispone di notifiche push di sistema per aggiornamenti quando è chiusa; l'avviso appare all'apertura o al ritorno in primo piano. Il catalogo GPX Academy è immutato.

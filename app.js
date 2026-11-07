@@ -80,7 +80,8 @@ if(window.LineaPilotAndroid)loadItalianVoices();
 // App installation updates are explicit opt-in downloads, never silent installs.
 // GitHub 'latest' ignores prereleases: use the releases list for test IPA/APK.
 const RELEASES_URL='https://api.github.com/repos/aumentandolenoie/busnav/releases?per_page=40';
-let availableUpdate=null,updateCheckManual=false;
+let availableUpdate=null,updateCheckManual=false,lastUpdateCheck=0;
+// Re-check on app resume without flooding GitHub API during GPS navigation.
 function processAppReleases(releases,manual=false){
  const tag=String(window.LINEAPILOT_BUILD_TAG||'');
  const platform=tag.startsWith('ios-preview-')?'ios':tag.startsWith('android-preview-')?'android':null;
@@ -105,6 +106,7 @@ function processAppReleases(releases,manual=false){
  $('updateStatus').textContent='Nuova versione disponibile.';
 }
 async function checkForAppUpdates(manual=false){
+ lastUpdateCheck=Date.now();
  const tag=String(window.LINEAPILOT_BUILD_TAG||'');
  const platform=tag.startsWith('ios-preview-')?'ios':tag.startsWith('android-preview-')?'android':null;
  if(!platform){
@@ -134,6 +136,10 @@ $('appUpdateDismiss').addEventListener('click',()=>{
  $('appUpdateBanner').hidden=true;
  if(availableUpdate)try{localStorage.setItem('lineapilot-dismissed-update',availableUpdate.tag)}catch{}
 });
+window.lineaPilotCheckUpdatesOnResume=()=>{
+ if(window.LINEAPILOT_BUILD_TAG&&Date.now()-lastUpdateCheck>10*60*1000)
+  checkForAppUpdates();
+};
 if(window.LINEAPILOT_BUILD_TAG)setTimeout(()=>checkForAppUpdates(),4500);
 
 const map=L.map('map',{zoomControl:false,rotate:true,touchRotate:false,dragRotate:false,shiftKeyRotate:false}).setView([45.4064,11.8768],12);

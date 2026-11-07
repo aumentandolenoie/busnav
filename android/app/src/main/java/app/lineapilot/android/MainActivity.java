@@ -102,6 +102,13 @@ public final class MainActivity extends Activity {
         }
     }
 
+    @Override protected void onResume() {
+        super.onResume();
+        // Only when returning to foreground, with JS-side throttling.
+        if (web != null) web.post(() -> web.evaluateJavascript(
+            "window.lineaPilotCheckUpdatesOnResume && window.lineaPilotCheckUpdatesOnResume()", null));
+    }
+
     @Override public void onBackPressed() {
         if (web.canGoBack()) web.goBack(); else super.onBackPressed();
     }
