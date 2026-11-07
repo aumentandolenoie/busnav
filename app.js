@@ -809,7 +809,7 @@ window.lineaPilotGTFSReceive=(id,type,payload)=>{
   pending.reject(Error(String(payload||'Errore download nativo')));
  }
 };
-async function downloadGTFSBlob(){
+async function downloadGTFSBlob(forceDownload=false){
  if(!nativeMode){
   const res=await fetch(FEED);
   if(!res.ok)throw Error('HTTP '+res.status);
@@ -825,31 +825,13 @@ async function downloadGTFSBlob(){
    }
   },180000);
   nativeGtfsPending={id,resolve,reject,parts:[],total:0,timeout};
-  if(!nativePost({type:'downloadGTFS',id})){
+  if(!nativePost({type:'downloadGTFS',id,refresh:forceDownload})){
    clearTimeout(timeout);nativeGtfsPending=null;
    reject(Error('Comunicazione con il motore iOS non disponibile'));
   }
  });
 }
-$('loadFeed').addEventListener('click',async()=>{
- const btn=$('loadFeed');btn.disabled=true;status('Download GTFS in corso…');
- try{
-  const blob=await downloadGTFSBlob();
-  if(!blob||blob.size<1000)throw Error('File ZIP troppo piccolo');
-  const f=await getGTFS(blob);
-  handleFeed(f);saveZip(blob).catch(()=>{});toast('Dati caricati correttamente');
- }catch(err){
-  status('Impossibile scaricare il feed: '+err.message+'. Importa ZIP manualmente.');
-  toast('Download non riuscito (verifica la rete o importa ZIP)');
- }finally{btn.disabled=false}
-});
-$('fileFeed').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{status('Importazione ZIP…');const f=await getGTFS(file);handleFeed(f);saveZip(file).catch(()=>{});toast('GTFS importato')}catch(err){status('Errore importazione: '+err.message)}e.target.value=''});
-$('extraFeed').addEventListener('change',async e=>{
- const file=e.target.files?.[0];if(!file)return;
- try{status('Importazione GTFS aggiuntivo '+file.name+'…');const f=await getGTFS(file);handleFeed(f,true);toast('GTFS aggiuntivo integrato: '+file.name)}
- catch(err){status('Errore importazione GTFS aggiuntivo: '+err.message)}
- e.target.value='';
-});
+// GTFS is loaded automatically during startup; manual upload controls are removed.
 document.addEventListener('visibilitychange',()=>{
  if(!navigationFullscreen)return;
  if(document.hidden)setVoiceStatus('Schermo non attivo: GPS e voce potrebbero sospendersi',true);
@@ -863,9 +845,76 @@ $('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceTo
 $('voiceToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked});if(!$('voiceToggle').checked){resetVoiceGuidance();setVoiceStatus('Voce disattivata')}else setVoiceStatus('Premi Riattiva voce')});
 $('turnToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked})});
 $('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',recenterOnRealGPS);
-function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('lineapilot-db',1);req.onupgradeneeded=()=>req.result.createObjectStore('feeds');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
-async function saveZip(blob){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readwrite');tx.objectStore('feeds').put(blob,'biv');tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
-async function restoreZip(){try{const db=await openDB();const blob=await new Promise((resolve,reject)=>{const tx=db.transaction('feeds','readonly');const req=tx.objectStore('feeds').get('biv');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();if(blob){status('Ripristino dati salvati…');handleFeed(await getGTFS(blob));toast('GTFS recuperato dalla memoria del dispositivo')}}catch(err){console.warn('Cache GTFS:',err)}}
+function openDB(){return new Promise((resolve,reject)=>{
+ const req=indexedDB.open('lineapilot-db',1);
+ req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('feeds'))req.result.createObjectStore('feeds')};
+ req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||Error('Database GTFS non accessibile'));
+})}
+async function saveZip(blob){
+ const db=await openDB();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction('feeds','readwrite');
+  tx.objectStore('feeds').put(blob,'biv');
+  tx.oncomplete=()=>{db.close();resolve()};
+  tx.onerror=()=>{db.close();reject(tx.error||Error('Salvataggio GTFS fallito'))};
+ });
+}
+async function readCachedZip(){
+ const db=await openDB();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction('feeds','readonly'),req=tx.objectStore('feeds').get('biv');
+  req.onsuccess=()=>{db.close();resolve(req.result||null)};
+  req.onerror=()=>{db.close();reject(req.error||Error('Lettura GTFS salvato fallita'))};
+ });
+}
+let feedInitialization=null;
+function setFeedState(state,title,detail){
+ const el=$('feedTitle'),dot=$('feedDot');
+ el.textContent=title;
+ dot.dataset.state=state;
+ $('retryFeed').hidden=state!=='error';
+ if(detail)status(detail);
+ $('dataStatus').textContent=state==='ready'?'GTFS pronto':state==='error'?'GTFS non disponibile':'GTFS…';
+}
+async function initializeGTFS(forceDownload=false){
+ if(feedInitialization)return feedInitialization;
+ feedInitialization=(async()=>{
+  $('retryFeed').hidden=true;
+  setFeedState('loading','Preparazione fermate…','Controllo dei dati Busitalia salvati sul dispositivo.');
+  try{
+   if(!forceDownload){
+    let cached=null;
+    try{cached=await readCachedZip()}catch(e){console.warn('Cache GTFS non accessibile:',e)}
+    if(cached&&cached.size>=1000){
+     try{
+      const parsed=await getGTFS(cached);
+      handleFeed(parsed);
+      setFeedState('ready','Fermate disponibili','GTFS Busitalia già presente sul dispositivo: nessun download necessario.');
+      return true;
+     }catch(err){console.warn('GTFS in cache non valido, recupero nuovi dati:',err)}
+    }
+   }
+   setFeedState('loading','Caricamento fermate…','Download GTFS Busitalia automatico in corso.');
+   const zip=await downloadGTFSBlob(forceDownload);
+   if(!zip||zip.size<1000)throw Error('Archivio GTFS vuoto o non valido');
+   const parsed=await getGTFS(zip);
+   handleFeed(parsed);
+   let cached=true;
+   try{await saveZip(zip)}catch(err){cached=false;console.warn('GTFS non salvabile:',err)}
+   setFeedState('ready','Fermate disponibili',cached
+    ?'GTFS Busitalia pronto e conservato per i prossimi avvii.'
+    :'GTFS Busitalia pronto; la memoria locale non è disponibile e potrebbe essere necessario riscaricarlo.');
+   return true;
+  }catch(err){
+   console.error('Caricamento GTFS:',err);
+   setFeedState('error','Fermate non disponibili','Errore GTFS Busitalia: '+(err?.message||String(err))+
+    '. Il catalogo Academy resta utilizzabile, ma gli annunci delle fermate richiedono il GTFS.');
+   return false;
+  }finally{feedInitialization=null}
+ })();
+ return feedInitialization;
+}
+$('retryFeed').addEventListener('click',()=>initializeGTFS(true));
 if(!nativeMode&&'serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(console.warn);
-restoreZip();
 loadAcademy();
+initializeGTFS();
