@@ -15,6 +15,8 @@ if [ -d road-guidance ]; then
   find road-guidance -maxdepth 1 -type f -name '*.json' -exec cp {} ios/Web/road-guidance/ \;
 fi
 test -s ios/Web/official-routes.json
+test -s ios/Web/winter-turns.json
+test -s ios/Web/winter.js
 python3 - <<'PY'
 import json
 with open("ios/Web/official-routes.json", encoding="utf-8") as f:
