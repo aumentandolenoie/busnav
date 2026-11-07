@@ -15,12 +15,13 @@ on:
       - 'scripts/enrich_road_guidance.py'
       - '.github/workflows/ios-ipa.yml'
   push:
-    branches: [main, experiment/winter-turns-pdf-navigation]
+    branches: [experiment/winter-turns-pdf-navigation]
     paths:
       - 'ios/**'
       - 'scripts/prepare-ios.sh'
       - 'scripts/build-ios-unsigned.sh'
       - 'app.js'
+      - 'winter.js'
       - 'index.html'
       - 'style.css'
       - 'official-routes.json'
@@ -46,7 +47,7 @@ jobs:
       # Releases avoid the exhausted Actions artifact storage quota.
       # A release is created only on main (never for a pull request).
       - name: Publish unsigned IPA as prerelease
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/experiment/winter-turns-pdf-navigation')
+        if: github.event_name == 'push' && github.ref == 'refs/heads/experiment/winter-turns-pdf-navigation'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
