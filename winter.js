@@ -95,9 +95,14 @@ function winterClearActiveRoute(){
  if(current){stopNavigation();current=null}
  selectedOfficial=null;
  turns=[];
+ // Do not keep showing the last bus route after switching service/day/turn.
+ if(lineLayer){map.removeLayer(lineLayer);lineLayer=null}
+ if(stopLayer){map.removeLayer(stopLayer);stopLayer=null}
  winterEl('startNav').disabled=true;
  winterEl('demoBtn').disabled=true;
  winterEl('stopNav').disabled=true;
+ winterEl('nextName').textContent='—';
+ winterEl('navStatus').textContent='Seleziona una corsa invernale';
  winterEl('nextDetail').textContent='Scegli una corsa invernale e verifica il GPX Academy.';
 }
 function winterStatus(message,problem=false){
