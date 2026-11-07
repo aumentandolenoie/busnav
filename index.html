@@ -11,7 +11,8 @@
  <div class="section-title"><span>02</span> AGGIUNGI LE FERMATE</div>
  <p class="help">Le fermate provengono dal GTFS Busitalia; scegli una variante verificata, senza modificare il GPX.</p>
  <button id="findGtfsAcademy" class="secondary-action" disabled>⌕ Trova fermate compatibili</button>
- <label>Variante delle fermate<select id="academyGtfsTrip" disabled><option value="">Scegli prima il percorso…</option></select></label>
+ <label>Partenza, destinazione e fermate<select id="academyGtfsTrip" disabled><option value="">Scegli prima il percorso…</option></select></label>
+ <div id="academyVariantPreview" class="variant-preview" hidden aria-live="polite"></div>
  <button id="mergeOfficial" disabled>✓ Usa queste fermate</button>
 </div><details id="academyDiff" class="academy-diff" hidden><summary>Confronta le fermate delle varianti</summary><div id="academyDiffList" class="help" aria-live="polite"></div></details><p id="academyGtfsStatus" class="help" aria-live="polite">Il GPX Academy è il percorso principale. Solo le fermate del GTFS Busitalia principale possono essere associate; MOM escluso.</p><p id="officialInfo" class="help">Seleziona un GPX; per aggiungere le fermate seleziona anche la corsa GTFS corrispondente nella sezione successiva.</p></section>
 <section class="navigation-actions" aria-label="Controlli di navigazione">
