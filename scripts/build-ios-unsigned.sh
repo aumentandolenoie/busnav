@@ -14,6 +14,10 @@ xcodebuild -project ios/LineaPilot.xcodeproj \
 APP="$PWD/build/ios/DerivedData/Build/Products/Release-iphoneos/LineaPilot.app"
 test -f "$APP/Info.plist"
 test -s "$APP/Web/official-routes.json"
+test -s "$APP/Web/winter-turns.json"
+test -s "$APP/Web/winter.js"
+/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist" | grep -qx "app.lineapilot.turni.experiment"
+/usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "$APP/Info.plist" | grep -qx "LineaPilot Turni"
 mkdir -p build/ios/Payload
 cp -R "$APP" build/ios/Payload/
 (cd build/ios && /usr/bin/zip -q -r LineaPilot-Turni-unsigned.ipa Payload)
