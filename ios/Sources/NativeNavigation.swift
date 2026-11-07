@@ -22,6 +22,23 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
     var onStatus: ((String) -> Void)?
     var voiceEnabled = true
     var turnsEnabled = true
+    var voiceIdentifier: String = ""
+    var voiceRate: Float = 1.0
+
+    func italianVoices() -> [[String: Any]] {
+        AVSpeechSynthesisVoice.speechVoices()
+            .filter { $0.language.lowercased().hasPrefix("it") }
+            .map { voice in
+                ["id": voice.identifier, "name": voice.name,
+                 "lang": voice.language, "quality": voice.quality == .enhanced ? 3 : 1,
+                 "enhanced": voice.quality == .enhanced] as [String: Any]
+            }
+    }
+
+    func configureVoice(identifier: String?, rate: Double?) {
+        if let identifier { voiceIdentifier = identifier }
+        if let rate, rate.isFinite { voiceRate = Float(min(1.25, max(0.75, rate))) }
+    }
 
     private let manager = CLLocationManager()
     private var locationUpdatesStarted = false
@@ -250,8 +267,12 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
             return
         }
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "it-IT")
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        let chosen = AVSpeechSynthesisVoice.speechVoices()
+            .first { $0.identifier == voiceIdentifier && $0.language.lowercased().hasPrefix("it") }
+        utterance.voice = chosen ?? AVSpeechSynthesisVoice(language: "it-IT")
+        utterance.rate = min(AVSpeechUtteranceMaximumSpeechRate,
+                            max(AVSpeechUtteranceMinimumSpeechRate,
+                                AVSpeechUtteranceDefaultSpeechRate * voiceRate))
         synthesizer.speak(utterance)
     }
 
