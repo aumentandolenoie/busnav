@@ -40,3 +40,7 @@ Per l'importazione GTFS automatica nella WKWebView, `BundledSite` serve `gtfs.zi
 ### Scorrimento in verticale (correzione)
 
 Nell'app iOS la WKWebView deve avere `scrollView.isScrollEnabled = true`: la pagina mobile mostra prima la mappa e poi le sezioni GPX, GTFS e assistente di guida, accessibili con lo scorrimento del dito. In navigazione a tutto schermo continua a essere il CSS `body.navigating` a bloccare lo scorrimento della pagina. Questa correzione non modifica la PWA, i GPX o la gestione GPS.
+
+### Correzione download GTFS su iOS (v18)
+
+Il download GTFS nella versione nativa viene ora effettuato direttamente da `URLSession` verso l'endpoint BusOne Busitalia. Swift verifica lo stato HTTP, la dimensione e la firma ZIP, poi passa i dati binari alla WebView in blocchi base64 di 48 KiB tramite il bridge nativo. La WebView ricompone l'archivio e lo passa al parser GTFS già esistente. Questo evita il fallimento di XMLHttpRequest verso `lineapilot://app/gtfs.zip` su WebKit. Il messaggio nell'app distingue ora errori di rete, HTTP, file ZIP e trasmissione alla WebView. La PWA Vercel mantiene il proprio download HTTP originale. La gestione nativa deve essere verificata anche dentro LiveContainer.
