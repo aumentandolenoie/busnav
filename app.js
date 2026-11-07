@@ -356,7 +356,9 @@ function uniqueAcademyVariants(matches){
  for(const match of matches){
   const key=variantSignature(match);
   const old=bySequence.get(key);
-  if(!old||match.coverage>old.coverage||(match.coverage===old.coverage&&match.averageError<old.averageError))
+  if(!old||(match.legs.length===1&&old.legs.length>1)||
+   (match.legs.length===old.legs.length&&(match.coverage>old.coverage||
+    (match.coverage===old.coverage&&match.averageError<old.averageError))))
    bySequence.set(key,match);
  }
  return [...bySequence.values()];
@@ -492,12 +494,13 @@ function findGtfsForAcademy(){
    options.push([id,variantFriendlyLabel(x,distinct)]);
   });
   setOptions($('academyGtfsTrip'),options,'Seleziona in base alle fermate…');
+  if(distinct.length===1)$('academyGtfsTrip').value='academy-match-0';
   renderAcademyStopComparison();
   refreshVariantPreview();
   $('academyGtfsStatus').textContent=distinct.length?
    distinct.length+' sequenze di fermate distinte ('+Math.max(0,results.length-distinct.length)+' duplicati nascosti). Controlla partenza, arrivo e fermate particolari prima di confermare.':
    'Nessuna corrispondenza completa ('+segments+' segmenti compatibili da '+groupCount+' sequenze GTFS). Il GPX non viene modificato.';
-  $('mergeOfficial').disabled=true;
+  $('mergeOfficial').disabled=distinct.length!==1;
  }catch(e){console.error(e);$('academyGtfsStatus').textContent='Errore di associazione: '+e.message;}
  finally{button.disabled=false}
 }
@@ -505,6 +508,7 @@ $('findGtfsAcademy').addEventListener('click',findGtfsForAcademy);
 $('academyGtfsTrip').addEventListener('change',()=>{
  $('mergeOfficial').disabled=!selectedOfficial||!academyGtfsMatches.has($('academyGtfsTrip').value);
  renderAcademyStopComparison();
+ refreshVariantPreview();
 });
 function onAcademySelected(){
  const cat=$('academyCategory').value,line=$('academyLine').value;
