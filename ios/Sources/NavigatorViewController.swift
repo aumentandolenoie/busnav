@@ -6,6 +6,8 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
     private var webView: WKWebView!
     private let navigation = NativeNavigation()
     private var lastLocation: CLLocation?
+    private var gtfsDownload: URLSessionDataTask?
+    private let gtfsURL = URL(string: "https://proxy.busone.app/biv/gtfs.zip")!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,11 +60,84 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
         case "settings":
             navigation.voiceEnabled = body["voice"] as? Bool ?? navigation.voiceEnabled
             navigation.turnsEnabled = body["turnVoice"] as? Bool ?? navigation.turnsEnabled
+        case "downloadGTFS":
+            guard let id = body["id"] as? String, id.hasPrefix("gtfs-"),
+                  id.count < 96, id.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }) else { return }
+            downloadGTFS(requestId: id)
         case "testVoice":
             navigation.testVoice()
         default:
             break
         }
+    }
+
+    // A native download avoids CORS / blob XHR restrictions on custom schemes.
+    // WebKit receives small, ordered chunks; it never needs to perform a ZIP request.
+    private func downloadGTFS(requestId: String) {
+        gtfsDownload?.cancel()
+        var request = URLRequest(url: gtfsURL)
+        request.timeoutInterval = 60
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        gtfsDownload = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                if let error {
+                    self.deliverGTFS(requestId, "error", "Rete: \\(error.localizedDescription)")
+                    return
+                }
+                guard let response = response as? HTTPURLResponse else {
+                    self.deliverGTFS(requestId, "error", "Risposta HTTP mancante")
+                    return
+                }
+                guard (200..<300).contains(response.statusCode) else {
+                    self.deliverGTFS(requestId, "error", "Server GTFS: HTTP \\(response.statusCode)")
+                    return
+                }
+                guard let data, data.count >= 1000, data.count <= 100 * 1024 * 1024 else {
+                    self.deliverGTFS(requestId, "error", "File GTFS vuoto o superiore a 100 MB")
+                    return
+                }
+                guard data.starts(with: [0x50, 0x4b]) else {
+                    self.deliverGTFS(requestId, "error", "Il server ha risposto, ma non con uno ZIP")
+                    return
+                }
+                self.sendGTFSChunks(data, requestId: requestId, offset: 0)
+            }
+        }
+        gtfsDownload?.resume()
+    }
+
+    private func sendGTFSChunks(_ data: Data, requestId: String, offset: Int) {
+        let chunkSize = 48 * 1024
+        guard offset < data.count else {
+            deliverGTFS(requestId, "done", "")
+            return
+        }
+        let end = min(offset + chunkSize, data.count)
+        let base64 = data.subdata(in: offset..<end).base64EncodedString()
+        deliverGTFS(requestId, "chunk", base64) { [weak self] error in
+            guard let self else { return }
+            if let error {
+                NSLog("LineaPilot GTFS JavaScript transfer failed: %@", error.localizedDescription)
+                self.deliverGTFS(requestId, "error", "Trasferimento alla schermata iOS interrotto")
+            } else {
+                self.sendGTFSChunks(data, requestId: requestId, offset: end)
+            }
+        }
+    }
+
+    private func deliverGTFS(_ id: String, _ kind: String, _ value: String,
+                             completion: ((Error?) -> Void)? = nil) {
+        // id and kind are validated or hard-coded; value is base64 or an escaped
+        // error string. JSON encoding avoids quoting/injection issues.
+        let args = [id, kind, value]
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: args),
+              let json = String(data: jsonData, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("""
+            if (window.lineaPilotGTFSReceive) {
+              window.lineaPilotGTFSReceive.apply(window, \\(json));
+            }
+            """) { _, error in completion?(error) }
     }
 
     private func deliverLocation(_ location: CLLocation) {
