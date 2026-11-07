@@ -186,6 +186,7 @@ function winterSelectJourney(){
  // within the same category and line may be auto-associated.
  // GPX 1278 is safely identified here as "Padova - Aeroporto Marco Polo".
  if(!picked&&exact.length===1)picked=exact[0].route;
+ if(picked)winterEl('winterGpxWrap').hidden=true;
  if(!picked){
   winterEl('winterGpxWrap').hidden=false;
   winterStatus(String(item.leg[4]||'').trim()?
