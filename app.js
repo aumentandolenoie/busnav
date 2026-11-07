@@ -366,16 +366,24 @@ const ACADEMY_DOCUMENTS={
 };
 const sortIt=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true,sensitivity:'base'});
 function academyGroupName(r){return String(r.line||'Altri percorsi').trim();}
-function academyDisplayName(r){
- // GPX metadata may omit its numeric file identity (e.g. 1278) or contain
- // a stale/different internal title. Preserve both provenance and geometry.
- const name=String(r.name||'Percorso senza nome').trim();
+function academyTrackTitle(r){
+ const file=String(r.filename||'').trim();
  const code=String(r.variant||'').trim();
- if(!/^\d{2,5}$/.test(code))return name;
- const prefix=new RegExp('^'+code+'\\s*(?:[|·-]|$)');
- if(prefix.test(name))return name;
- const existing=/^\d{2,5}\s*[|·-]/.test(name);
- return existing?'GPX '+code+' · '+name:code+' | '+name;
+ // Academy files named "1278 _ Padova - Aeroporto Marco Polo.gpx"
+ // contain a separate (sometimes stale) internal <trk><name>.
+ // The filename provides the track identity; no geometry is changed.
+ if(/^\d{2,5}$/.test(code)){
+  const match=/^\s*(\d{2,5})\s*(?:[_|·-]\s*|\s+)(.+)$/.exec(file);
+  if(match&&match[1]===code&&match[2].trim())return match[2].trim();
+ }
+ return String(r.name||'Percorso senza nome').trim()
+  .replace(/^\s*\d{2,5}\s*[|·-]\s*/, '');
+}
+function academyDisplayName(r){
+ const code=String(r.variant||'').trim();
+ const filenameTitle=academyTrackTitle(r);
+ if(/^\d{2,5}$/.test(code))return code+' | '+filenameTitle;
+ return String(r.name||filenameTitle).trim();
 }
 
 async function loadAcademy(){try{
