@@ -215,8 +215,8 @@ test('native GTFS chunk assembly accepts ZIP bytes and handles errors',()=>{
  const b=js.indexOf('async function downloadGTFSBlob()',a);
  assert.ok(a>=0&&b>a);
  const code=js.slice(a,b);
- const run=new Function('Blob','atob',\`
-  \${code}
+ const run=new Function('Blob','atob',`
+  ${code}
   let collected=null,failed=null,cleared=0;
   const id='gtfs-check';
   nativeGtfsPending={
@@ -226,7 +226,7 @@ test('native GTFS chunk assembly accepts ZIP bytes and handles errors',()=>{
   window.lineaPilotGTFSReceive(id,'chunk',btoa('PK'+'.'.repeat(1100)));
   window.lineaPilotGTFSReceive(id,'done','');
   return {collected,failed};
- \`);
+ `);
  // browser global window is supplied to the test function through a sandbox
  const original=global.window;
  global.window={};
