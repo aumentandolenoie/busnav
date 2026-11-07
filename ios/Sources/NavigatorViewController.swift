@@ -53,6 +53,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
                 deliverStatus("Percorso nativo non valido")
                 return
             }
+            navigation.configureVoice(identifier: body["voiceId"] as? String, rate: body["rate"] as? Double)
             navigation.start(route: route, voiceEnabled: body["voice"] as? Bool ?? true,
                              turnsEnabled: body["turnVoice"] as? Bool ?? true)
         case "stop":
@@ -60,10 +61,22 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
         case "settings":
             navigation.voiceEnabled = body["voice"] as? Bool ?? navigation.voiceEnabled
             navigation.turnsEnabled = body["turnVoice"] as? Bool ?? navigation.turnsEnabled
+            navigation.configureVoice(identifier: body["voiceId"] as? String, rate: body["rate"] as? Double)
         case "downloadGTFS":
             guard let id = body["id"] as? String, id.hasPrefix("gtfs-"),
                   id.count < 96, id.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }) else { return }
             downloadGTFS(requestId: id, refresh: body["refresh"] as? Bool ?? false)
+        case "listVoices":
+            deliver(event: "voices", data: ["voices": navigation.italianVoices()])
+        case "openUpdate":
+            if let value = body["url"] as? String,
+               let url = URL(string: value), url.scheme == "https",
+               url.host == "github.com",
+               url.path.hasPrefix("/aumentandolenoie/busnav/releases/download/") {
+                UIApplication.shared.open(url)
+            }
+        case "checkUpdates":
+            fetchReleases()
         case "testVoice":
             navigation.testVoice()
         default:
@@ -155,6 +168,28 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
               window.lineaPilotGTFSReceive.apply(window, \(json));
             }
             """) { _, error in completion?(error) }
+    }
+
+    private func fetchReleases() {
+        guard let url = URL(string: "https://api.github.com/repos/aumentandolenoie/busnav/releases?per_page=40") else { return }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 20
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                if let error {
+                    self.deliver(event: "updateError", data: ["message": error.localizedDescription])
+                    return
+                }
+                guard let response = response as? HTTPURLResponse, response.statusCode == 200,
+                      let data, let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                    self.deliver(event: "updateError", data: ["message": "Risposta GitHub non valida"])
+                    return
+                }
+                self.deliver(event: "releases", data: ["releases": json])
+            }
+        }.resume()
     }
 
     private func deliverLocation(_ location: CLLocation) {

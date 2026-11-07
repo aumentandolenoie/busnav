@@ -1,0 +1,39 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'app.lineapilot.android'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'app.lineapilot.android'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '0.1'
+    }
+    signingConfigs {
+        persistent {
+            if (System.getenv('ANDROID_SIGNING_STORE_FILE')) {
+                storeFile file(System.getenv('ANDROID_SIGNING_STORE_FILE'))
+                storePassword System.getenv('ANDROID_SIGNING_STORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_SIGNING_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_SIGNING_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            debuggable true
+            if (System.getenv('ANDROID_SIGNING_STORE_FILE')) {
+                signingConfig signingConfigs.persistent
+            }
+        }
+        release { minifyEnabled false }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+}

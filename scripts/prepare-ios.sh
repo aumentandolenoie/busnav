@@ -4,6 +4,11 @@ cd "$(dirname "$0")/.."
 mkdir -p ios/Web
 # Copy originals, never alter the Academy catalog.
 cp index.html app.js style.css sw.js manifest.webmanifest icon.svg official-routes.json ios/Web/
+if [ -n "${GITHUB_SHA:-}" ]; then
+  TAG="ios-preview-${GITHUB_SHA:0:12}"
+  { printf "window.LINEAPILOT_BUILD_TAG='%s';\n" "$TAG"; cat ios/Web/app.js; } > ios/Web/app.js.versioned
+  mv ios/Web/app.js.versioned ios/Web/app.js
+fi
 # Only validated guidance files may be bundled; official GPX remains unchanged.
 if [ -d road-guidance ]; then
   mkdir -p ios/Web/road-guidance

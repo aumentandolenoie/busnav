@@ -380,3 +380,43 @@ test('Academy remains the ONLY navigation route for web and native while Italian
  assert.match(prepare,/road-guidance/);
  assert.match(prepare,/official-routes\.json/);
 });
+
+test('native Italian voices and manual update download are available',()=>{
+ assert.match(html,/id="voiceSelect"/);
+ assert.match(html,/id="voiceRate"/);
+ assert.match(html,/id="appUpdateBanner"/);
+ assert.match(html,/id="checkUpdates"/);
+ assert.match(js,/function applyVoiceOptions/);
+ assert.match(js,/function processAppReleases/);
+ assert.match(js,/newest\.tag_name===tag/);
+ assert.match(js,/ios-preview-/);
+ assert.match(js,/android-preview-/);
+ assert.match(js,/window\.LINEAPILOT_BUILD_TAG/);
+ assert.match(js,/type:'checkUpdates'/);
+ assert.match(js,/type:'openUpdate'/);
+ const swift=fs.readFileSync('ios/Sources/NativeNavigation.swift','utf8');
+ const ctrl=fs.readFileSync('ios/Sources/NavigatorViewController.swift','utf8');
+ assert.match(swift,/AVSpeechSynthesisVoice\.speechVoices\(\)/);
+ assert.match(swift,/\.language\.lowercased\(\)\.hasPrefix\("it"\)/);
+ assert.match(swift,/utterance\.rate/);
+ assert.match(ctrl,/case "listVoices"/);
+ assert.match(ctrl,/case "checkUpdates"/);
+ assert.match(ctrl,/URLSession\.shared\.dataTask/);
+});
+test('Android project preserves Academy route and handles voice and geolocation',()=>{
+ for(const f of ['android/build.gradle','android/app/build.gradle',
+  'android/app/src/main/AndroidManifest.xml',
+  'android/app/src/main/java/app/lineapilot/android/MainActivity.java',
+  'scripts/prepare-android.sh','.github/workflows/android-apk.yml']){
+  assert.ok(fs.existsSync(f),'Missing Android file '+f);
+ }
+ const android=fs.readFileSync('android/app/src/main/java/app/lineapilot/android/MainActivity.java','utf8');
+ assert.match(android,/WebViewAssetLoader/);
+ assert.match(android,/onGeolocationPermissionsShowPrompt/);
+ assert.match(android,/TextToSpeech/);
+ assert.match(android,/setVoice/);
+ assert.match(android,/void openExternal/);
+ const script=fs.readFileSync('scripts/prepare-android.sh','utf8');
+ assert.match(script,/official-routes\.json/);
+ assert.match(script,/android-preview-/);
+});
