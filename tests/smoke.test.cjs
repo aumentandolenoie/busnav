@@ -198,3 +198,42 @@ test('iOS WKWebView permits portrait scrolling to Academy and GTFS controls',()=
  assert.match(css,/\.sidebar\{order:2/);
  assert.match(css,/body\.navigating\{overflow:hidden\}/);
 });
+
+test('native GTFS ZIP uses URLSession bridge, not custom-scheme XHR',()=>{
+ const swift=fs.readFileSync('ios/Sources/NavigatorViewController.swift','utf8');
+ assert.match(swift,/case "downloadGTFS"/);
+ assert.match(swift,/URLSession\.shared\.dataTask/);
+ assert.match(swift,/sendGTFSChunks/);
+ assert.match(swift,/deliverGTFS/);
+ assert.match(js,/window\.lineaPilotGTFSReceive=/);
+ assert.match(js,/type:'downloadGTFS'/);
+ assert.match(js,/new Blob\(pending\.parts/);
+ assert.doesNotMatch(js,/xhr\.open\('GET','\.\/gtfs\.zip'/);
+});
+test('native GTFS chunk assembly accepts ZIP bytes and handles errors',()=>{
+ const a=js.indexOf('let nativeGtfsPending=null;');
+ const b=js.indexOf('async function downloadGTFSBlob()',a);
+ assert.ok(a>=0&&b>a);
+ const code=js.slice(a,b);
+ const run=new Function('Blob','atob',\`
+  \${code}
+  let collected=null,failed=null,cleared=0;
+  const id='gtfs-check';
+  nativeGtfsPending={
+    id, parts:[], total:0, timeout:1,
+    resolve:x=>collected=x, reject:e=>failed=e
+  };
+  window.lineaPilotGTFSReceive(id,'chunk',btoa('PK'+'.'.repeat(1100)));
+  window.lineaPilotGTFSReceive(id,'done','');
+  return {collected,failed};
+ \`);
+ // browser global window is supplied to the test function through a sandbox
+ const original=global.window;
+ global.window={};
+ try{
+  const result=run(Blob,atob);
+  assert.ok(result.collected instanceof Blob);
+  assert.equal(result.collected.size,1102);
+  assert.equal(result.failed,null);
+ }finally{global.window=original}
+});
