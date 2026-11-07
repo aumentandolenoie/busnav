@@ -781,24 +781,54 @@ function startGPS(){
  $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
 }
 function startDemo(){if(!current)return;stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
+// Native GTFS transfer: URLSession downloads the ZIP, then sends base64 chunks
+// over WKScriptMessageHandler. No fetch/XHR to a WebKit custom URL scheme.
+let nativeGtfsPending=null;
+window.lineaPilotGTFSReceive=(id,type,payload)=>{
+ const pending=nativeGtfsPending;
+ if(!pending||pending.id!==id)return;
+ if(type==='chunk'){
+  try{
+   const raw=atob(payload);
+   const bytes=new Uint8Array(raw.length);
+   for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+   pending.parts.push(bytes);
+   pending.total+=bytes.length;
+   if(pending.total>100*1024*1024)throw Error('GTFS supera 100 MB');
+  }catch(err){nativeGtfsPending=null;clearTimeout(pending.timeout);pending.reject(err)}
+ }else if(type==='done'){
+  nativeGtfsPending=null;clearTimeout(pending.timeout);
+  if(pending.total<1000){pending.reject(Error('GTFS scaricato ma vuoto'));return}
+  const first=pending.parts[0];
+  if(!first||first[0]!==0x50||first[1]!==0x4b){
+   pending.reject(Error('Il server non ha restituito un archivio ZIP valido'));return
+  }
+  pending.resolve(new Blob(pending.parts,{type:'application/zip'}));
+ }else if(type==='error'){
+  nativeGtfsPending=null;clearTimeout(pending.timeout);
+  pending.reject(Error(String(payload||'Errore download nativo')));
+ }
+};
 async function downloadGTFSBlob(){
  if(!nativeMode){
   const res=await fetch(FEED);
   if(!res.ok)throw Error('HTTP '+res.status);
   return await res.blob();
  }
- // Native URLSession fetches GTFS and WKURLSchemeHandler returns it locally.
+ if(nativeGtfsPending)throw Error('Download GTFS già in corso');
  return await new Promise((resolve,reject)=>{
-  const xhr=new XMLHttpRequest();
-  xhr.open('GET','./gtfs.zip',true);xhr.responseType='blob';
-  xhr.onload=()=>{
-   if(xhr.status!==0&&(xhr.status<200||xhr.status>=300)){
-    reject(Error('GTFS HTTP '+xhr.status));return;
+  const id='gtfs-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+  const timeout=setTimeout(()=>{
+   if(nativeGtfsPending?.id===id){
+    nativeGtfsPending=null;
+    reject(Error('Download GTFS scaduto: controlla la rete e riprova'));
    }
-   resolve(xhr.response);
-  };
-  xhr.onerror=()=>reject(Error('Download GTFS nativo fallito'));
-  xhr.send();
+  },180000);
+  nativeGtfsPending={id,resolve,reject,parts:[],total:0,timeout};
+  if(!nativePost({type:'downloadGTFS',id})){
+   clearTimeout(timeout);nativeGtfsPending=null;
+   reject(Error('Comunicazione con il motore iOS non disponibile'));
+  }
  });
 }
 $('loadFeed').addEventListener('click',async()=>{
