@@ -107,7 +107,7 @@ def downsample(points, limit=MAX_INPUT_POINTS):
 
 def trace_request(points):
     return {
-        "shape": [{"lat": lat, "lon": lng, "type": "via"} for lat, lng in downsample(points)],
+        "shape": [{"lat": lat, "lon": lng} for lat, lng in downsample(points)],
         "shape_match": "map_snap",
         "costing": "bus",
         "directions_options": {"language": "it-IT", "units": "kilometers", "directions_type": "instructions"},
