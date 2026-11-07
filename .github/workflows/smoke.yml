@@ -17,3 +17,5 @@ jobs:
           node-version: '22'
       - name: Verify app and Academy catalog
         run: node --test tests/*.test.cjs
+      - name: Verify Valhalla road matching never changes official GPX
+        run: python3 -m unittest discover -s tests -p 'test_road_guidance.py' -v
