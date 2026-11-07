@@ -17,7 +17,7 @@ targets:
         buildPhase: resources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.lineapilot.native
+        PRODUCT_BUNDLE_IDENTIFIER: app.lineapilot.turni.experiment
         TARGETED_DEVICE_FAMILY: "1"
         IPHONEOS_DEPLOYMENT_TARGET: "16.0"
         CODE_SIGN_STYLE: Manual
