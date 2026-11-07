@@ -16,6 +16,6 @@ test -f "$APP/Info.plist"
 test -s "$APP/Web/official-routes.json"
 mkdir -p build/ios/Payload
 cp -R "$APP" build/ios/Payload/
-(cd build/ios && /usr/bin/zip -q -r LineaPilot-unsigned.ipa Payload)
-test -s build/ios/LineaPilot-unsigned.ipa
-echo "Unsigned device IPA built: build/ios/LineaPilot-unsigned.ipa"
+(cd build/ios && /usr/bin/zip -q -r LineaPilot-Turni-unsigned.ipa Payload)
+test -s build/ios/LineaPilot-Turni-unsigned.ipa
+echo "Unsigned device IPA built: build/ios/LineaPilot-Turni-unsigned.ipa"
