@@ -20,7 +20,8 @@ function fn(name){
  return source.slice(match.index,end);
 }
 const funcs=['winterValidCatalog','winterCategoryForLine','winterNorm','winterParts','winterRank','winterLineFamily'];
-const lib=new Function(funcs.map(fn).join('\n')+';return {winterValidCatalog,winterCategoryForLine,winterNorm,winterRank,winterLineFamily};')();
+const officialNormalizer=core.slice(core.indexOf('function normAcademyCode('),core.indexOf('function academyRouteCodes('));
+const lib=new Function(officialNormalizer+'\\n'+funcs.map(fn).join('\\n')+';return {winterValidCatalog,winterCategoryForLine,winterNorm,winterRank,winterLineFamily};')();
 
 test('the extracted 2026/27 winter catalog loads on its own without user-uploaded files',()=>{
  assert.equal(lib.winterValidCatalog(data),true);
