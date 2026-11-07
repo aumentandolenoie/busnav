@@ -213,7 +213,7 @@ test('native GTFS ZIP uses URLSession bridge, not custom-scheme XHR',()=>{
 });
 test('native GTFS chunk assembly accepts ZIP bytes and handles errors',()=>{
  const a=js.indexOf('let nativeGtfsPending=null;');
- const b=js.indexOf('async function downloadGTFSBlob()',a);
+ const b=js.indexOf('async function downloadGTFSBlob(',a);
  assert.ok(a>=0&&b>a);
  const code=js.slice(a,b);
  const run=new Function('Blob','atob',`
