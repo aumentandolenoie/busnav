@@ -95,3 +95,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
  .match-panel{padding:12px;margin-top:10px}
  .navigation-actions{padding-bottom:6px}
 }
+
+/* Human-readable GTFS choices. Keep full stop lists collapsed until requested. */
+.variant-preview{padding:13px;border:1px solid #3d6592;border-radius:12px;background:#172b48;display:grid;gap:7px;min-width:0}
+.variant-preview>strong{font-size:13px;line-height:1.45;color:#f2f6ff;overflow-wrap:anywhere}
+.variant-preview .help{margin:0}
+.variant-preview details{border-top:1px solid #324763;padding-top:8px}
+.variant-preview summary{cursor:pointer;color:#a9c5ff;font-size:12px;font-weight:650}
+.variant-stops-list{max-height:240px;overflow:auto;padding-left:23px;margin:8px 0 0;color:#c4d5f0;font-size:12px;line-height:1.6}
+.variant-stops-list li{padding:3px 0;border-bottom:1px solid #ffffff12}
+#academyGtfsTrip{font-size:13px;line-height:1.4;text-overflow:ellipsis}

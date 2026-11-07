@@ -251,6 +251,7 @@ function filterAcademyRoutes(){
 let academyGtfsMatches=new Map();
 function resetAcademyGtfs(){
  academyGtfsMatches=new Map();$('academyDiff').hidden=true;$('academyDiffList').replaceChildren();
+ $('academyVariantPreview').hidden=true;$('academyVariantPreview').replaceChildren();
  setOptions($('academyGtfsTrip'),[],'Nessuna corsa verificata');
  $('findGtfsAcademy').disabled=!selectedOfficial||!feed;
  $('mergeOfficial').disabled=true;
@@ -342,6 +343,67 @@ function describeMatch(x){
  }).join(' | ');
 }
 function hasStopInSequence(stop,seq){return seq.some(item=>samePhysicalStop(stop,item.stop))}
+function variantStopNames(match){
+ return (match?.stops||[]).map(x=>x.stop?.stop_name||x.stop?.stop_id||'Fermata senza nome');
+}
+function variantSignature(match){
+ // Different trip IDs and timetables can represent precisely the same stop
+ // sequence. Display these once; do not fabricate extra "variants".
+ return stopSequenceKey(match.stops);
+}
+function uniqueAcademyVariants(matches){
+ const bySequence=new Map();
+ for(const match of matches){
+  const key=variantSignature(match);
+  const old=bySequence.get(key);
+  if(!old||(match.legs.length===1&&old.legs.length>1)||
+   (match.legs.length===old.legs.length&&(match.coverage>old.coverage||
+    (match.coverage===old.coverage&&match.averageError<old.averageError))))
+   bySequence.set(key,match);
+ }
+ return [...bySequence.values()];
+}
+function variantDistinguishingStops(match,all){
+ const other=all.filter(x=>x!==match);
+ if(!other.length)return [];
+ return match.stops.filter(st=>other.some(alt=>!hasStopInSequence(st.stop,alt.stops)))
+  .map(st=>st.stop?.stop_name||st.stop?.stop_id||'Fermata senza nome')
+  .filter((name,i,list)=>list.indexOf(name)===i);
+}
+function variantFriendlyLabel(match,all){
+ const names=variantStopNames(match);
+ const first=names[0]||'Partenza sconosciuta',last=names.at(-1)||'Destinazione sconosciuta';
+ const special=variantDistinguishingStops(match,all).filter(n=>n!==first&&n!==last);
+ const marker=special.length?' · via '+special.slice(0,2).join(', '):'';
+ const legs=match.legs.length>1?' · '+match.legs.length+' corse GTFS concatenate':'';
+ return first+' → '+last+marker+' · '+names.length+' fermate'+legs;
+}
+function refreshVariantPreview(){
+ const output=$('academyVariantPreview');
+ const selected=academyGtfsMatches.get($('academyGtfsTrip').value);
+ if(!selected){
+  output.hidden=true;
+  output.replaceChildren();
+  return;
+ }
+ output.replaceChildren();
+ output.hidden=false;
+ const all=[...academyGtfsMatches.values()];
+ const names=variantStopNames(selected);
+ const headline=document.createElement('strong');
+ headline.textContent=names[0]+' → '+names.at(-1);
+ output.append(headline);
+ makeInfoLine(output,names.length+' fermate · '+(selected.legs.length>1?'Attenzione: '+selected.legs.length+' corse GTFS concatenate, non una corsa unica':'Corsa GTFS unica'));
+ const unique=variantDistinguishingStops(selected,all);
+ if(unique.length)makeInfoLine(output,'Fermate che distinguono questa variante: '+unique.slice(0,8).join(' · ')+(unique.length>8?' · …':''));
+ else if(all.length>1)makeInfoLine(output,'Nessuna fermata esclusiva: confronta capolinea e ordine delle fermate.');
+ const details=document.createElement('details'),summary=document.createElement('summary');
+ summary.textContent='Visualizza tutte le '+names.length+' fermate nell’ordine';
+ details.append(summary);
+ const ol=document.createElement('ol');ol.className='variant-stops-list';
+ names.forEach(name=>{const li=document.createElement('li');li.textContent=name;ol.append(li)});
+ details.append(ol);output.append(details);
+}
 function renderAcademyStopComparison(){
  const panel=$('academyDiff'),root=$('academyDiffList');
  root.replaceChildren();
@@ -423,18 +485,22 @@ function findGtfsForAcademy(){
  academyGtfsMatches=new Map();$('academyDiff').hidden=true;$('academyDiffList').replaceChildren();
  try{
   const {results,segments,groupCount}=buildAcademyMatches(selectedOfficial);
+  // Many matching GTFS trips have identical stops. Show one choice per actual
+  // sequence, not one choice per journey ID or equivalent chain.
+  const distinct=uniqueAcademyVariants(results);
   academyGtfsMatches=new Map();const options=[];
-  results.forEach((x,i)=>{
+  distinct.forEach((x,i)=>{
    const id='academy-match-'+i;academyGtfsMatches.set(id,x);
-   const codes=x.legs.map(l=>feed.routesById.get(l.trip.route_id)?.route_short_name||'?').join(' + ');
-   options.push([id,'Variante '+(i+1)+' · '+(x.legs.length>1?x.legs.length+' tratte':'Corsa unica')+' · '+codes+' · '+x.stops.length+' fermate · copertura '+Math.round(x.coverage*100)+'% · scarto '+Math.round(x.averageError)+' m']);
+   options.push([id,variantFriendlyLabel(x,distinct)]);
   });
-  setOptions($('academyGtfsTrip'),options,'Scegli una sequenza di fermate…');
+  setOptions($('academyGtfsTrip'),options,'Seleziona in base alle fermate…');
+  if(distinct.length===1)$('academyGtfsTrip').value='academy-match-0';
   renderAcademyStopComparison();
-  $('academyGtfsStatus').textContent=results.length?
-   results.length+' combinazioni geometriche compatibili; controlla fermate, direzione e variante. La combinazione non prova una corsa diretta dello stesso autobus.':
+  refreshVariantPreview();
+  $('academyGtfsStatus').textContent=distinct.length?
+   distinct.length+' sequenze di fermate distinte ('+Math.max(0,results.length-distinct.length)+' duplicati nascosti). Controlla partenza, arrivo e fermate particolari prima di confermare.':
    'Nessuna corrispondenza completa ('+segments+' segmenti compatibili da '+groupCount+' sequenze GTFS). Il GPX non viene modificato.';
-  $('mergeOfficial').disabled=true;
+  $('mergeOfficial').disabled=distinct.length!==1;
  }catch(e){console.error(e);$('academyGtfsStatus').textContent='Errore di associazione: '+e.message;}
  finally{button.disabled=false}
 }
@@ -442,6 +508,7 @@ $('findGtfsAcademy').addEventListener('click',findGtfsForAcademy);
 $('academyGtfsTrip').addEventListener('change',()=>{
  $('mergeOfficial').disabled=!selectedOfficial||!academyGtfsMatches.has($('academyGtfsTrip').value);
  renderAcademyStopComparison();
+ refreshVariantPreview();
 });
 function onAcademySelected(){
  const cat=$('academyCategory').value,line=$('academyLine').value;

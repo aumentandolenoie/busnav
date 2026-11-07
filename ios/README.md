@@ -57,3 +57,6 @@ Se il log contiene `Invalid parameter not satisfying: !stayUp || CLClientIsBackg
 - La selezione GPX apre la mappa automaticamente; i controlli per trovare e associare una sequenza fermate Busitalia restano espliciti perché più varianti possono essere compatibili e non vanno associate arbitrariamente.
 - Le impostazioni vocali e l'elenco fermate sono ora sezioni richiudibili, con controlli GPS subito sotto il selettore Academy.
 - La PWA continua a funzionare; l'IPA aggiornata richiede una nuova build e il collaudo effettivo su LiveContainer/SideStore.
+
+### Varianti GTFS più comprensibili (v20)
+I risultati della verifica Academy/Busitalia vengono raggruppati per sequenza di fermate effettivamente distinta: corse GTFS con la stessa lista ordinata di fermate non producono opzioni duplicate. Ogni scelta indica prima e ultima fermata, eventuali fermate caratteristiche, numero fermate e l'eventuale concatenazione di più corse GTFS, che non costituisce una singola corsa di linea. La variante selezionata mostra un riepilogo e la lista ordinata delle fermate espandibile. In presenza di più alternative non viene selezionata automaticamente una sequenza; con una sola sequenza può essere preselezionata, ma serve comunque confermare l'associazione. Questi dati non certificano la validità di una corsa nel giorno corrente.

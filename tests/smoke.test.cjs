@@ -314,3 +314,32 @@ test('native iOS caches validated GTFS ZIP to disk and supports retry refresh',(
  assert.match(swift,/try data\.write\(to: destination, options: \.atomic\)/);
  assert.match(swift,/body\["refresh"\] as\? Bool \?\? false/);
 });
+
+test('GTFS options collapse identical stop sequences and use useful destinations',()=>{
+ const functions=['variantStopNames','variantSignature','uniqueAcademyVariants','variantDistinguishingStops','variantFriendlyLabel','stopSequenceKey','hasStopInSequence']
+  .map(sourceOf).join('\n');
+ const mock=new Function('samePhysicalStop',functions+';return {uniqueAcademyVariants,variantFriendlyLabel,variantDistinguishingStops};')(
+  (a,b)=>a.stop_id===b.stop_id
+ );
+ const mk=(codes,legs=1,coverage=.94,error=15)=>({
+  stops:codes.map(code=>({stop:{stop_id:code,stop_name:({A:'Padova',B:'Limena',C:'Vigodarzere',D:'Camposampiero',E:'Borgoricco'})[code]}})),
+  legs:Array.from({length:legs},()=>({trip:{}})),coverage,averageError:error
+ });
+ const a=mk(['A','B','D']),dup=mk(['A','B','D'],2,.97,10),alt=mk(['A','C','D']),other=mk(['A','E','D']);
+ const distinct=mock.uniqueAcademyVariants([a,dup,alt,other]);
+ assert.equal(distinct.length,3);
+ assert.equal(distinct[0].legs.length,1,'Prefer a single GTFS journey over a synthetic chain of equal stops');
+ assert.match(mock.variantFriendlyLabel(a,distinct),/Padova → Camposampiero/);
+ assert.match(mock.variantFriendlyLabel(a,distinct),/via Limena/);
+ assert.match(mock.variantFriendlyLabel(alt,distinct),/via Vigodarzere/);
+ assert.deepEqual(mock.variantDistinguishingStops(a,distinct),['Limena']);
+});
+test('variant selection shows stop preview and does not auto-associate ambiguous matches',()=>{
+ assert.match(html,/id="academyVariantPreview"/);
+ assert.match(js,/function refreshVariantPreview/);
+ assert.match(js,/function uniqueAcademyVariants/);
+ assert.match(js,/if\(distinct.length===1\)\$\('academyGtfsTrip'\).value='academy-match-0'/);
+ assert.match(js,/\$\('mergeOfficial'\).disabled=distinct.length!==1/);
+ assert.match(js,/\$\('academyGtfsTrip'\).addEventListener\('change',[\s\S]*?refreshVariantPreview\(\)/);
+ assert.match(js,/details\.append\(ol\)/);
+});
