@@ -182,7 +182,8 @@ test('native iOS project and cloud pipeline are available',()=>{
   assert.ok(fs.existsSync(file),'Missing native file: '+file);
  }
  const swift=fs.readFileSync('ios/Sources/NativeNavigation.swift','utf8');
- assert.match(swift,/allowsBackgroundLocationUpdates = true/);
+ assert.match(swift,/allowsBackgroundLocationUpdates = backgroundAllowed/);
+ assert.match(swift,/canUseBackgroundLocation/);
  assert.match(swift,/AVSpeechSynthesizer/);
  assert.match(swift,/stopIndex/);
  const workflow=fs.readFileSync('.github/workflows/ios-ipa.yml','utf8');
@@ -236,4 +237,16 @@ test('native GTFS chunk assembly accepts ZIP bytes and handles errors',()=>{
   assert.equal(result.collected.size,1102);
   assert.equal(result.failed,null);
  }finally{global.window=original}
+});
+
+test('Core Location does not request unsupported background mode in LiveContainer',()=>{
+ const swift=fs.readFileSync('ios/Sources/NativeNavigation.swift','utf8');
+ assert.match(swift,/import MachO/);
+ assert.match(swift,/_dyld_image_count/);
+ assert.match(swift,/livecontainershared/);
+ assert.match(swift,/!Self\.isHostedByLiveContainer && modes\.contains\("location"\)/);
+ assert.match(swift,/manager\.allowsBackgroundLocationUpdates = backgroundAllowed/);
+ assert.doesNotMatch(swift,/manager\.allowsBackgroundLocationUpdates = true/);
+ assert.match(swift,/guard active, !locationUpdatesStarted else \{ return \}/);
+ assert.match(swift,/GPS attivo in primo piano.*LiveContainer/);
 });
