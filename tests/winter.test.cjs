@@ -117,3 +117,20 @@ test('GPX 1278 displays its original file identity and matches E015-V PDF unique
  assert.deepEqual(helpers.winterExactAcademyMatches('Extraurbano',[...pdf.slice(0,4),'DEVIAZIONE',2],candidates),[]);
  assert.equal(helpers.winterExactAcademyMatches('Extraurbano',pdf,[...exact,...exact]).length,2);
 });
+
+test('automatic GPX proposals are blocked until GTFS verifies them or driver confirms',()=>{
+ const required=[
+  'const needsApproval=!explicit&&!previouslyConfirmed',
+  "winterEl('startNav').disabled=true",
+  "winterEl('demoBtn').disabled=true",
+  "winterEl('mergeOfficial').disabled=true",
+  'const unchanged=previouslyConfirmed?saved:{}',
+  'winterExactAcademyMatches(',
+  'winterAcademyTitlesConsistent(',
+  'window.addEventListener(\'lineapilot:academy-ready\'',
+  'if(lineLayer){map.removeLayer(lineLayer);lineLayer=null}',
+  'if(stopLayer){map.removeLayer(stopLayer);stopLayer=null}'
+ ];
+ for(const snippet of required)assert.ok(source.includes(snippet),snippet);
+ assert.ok(core.includes("window.dispatchEvent(new CustomEvent('lineapilot:academy-ready'))"));
+});
