@@ -1,5 +1,5 @@
 const CACHE='lineapilot-winter-shell-v1';
-const CORE=['./','./index.html','./style.css','./app.js','./winter.js','./icon.svg','./manifest.webmanifest'];
+const CORE=['./','./index.html','./style.css','./app.js','./winter.js','./winter-turns.json','./icon.svg','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
  const keys=await caches.keys();
