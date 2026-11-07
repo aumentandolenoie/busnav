@@ -322,6 +322,9 @@ winterEl('mergeOfficial').addEventListener('click',()=>{
  winterSafeStore(WINTER_CHOICES_KEY,JSON.stringify(saved));
  winterStatus('Fermate verificate e associazione salvata: non sarà necessario riselezionarle sullo stesso dispositivo.');
 });
+window.addEventListener('lineapilot:academy-ready',()=>{
+ if(winterSelection&&winterSelectedLeg&&!selectedOfficial)winterSelectJourney();
+});
 window.addEventListener('lineapilot:gtfs-ready',()=>{
  if(winterSelection&&winterSelectedLeg&&selectedOfficial)winterUseAcademy(selectedOfficial);
 });
