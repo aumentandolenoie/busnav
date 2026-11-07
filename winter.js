@@ -139,7 +139,7 @@ function winterSelectJourney(){
  const [start,end,desc,line,note,page]=item.leg;
  winterEl('winterJourneyInfo').textContent='Linea '+line+' · '+start+'–'+end+
   (item.times.length>1?' · altre partenze: '+item.times.slice(1,8).join(', '):'')+
-  (note?' · Nota PDF: '+note:'')+' · pag. '+(page||'—');
+  (note?' · ⚠ Nota PDF da verificare: '+note:'')+' · pag. '+(page||'—');
  winterGpxCandidates=winterRouteMatches(winterEl('winterCategory').value,item.leg);
  const saved=winterSaved()[winterSig(winterSelection)];
  const savedRoute=winterGpxCandidates.find(x=>String(x.route.id)===String(saved?.academyId));
@@ -148,12 +148,15 @@ function winterSelectJourney(){
   String(x.route.id),x.route.name+(x.score?' · '+x.score+' località in comune':'')
  ]),'Scegli GPX ufficiale corrispondente…');
  let picked=savedRoute?.route||null;
- if(!picked&&winterGpxCandidates.length===1&&winterGpxCandidates[0].score>=2){
+ if(!picked&&!String(item.leg[4]||'').trim()&&
+    winterGpxCandidates.length===1&&winterGpxCandidates[0].score>=2){
   picked=winterGpxCandidates[0].route;
  }
  if(!picked){
   winterEl('winterGpxWrap').hidden=false;
-  winterStatus(winterGpxCandidates.length?
+  winterStatus(String(item.leg[4]||'').trim()?
+   'Nota o deviazione nel PDF: verifica manualmente il tracciato GPX ufficiale prima di confermare.':
+   winterGpxCandidates.length?
    'PDF e codice linea non permettono un abbinamento univoco: verifica il GPX Academy prima di navigare.':
    'Non ho trovato GPX Academy con la stessa linea. Non creo percorsi alternativi.',true);
   winterEl('winterManual').open=true;
@@ -213,7 +216,8 @@ function winterUseAcademy(route,explicit=false){
    matches.map((x,i)=>['academy-match-'+i,variantFriendlyLabel(x,matches)]),
    'Scegli le fermate GTFS…');
   const stored=matches.find(x=>saved?.stopSignature===stopSequenceKey(x.stops));
-  const verifiedSingle=matches.length===1&&winterEndpointsAgree(winterSelectedLeg,matches[0].stops)&&
+  const verifiedSingle=matches.length===1&&!String(winterSelectedLeg[4]||'').trim()&&
+   winterEndpointsAgree(winterSelectedLeg,matches[0].stops)&&
    winterVariantVerifiedByGTFS(matches[0],winterSelectedLeg);
   const confirmed=stored||(verifiedSingle?matches[0]:null);
   if(confirmed){
