@@ -1,9 +1,9 @@
-const CACHE='lineapilot-shell-v23';
-const CORE=['./','./index.html','./style.css','./app.js','./icon.svg','./manifest.webmanifest'];
+const CACHE='lineapilot-winter-shell-v1';
+const CORE=['./','./index.html','./style.css','./app.js','./winter.js','./icon.svg','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
  const keys=await caches.keys();
- await Promise.all(keys.filter(k=>k.startsWith('lineapilot-shell-')&&k!==CACHE).map(k=>caches.delete(k)));
+ await Promise.all(keys.filter(k=>(k.startsWith('lineapilot-shell-')||k.startsWith('lineapilot-winter-shell-'))&&k!==CACHE).map(k=>caches.delete(k)));
  await self.clients.claim();
 })()));
 self.addEventListener('fetch',event=>{
