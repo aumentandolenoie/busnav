@@ -49,6 +49,10 @@ function applyVoiceOptions(list,source){
  dropdown.disabled=!availableItalianVoices.length;
 }
 function loadItalianVoices(){
+ if(window.LineaPilotAndroid){
+  try{const voices=JSON.parse(window.LineaPilotAndroid.listVoices());applyVoiceOptions(voices,'android')}catch(e){console.warn('Voci Android:',e)}
+  return;
+ }
  if(nativeMode){nativePost({type:'listVoices'});return}
  if(!('speechSynthesis'in window))return;
  applyVoiceOptions(speechSynthesis.getVoices().filter(v=>String(v.lang).toLowerCase().startsWith('it'))
@@ -71,6 +75,7 @@ if('speechSynthesis'in window) {
  loadItalianVoices();
 }
 if(nativeMode)loadItalianVoices();
+if(window.LineaPilotAndroid)loadItalianVoices();
 
 // App installation updates are explicit opt-in downloads, never silent installs.
 // GitHub 'latest' ignores prereleases: use the releases list for test IPA/APK.
@@ -782,6 +787,7 @@ let voiceStarted=false;
 function resetVoiceGuidance(){
  voiceGeneration++;voiceQueue=[];voiceBusy=false;spokenStopStages.clear();spokenTurnStages.clear();voiceStarted=false;
  lastVoiceTime=0;lastPositionSample=null;filteredSpeed=0;activeVoicePriority=null;firstVoiceFix=true;
+ if(window.LineaPilotAndroid)try{window.LineaPilotAndroid.stopSpeech()}catch(e){console.warn(e)}
  if('speechSynthesis'in window)try{speechSynthesis.cancel()}catch(e){console.warn(e)}
 }
 function setVoiceStatus(message,problem=false){
@@ -795,7 +801,7 @@ function refreshStopVoiceAvailability(){
   : 'Nessuna fermata associata: il GPS funziona, ma non può annunciare le fermate. Associa prima una corsa GTFS Busitalia al GPX Academy.';
 }
 function setupVoice(){
- if(!('speechSynthesis'in window)){setVoiceStatus('Voce non supportata',true);return false}
+ if(!('speechSynthesis'in window)&&!window.LineaPilotAndroid){setVoiceStatus('Voce non supportata',true);return false}
  voiceUnlocked=true;
  try{if(speechSynthesis.paused)speechSynthesis.resume()}catch(e){console.warn(e)}
  return true;
@@ -816,10 +822,25 @@ function enqueueVoice(message,priority='normal'){
  drainVoice();return true;
 }
 function drainVoice(){
- if(voiceBusy||!voiceQueue.length||!('speechSynthesis'in window))return;
+ if(voiceBusy||!voiceQueue.length||(!('speechSynthesis'in window)&&!window.LineaPilotAndroid))return;
  const item=voiceQueue.shift(),generation=voiceGeneration;
  voiceBusy=true;activeVoicePriority=item.priority;
  setVoiceStatus('Annuncio in preparazione…');
+ if(window.LineaPilotAndroid){
+  const token=String(generation);
+  window.lineaPilotAndroidSpeechDone=(callbackToken,ok)=>{
+   if(callbackToken!==token||voiceGeneration!==generation)return;
+   voiceBusy=false;activeVoicePriority=null;
+   if(!ok){setVoiceStatus('Audio Android non disponibile',true);voiceQueue=[]}
+   else {setVoiceStatus('Voce attiva');drainVoice()}
+  };
+  try{
+   window.LineaPilotAndroid.speak(item.message,voicePreferences.id,voicePreferences.rate,token);
+   voiceStarted=true;
+  }catch(e){console.warn('TTS Android',e);voiceBusy=false;setVoiceStatus('Voce Android non disponibile',true)}
+  return;
+ }
+
  try{
   const speech=new SpeechSynthesisUtterance(item.message);
   speech.lang='it-IT';speech.rate=voicePreferences.rate;speech.pitch=1;
