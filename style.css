@@ -120,3 +120,17 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
 #checkUpdates{font-size:12px;min-height:44px}
 body.navigating .app-update-banner{display:none!important}
 @media(max-width:800px){.app-update-banner{padding:12px 14px}.app-update-banner .button-row{width:100%}.app-update-banner button{flex:1}}
+
+/* Winter-turn experimental version. Core navigation remains unchanged. */
+.winter-panel{border-color:#5089b5;background:linear-gradient(165deg,#1a304a,#17243b)}
+.winter-panel .section-title{display:flex;align-items:center;gap:7px}
+.winter-status{font-size:12px;color:#dcecff;background:#273b56;border-radius:10px;padding:10px;margin:5px 0 9px}
+.winter-panel label{min-width:0}
+.winter-panel select{font-size:13px;min-width:0;text-overflow:ellipsis}
+.winter-panel .help[data-problem="yes"]{color:#ffcca2}
+.winter-import{border-top:1px solid #3c546f;padding-top:9px;margin-top:12px}
+.winter-import summary{color:#aacdff;cursor:pointer;font-size:12px;font-weight:650}
+.winter-import input[type=file]{margin-top:6px;max-width:100%;font-size:12px}
+.winter-import p{margin:9px 0}
+.winter-manual{border-color:#344b65}
+.winter-panel #winterJourneyInfo{overflow-wrap:anywhere}
