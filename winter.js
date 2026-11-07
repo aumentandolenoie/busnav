@@ -63,6 +63,16 @@ function winterLineFamily(raw){
  const match=/^E(\d{3})(?:-[VZ])?$/.exec(text);
  return normAcademyCode(match?'E'+match[1]:text);
 }
+function winterNormalizedRouteName(route){
+ // Prefer the GPX stored title for geographical identity, but ignore the
+ // printed filename number, which is a track ID, not a Busitalia route code.
+ return winterNorm(String(route.name||'').replace(/^\\s*\\d{2,5}\\s*[|·-]\\s*/,''));
+}
+function winterExactAcademyMatches(cat,leg,candidates){
+ const target=winterNorm(leg[2]);
+ if(!target||!cat||String(leg[4]||'').trim())return [];
+ return candidates.filter(x=>winterNormalizedRouteName(x.route)===target);
+}
 function winterRouteMatches(cat,leg){
  const code=winterLineFamily(leg[3]);
  if(!code)return [];
@@ -142,16 +152,19 @@ function winterSelectJourney(){
   (note?' · ⚠ Nota PDF da verificare: '+note:'')+' · pag. '+(page||'—');
  winterGpxCandidates=winterRouteMatches(winterEl('winterCategory').value,item.leg);
  const saved=winterSaved()[winterSig(winterSelection)];
- const savedRoute=winterGpxCandidates.find(x=>String(x.route.id)===String(saved?.academyId));
- winterEl('winterGpxWrap').hidden=winterGpxCandidates.length<=1;
+ const savedRoute=winterGpxCandidates.find(x=>
+   String(x.route.id)===String(saved?.academyId)&&
+   saved?.academyFingerprint===academyFingerprint(x.route.points));
+ const exact=winterExactAcademyMatches(winterEl('winterCategory').value,item.leg,winterGpxCandidates);
+ winterEl('winterGpxWrap').hidden=winterGpxCandidates.length<=1&&!exact.length;
  setOptions(winterEl('winterGpx'),winterGpxCandidates.map(x=>[
-  String(x.route.id),x.route.name+(x.score?' · '+x.score+' località in comune':'')
+  String(x.route.id),academyDisplayName(x.route)+(x.score?' · '+x.score+' località in comune':'')
  ]),'Scegli GPX ufficiale corrispondente…');
  let picked=savedRoute?.route||null;
- if(!picked&&!String(item.leg[4]||'').trim()&&
-    winterGpxCandidates.length===1&&winterGpxCandidates[0].score>=2){
-  picked=winterGpxCandidates[0].route;
- }
+ // Never select by "best" text similarity: only one EXACT PDF↔GPX name
+ // within the same category and line may be auto-associated.
+ // GPX 1278 is safely identified here as "Padova - Aeroporto Marco Polo".
+ if(!picked&&exact.length===1)picked=exact[0].route;
  if(!picked){
   winterEl('winterGpxWrap').hidden=false;
   winterStatus(String(item.leg[4]||'').trim()?
@@ -200,10 +213,10 @@ function winterUseAcademy(route,explicit=false){
  const key=winterSig(winterSelection),saved=winterSaved()[key];
  if(explicit){
   const rows=winterSaved();
-  rows[key]={academyId:id}; // stops are confirmed separately
+  rows[key]={academyId:id,academyFingerprint:academyFingerprint(route.points)}; // stops confirmed separately
   winterSafeStore(WINTER_CHOICES_KEY,JSON.stringify(rows));
  }
- winterStatus('GPX Academy: '+route.name+'. Verifica della sequenza fermate GTFS Busitalia…');
+ winterStatus('GPX Academy: '+academyDisplayName(route)+'. Verifica della sequenza fermate GTFS Busitalia…');
  if(!feed){
   winterStatus('GPX ufficiale caricato. GTFS non ancora disponibile: navigazione senza annunci fermate.');
   return;
@@ -215,7 +228,8 @@ function winterUseAcademy(route,explicit=false){
   setOptions(winterEl('academyGtfsTrip'),
    matches.map((x,i)=>['academy-match-'+i,variantFriendlyLabel(x,matches)]),
    'Scegli le fermate GTFS…');
-  const stored=matches.find(x=>saved?.stopSignature===stopSequenceKey(x.stops));
+  const stored=matches.find(x=>saved?.academyFingerprint===academyFingerprint(route.points)&&
+   saved?.stopSignature===stopSequenceKey(x.stops));
   const verifiedSingle=matches.length===1&&!String(winterSelectedLeg[4]||'').trim()&&
    winterEndpointsAgree(winterSelectedLeg,matches[0].stops)&&
    winterVariantVerifiedByGTFS(matches[0],winterSelectedLeg);
@@ -281,6 +295,7 @@ winterEl('mergeOfficial').addEventListener('click',()=>{
  const saved=winterSaved();
  saved[winterSig(winterSelection)]={
   academyId:String(selectedOfficial.id),
+  academyFingerprint:academyFingerprint(selectedOfficial.points),
   stopSignature:stopSequenceKey(match.stops)
  };
  winterSafeStore(WINTER_CHOICES_KEY,JSON.stringify(saved));
