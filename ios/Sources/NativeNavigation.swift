@@ -269,7 +269,18 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
         let utterance = AVSpeechUtterance(string: text)
         let chosen = AVSpeechSynthesisVoice.speechVoices()
             .first { $0.identifier == voiceIdentifier && $0.language.lowercased().hasPrefix("it") }
-        utterance.voice = chosen ?? AVSpeechSynthesisVoice(language: "it-IT")
+        // Automatic selects the highest-quality installed Italian voice.
+        // Siri's private voice is not exposed by the public AVSpeech API.
+        let automatic = AVSpeechSynthesisVoice.speechVoices()
+            .filter { $0.language.lowercased().hasPrefix("it") }
+            .sorted { a, b in
+                if a.quality != b.quality { return a.quality.rawValue > b.quality.rawValue }
+                let aExact = a.language.lowercased() == "it-it"
+                let bExact = b.language.lowercased() == "it-it"
+                if aExact != bExact { return aExact }
+                return a.name.localizedStandardCompare(b.name) == .orderedAscending
+            }.first
+        utterance.voice = chosen ?? automatic ?? AVSpeechSynthesisVoice(language: "it-IT")
         utterance.rate = min(AVSpeechUtteranceMaximumSpeechRate,
                             max(AVSpeechUtteranceMinimumSpeechRate,
                                 AVSpeechUtteranceDefaultSpeechRate * voiceRate))
