@@ -79,3 +79,41 @@ test('invalid PDF data is rejected and unavailable GPX is never invented',()=>{
  assert.ok(source.includes('Non ho trovato GPX Academy'));
  assert.ok(source.includes('Non creo percorsi alternativi'));
 });
+
+test('all 787 Academy GPXs remain usable geometry with geographic coordinates',()=>{
+ const catalog=JSON.parse(fs.readFileSync('official-routes.json','utf8'));
+ assert.equal(catalog.length,787);
+ assert.equal(new Set(catalog.map(x=>x.id)).size,787);
+ for(const route of catalog){
+  assert.ok(Array.isArray(route.points)&&route.points.length>=2,'No points: '+route.id);
+  assert.ok(new Set(route.points.map(p=>p.join(','))).size>=2,'Flat route: '+route.id);
+  for(const p of route.points){
+   assert.equal(p.length,2,'Invalid point: '+route.id);
+   assert.ok(Number.isFinite(p[0])&&Number.isFinite(p[1]),'Non-finite GPX: '+route.id);
+   assert.ok(p[0]>=44&&p[0]<=47&&p[1]>=10&&p[1]<=14,'GPX outside service area: '+route.id);
+  }
+ }
+});
+
+test('GPX 1278 displays its original file identity and matches E015-V PDF uniquely',()=>{
+ const catalog=JSON.parse(fs.readFileSync('official-routes.json','utf8'));
+ const academyCode=core.slice(core.indexOf('function normAcademyCode('),core.indexOf('function gtfsFitsAcademyCode('));
+ const academyTitles=core.slice(core.indexOf('function academyTrackTitle('),core.indexOf('async function loadAcademy('));
+ const winterNames=source.slice(source.indexOf('function winterNorm('),source.indexOf('function winterClearActiveRoute('));
+ const helpers=new Function('academy',academyCode+'\n'+academyTitles+'\n'+winterNames+
+  ';return {academyDisplayName,academyTrackTitle,winterRouteMatches,winterExactAcademyMatches,winterAcademyTitlesConsistent}') (catalog);
+ const route=catalog.find(x=>x.category==='Extraurbano'&&x.variant==='1278');
+ assert.ok(route,'GPX 1278 missing');
+ assert.equal(route.line,'15');
+ assert.equal(route.points.length,1072);
+ assert.equal(helpers.academyDisplayName(route),'1278 | Padova - Aeroporto Marco Polo');
+ assert.equal(helpers.winterAcademyTitlesConsistent(route),true);
+ const pdf=['19:30','20:15','PADOVA - AEROPORTO MARCO POLO','E015-V','',2];
+ const candidates=helpers.winterRouteMatches('Extraurbano',pdf);
+ const exact=helpers.winterExactAcademyMatches('Extraurbano',pdf,candidates);
+ assert.deepEqual(exact.map(x=>x.route.id),[route.id]);
+ // No auto decision if the PDF explicitly says a deviation or multiple
+ // official Academy tracks have the same exact textual label.
+ assert.deepEqual(helpers.winterExactAcademyMatches('Extraurbano',[...pdf.slice(0,4),'DEVIAZIONE',2],candidates),[]);
+ assert.equal(helpers.winterExactAcademyMatches('Extraurbano',pdf,[...exact,...exact]).length,2);
+});
