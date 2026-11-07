@@ -166,6 +166,17 @@ function winterSelectGpx(){
  const found=winterGpxCandidates.find(x=>String(x.route.id)===winterEl('winterGpx').value);
  if(found)winterUseAcademy(found.route,true);
 }
+function winterVariantVerifiedByGTFS(match,leg){
+ const expected=/-([VZ])$/i.exec(String(leg[3]||''));
+ if(!expected)return true;
+ // V/Z are distinct PDF itineraries. The GPX and the geometric match alone
+ // cannot prove which one is running unless GTFS explicitly labels it.
+ return match.legs.every(part=>{
+  const route=feed?.routesById.get(part.trip.route_id);
+  const label=String(route?.route_short_name||route?.route_long_name||'').toUpperCase();
+  return new RegExp('(?:^|[^A-Z0-9])E?0*\\d{1,3}[- ]'+expected[1]+'(?:$|[^A-Z0-9])').test(label);
+ });
+}
 function winterEndpointsAgree(leg,stops){
  if(stops.length<2)return false;
  const description=winterNorm(leg[2]);
@@ -202,7 +213,8 @@ function winterUseAcademy(route,explicit=false){
    matches.map((x,i)=>['academy-match-'+i,variantFriendlyLabel(x,matches)]),
    'Scegli le fermate GTFS…');
   const stored=matches.find(x=>saved?.stopSignature===stopSequenceKey(x.stops));
-  const verifiedSingle=matches.length===1&&winterEndpointsAgree(winterSelectedLeg,matches[0].stops);
+  const verifiedSingle=matches.length===1&&winterEndpointsAgree(winterSelectedLeg,matches[0].stops)&&
+   winterVariantVerifiedByGTFS(matches[0],winterSelectedLeg);
   const confirmed=stored||(verifiedSingle?matches[0]:null);
   if(confirmed){
    const selected=[...academyGtfsMatches].find(([,x])=>x===confirmed);
