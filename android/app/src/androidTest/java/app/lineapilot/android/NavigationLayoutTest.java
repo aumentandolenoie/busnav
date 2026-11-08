@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
                 assertNotNull(a.session);DriverView screen=a.session.screen;
                 List<View> controls=new ArrayList<>();collect(screen,controls);assertEquals(5,controls.size());
                 Rect bounds=new Rect();assertTrue(screen.getGlobalVisibleRect(bounds));List<Rect> rectangles=new ArrayList<>();float d=a.getResources().getDisplayMetrics().density;
-                for(View control:controls){Rect r=new Rect();assertTrue(control.getGlobalVisibleRect(r));assertTrue(control.getWidth()>=48*d-1);assertTrue(control.getHeight()>=48*d-1);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(r));for(Rect other:rectangles)assertFalse("Overlapping controls",Rect.intersects(r,other));rectangles.add(r);}
+                for(View control:controls){Rect r=new Rect();assertTrue(control.getGlobalVisibleRect(r));int[] position=new int[2];control.getLocationOnScreen(position);Rect full=new Rect(position[0],position[1],position[0]+control.getWidth(),position[1]+control.getHeight());assertEquals("Clipped control: "+control.getTag(),full,r);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(full));assertTrue(control.getWidth()>=48*d-1);assertTrue(control.getHeight()>=48*d-1);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(r));for(Rect other:rectangles)assertFalse("Overlapping controls",Rect.intersects(r,other));rectangles.add(r);}
                 assertTrue(a.session.screen.nativeMap.mapView instanceof org.maplibre.android.maps.MapView);
             });
             android.graphics.Bitmap screenshot=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
