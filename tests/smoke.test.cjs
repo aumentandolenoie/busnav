@@ -437,3 +437,30 @@ test('automatic Italian Apple voice prefers enhanced quality and update checks r
  assert.match(android,/lineaPilotCheckUpdatesOnResume/);
 });
 
+
+test('voice selector puts Premium first and preserves an explicit compact voice choice',()=>{
+ const dropdown={options:[],value:'',replaceChildren(){this.options=[];this.value=''},add(option){this.options.push(option)}};
+ const info={textContent:''};
+ const context={document:{createElement(){return {value:'',textContent:''}}},$:(id)=>id==='voiceSelect'?dropdown:info,voicePreferences:{id:'compact'},availableItalianVoices:[],voiceSource:''};
+ vm.createContext(context);
+ vm.runInContext(['voiceQualityLabel','describeSelectedVoice','updateVoiceQualityInfo','applyVoiceOptions'].map(sourceOf).join('\n'),context);
+ context.applyVoiceOptions([
+  {id:'compact',name:'Alice',lang:'it-IT',quality:1},
+  {id:'enhanced',name:'Alice',lang:'it-IT',quality:3,enhanced:true},
+  {id:'premium',name:'Luca',lang:'it-IT',quality:5,enhanced:true,premium:true},
+  {id:'english',name:'English',lang:'en-GB',quality:5,premium:true}
+ ],'ios');
+ assert.deepEqual(dropdown.options.map(v=>v.value),['','premium','enhanced','compact']);
+ assert.equal(dropdown.value,'compact');
+ assert.match(info.textContent,/qualità base/);
+ assert.match(info.textContent,/scarica una voce italiana Premium/);
+ dropdown.value='';context.updateVoiceQualityInfo();
+ assert.match(info.textContent,/Voce automatica: Luca · Premium/);
+ assert.match(dropdown.options[1].textContent,/Premium/);
+});
+test('missing saved voice falls back visibly to the best installed Italian voice',()=>{
+ const describe=vm.runInNewContext(sourceOf('voiceQualityLabel')+'\n'+sourceOf('describeSelectedVoice')+';describeSelectedVoice');
+ const result=describe([{id:'premium',name:'Luca',premium:true,enhanced:true,quality:5}],'removed-voice','ios');
+ assert.match(result,/Voce automatica: Luca · Premium/);
+ assert.match(describe([],'','ios'),/Nessuna voce italiana disponibile/);
+});

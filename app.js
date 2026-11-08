@@ -31,23 +31,41 @@ const voicePreferences=(()=>{
   return {id:typeof data.id==='string'?data.id:'',rate:Number.isFinite(+data.rate)?Math.min(1.25,Math.max(.75,+data.rate)):1};
  }catch{return {id:'',rate:1}}
 })();
-let availableItalianVoices=[];
+let availableItalianVoices=[],voiceSource='';
 function persistVoicePreferences(){
  try{localStorage.setItem('lineapilot-voice',JSON.stringify(voicePreferences))}catch{}
 }
+function voiceQualityLabel(voice){
+ if(voice?.premium||Number(voice?.quality)>=5)return 'Premium';
+ if(voice?.enhanced)return 'qualità avanzata';
+ return 'qualità base';
+}
+function describeSelectedVoice(voices,id,source){
+ if(source!=='ios')return 'Scegli una voce italiana e ascolta l’anteprima.';
+ const selected=voices.find(v=>v.id===id)||voices[0];
+ if(!selected)return 'Nessuna voce italiana disponibile. Scarica una voce italiana nelle impostazioni Accessibilità di iPhone, poi torna qui.';
+ const summary=(id&&selected.id===id?'Voce selezionata: ':'Voce automatica: ')+selected.name+' · '+voiceQualityLabel(selected)+'.';
+ if(!selected.enhanced&&!selected.premium)return summary+' Per una voce più naturale, scarica una voce italiana Premium o di qualità avanzata in Impostazioni → Accessibilità → Contenuto letto ad alta voce (o Leggi e parla) → Voci → Italiano. Poi torna nell’app e premi Rileva voci.';
+ return summary+' Sintesi sul dispositivo, disponibile anche senza connessione. La voce di Siri/Mappe non è selezionabile direttamente dall’app.';
+}
+function updateVoiceQualityInfo(){
+ $('voiceQualityInfo').textContent=describeSelectedVoice(availableItalianVoices,$('voiceSelect').value,voiceSource);
+}
 function applyVoiceOptions(list,source){
+ voiceSource=source;
  const dropdown=$('voiceSelect'),saved=voicePreferences.id;
  availableItalianVoices=list.filter(v=>String(v.lang||'').toLowerCase().startsWith('it'));
  dropdown.replaceChildren();
  const automatic=document.createElement('option');automatic.value='';automatic.textContent='Automatica · migliore voce italiana';dropdown.add(automatic);
- availableItalianVoices.sort((a,b)=>(b.quality||0)-(a.quality||0)||String(a.name).localeCompare(String(b.name),'it'));
+ availableItalianVoices.sort((a,b)=>(b.quality||0)-(a.quality||0)||Number(String(b.lang).toLowerCase()==='it-it')-Number(String(a.lang).toLowerCase()==='it-it')||String(a.name).localeCompare(String(b.name),'it'));
  for(const voice of availableItalianVoices){
-  const o=document.createElement('option');o.value=voice.id;o.textContent=voice.name+(voice.enhanced?' · qualità alta':'');
+  const o=document.createElement('option');o.value=voice.id;o.textContent=voice.name+(source==='ios'?' · '+voiceQualityLabel(voice):voice.enhanced?' · qualità alta':'');
   dropdown.add(o);
  }
  if(saved&&availableItalianVoices.some(v=>v.id===saved))dropdown.value=saved;
  else dropdown.value='';
  dropdown.disabled=!availableItalianVoices.length;
+ updateVoiceQualityInfo();
 }
 function loadItalianVoices(){
  if(window.LineaPilotAndroid){
@@ -64,6 +82,7 @@ function syncVoiceSettings(){
  voicePreferences.rate=Math.min(1.25,Math.max(.75,Number($('voiceRate').value)||1));
  $('voiceRateValue').textContent=voicePreferences.rate.toFixed(2).replace('.',',')+'×';
  persistVoicePreferences();
+ updateVoiceQualityInfo();
  if(nativeMode)nativePost({type:'settings',voiceId:voicePreferences.id,rate:voicePreferences.rate});
 }
 $('voiceRate').value=String(voicePreferences.rate);

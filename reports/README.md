@@ -76,3 +76,5 @@ Fonti: https://app.padovia.it/ ; https://tts-fermate.padovia.it/ ; https://githu
 Il nuovo tentativo vocale suddivide ricorsivamente i tratti problematici fino a finestre brevi, con tolleranze locali più strette, margini alle giunzioni e conservazione dei vuoti. Il test dedicato rifiuta un taglio d’angolo corto che la tolleranza globale avrebbe accettato. L’esito numerico aggiornato deve essere letto nell’ultimo `voice-coverage.json`; L’audit GitHub Actions 42483625391 è riuscito: 584 completi, 205 parziali, 19.953 manovre, 99,685% della distanza cumulata coperta. Completati i GPX originali 382, 532, 536, 537, 752 e 753, oltre al nuovo 787; il nuovo 788 ha copertura stradale del 99,79%.
 
 Per ripetere l’estrazione dei PDF (senza alterare i GPX): `python3 -m pip install pdfplumber`, poi `python3 scripts/import_academy_evidence.py /percorso/archivio.zip`. L’opzione `--reuse-extraction` riusa solo l’estrazione PDF già salvata e richiede lo stesso SHA256 dell’archivio; la scansione XML e le associazioni sono ricalcolate.
+
+Nuovo approfondimento: [Padovia come fonte e voci iOS naturali](padovia-and-ios-voices.md).

@@ -1,6 +1,7 @@
 import UIKit
 import WebKit
 import CoreLocation
+import AVFoundation
 
 final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
     private var webView: WKWebView!
@@ -38,10 +39,21 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             self?.drive?.update(along: along, deviation: deviation, stop: stop, reliable: reliable)
         }
         webView.load(URLRequest(url: URL(string: "lineapilot://app/index.html")!))
+        if #available(iOS 17.0, *) {
+            NotificationCenter.default.addObserver(self, selector: #selector(refreshVoiceCatalog), name: AVSpeechSynthesizer.availableVoicesDidChangeNotification, object: nil)
+        }
         NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
 
+    @objc private func refreshVoiceCatalog() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.deliver(event: "voices", data: ["voices": self.navigation.italianVoices()])
+        }
+    }
+
     @objc private func didBecomeActive() {
+        refreshVoiceCatalog()
         if let lastLocation { deliverLocation(lastLocation) }
         // Recheck published IPA updates after a return from the background.
         // The JS side throttles network requests to once per 10 minutes.

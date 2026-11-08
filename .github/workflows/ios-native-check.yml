@@ -16,9 +16,12 @@ jobs:
           swiftc ios/Sources/GPXTracker.swift ios/Sources/GuidanceCoverage.swift tests/main.swift -o /tmp/gpx-tests
           /tmp/gpx-tests
       - name: Generate native project
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p ios/Web
-          cp index.html app.js route-stops.js style.css official-routes.json ios/Web/
+          python3 scripts/reuse_road_guidance.py
+          test -s road-guidance/coverage.json
+          bash scripts/prepare-ios.sh
           command -v xcodegen >/dev/null || brew install xcodegen
           (cd ios && xcodegen generate)
       - name: Compile actual iPhone application

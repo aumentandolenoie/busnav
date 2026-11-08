@@ -38,14 +38,30 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     var voiceIdentifier: String = ""
     var voiceRate: Float = 1.0
 
-    func italianVoices() -> [[String: Any]] {
+    private func installedItalianVoices() -> [AVSpeechSynthesisVoice] {
         AVSpeechSynthesisVoice.speechVoices()
             .filter { $0.language.lowercased().hasPrefix("it") }
-            .map { voice in
-                ["id": voice.identifier, "name": voice.name,
-                 "lang": voice.language, "quality": voice.quality == .enhanced ? 3 : 1,
-                 "enhanced": voice.quality == .enhanced] as [String: Any]
+            .filter { voice in
+                if #available(iOS 17.0, *) { return !voice.voiceTraits.contains(.isNoveltyVoice) }
+                return true
             }
+            .sorted { a, b in
+                if a.quality != b.quality { return a.quality.rawValue > b.quality.rawValue }
+                let aExact = a.language.lowercased() == "it-it"
+                let bExact = b.language.lowercased() == "it-it"
+                if aExact != bExact { return aExact }
+                return a.name.localizedStandardCompare(b.name) == .orderedAscending
+            }
+    }
+
+    func italianVoices() -> [[String: Any]] {
+        installedItalianVoices().map { voice in
+            ["id": voice.identifier, "name": voice.name,
+             "lang": voice.language,
+             "quality": voice.quality == .premium ? 5 : voice.quality == .enhanced ? 3 : 1,
+             "premium": voice.quality == .premium,
+             "enhanced": voice.quality.rawValue >= AVSpeechSynthesisVoiceQuality.enhanced.rawValue] as [String: Any]
+        }
     }
 
     func configureVoice(identifier: String?, rate: Double?) {
@@ -292,7 +308,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     }
 
     func testVoice() {
-        speak("Voce nativa LineaPilot attiva.")
+        speak("Tra duecento metri, svolta a destra in via Roma. Alla rotonda, prendi la terza uscita. Prossima fermata: Padova Autostazione.")
     }
 
     @objc private func audioInterrupted(_ note: Notification) {
@@ -328,19 +344,11 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             return false
         }
         let utterance = AVSpeechUtterance(string: text)
-        let chosen = AVSpeechSynthesisVoice.speechVoices()
-            .first { $0.identifier == voiceIdentifier && $0.language.lowercased().hasPrefix("it") }
-        // Automatic selects the highest-quality installed Italian voice.
-        // Siri's private voice is not exposed by the public AVSpeech API.
-        let automatic = AVSpeechSynthesisVoice.speechVoices()
-            .filter { $0.language.lowercased().hasPrefix("it") }
-            .sorted { a, b in
-                if a.quality != b.quality { return a.quality.rawValue > b.quality.rawValue }
-                let aExact = a.language.lowercased() == "it-it"
-                let bExact = b.language.lowercased() == "it-it"
-                if aExact != bExact { return aExact }
-                return a.name.localizedStandardCompare(b.name) == .orderedAscending
-            }.first
+        let installed = installedItalianVoices()
+        let chosen = installed.first { $0.identifier == voiceIdentifier }
+        // Public downloaded Premium / Enhanced voices are available here.
+        // Siri voices selected in system settings may fall back through this API.
+        let automatic = installed.first
         utterance.voice = chosen ?? automatic ?? AVSpeechSynthesisVoice(language: "it-IT")
         utterance.rate = min(AVSpeechUtteranceMaximumSpeechRate,
                             max(AVSpeechUtteranceMinimumSpeechRate,
