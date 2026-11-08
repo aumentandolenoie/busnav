@@ -1,0 +1,21 @@
+name: iPhone web layout checks
+on:
+  workflow_dispatch:
+  push:
+    paths: ['style.css', 'index.html', 'tests/layout-browser.py', '.github/workflows/layout-check.yml']
+permissions:
+  contents: read
+jobs:
+  layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install playwright
+      - run: python3 -m playwright install --with-deps chromium webkit
+      - run: python3 tests/layout-browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iphone-layout-screenshots
+          path: build/layout-browser

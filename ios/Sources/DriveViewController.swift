@@ -10,6 +10,8 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
     private let stopDistance = UILabel()
     private let status = UILabel()
     private let symbol = UIImageView()
+    private var topPanel: UIView!
+    private var bottomPanel: UIView!
     private let route: NativeRoute
     private let geometry: GPXTracker
     private var following = true
@@ -38,7 +40,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         map.frame = view.bounds; map.autoresizingMask = [.flexibleWidth,.flexibleHeight]
         map.delegate = self
         map.showsUserLocation = true
-        map.showsCompass = true
+        map.showsCompass = false
         map.showsTraffic = true
         map.pointOfInterestFilter = .excludingAll
         map.preferredConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .muted)
@@ -56,42 +58,105 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         map.addAnnotations(stopAnnotations)
         symbol.image = UIImage(systemName:"arrow.up"); symbol.tintColor = .white
         symbol.contentMode = .scaleAspectFit
-        symbol.widthAnchor.constraint(equalToConstant:50).isActive = true
-        instruction.font = .systemFont(ofSize:25,weight:.semibold); instruction.numberOfLines = 3; instruction.textColor = .white
+        symbol.widthAnchor.constraint(equalToConstant:36).isActive = true
+        instruction.font = UIFontMetrics(forTextStyle:.title2).scaledFont(for:.systemFont(ofSize:25,weight:.semibold),maximumPointSize:34); instruction.adjustsFontForContentSizeCategory = true; instruction.numberOfLines = 3; instruction.textColor = .white
         instruction.text = route.turns.contains(where: { $0.verifiedRoad == true }) ? "Segui il percorso ufficiale" : "Manovre stradali non disponibili"
-        turnDistance.font = .systemFont(ofSize:36,weight:.bold); turnDistance.textColor = .white
+        turnDistance.font = UIFontMetrics(forTextStyle:.largeTitle).scaledFont(for:.systemFont(ofSize:36,weight:.bold),maximumPointSize:46); turnDistance.adjustsFontForContentSizeCategory = true; turnDistance.textColor = .white
         turnDistance.adjustsFontSizeToFitWidth = true; turnDistance.minimumScaleFactor = 0.5
         turnDistance.text = "Attesa GPS"
         let repeatButton = UIButton(type:.system); repeatButton.setImage(UIImage(systemName:"speaker.wave.2.fill"),for:.normal); repeatButton.tintColor = .white
-        repeatButton.accessibilityLabel = "Ripeti indicazione"; repeatButton.addTarget(self,action:#selector(repeatCue),for:.touchUpInside)
+        repeatButton.accessibilityLabel = "Ripeti indicazione"; repeatButton.accessibilityIdentifier = "repeatCue"; touchTarget(repeatButton); repeatButton.addTarget(self,action:#selector(repeatCue),for:.touchUpInside)
         let text = UIStackView(arrangedSubviews:[turnDistance,instruction]); text.axis = .vertical; text.spacing = 5
-        let top = UIStackView(arrangedSubviews:[symbol,text,repeatButton]); top.spacing = 16; top.alignment = .center
-        let topPanel = panel(top,dark:true)
+        text.setContentCompressionResistancePriority(.defaultLow,for:.horizontal)
+        let top = UIStackView(arrangedSubviews:[symbol,text]); top.spacing = 12; top.alignment = .center
+        topPanel = panel(top,dark:true,trailing:repeatButton)
+        topPanel.accessibilityIdentifier = "instructionPanel"
         view.addSubview(topPanel)
-        NSLayoutConstraint.activate([topPanel.topAnchor.constraint(equalTo:view.safeAreaLayoutGuide.topAnchor,constant:8),topPanel.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:12),topPanel.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-12)])
+        NSLayoutConstraint.activate([
+            topPanel.topAnchor.constraint(equalTo:view.safeAreaLayoutGuide.topAnchor,constant:8),
+            topPanel.leadingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.leadingAnchor,constant:12),
+            topPanel.trailingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.trailingAnchor,constant:-12),
+            topPanel.heightAnchor.constraint(greaterThanOrEqualToConstant:80),
+            topPanel.heightAnchor.constraint(lessThanOrEqualTo:view.safeAreaLayoutGuide.heightAnchor,multiplier:0.42)
+        ])
         let label = UILabel(); label.text = "PROSSIMA FERMATA"; label.font = .systemFont(ofSize:12,weight:.bold); label.textColor = .secondaryLabel
-        stopName.text = route.stops.first ?? "Solo percorso GPX"; stopName.font = .systemFont(ofSize:24,weight:.bold); stopName.numberOfLines = 2
+        stopName.text = route.stops.first ?? "Solo percorso GPX"; stopName.font = UIFontMetrics(forTextStyle:.title2).scaledFont(for:.systemFont(ofSize:24,weight:.bold),maximumPointSize:34); stopName.adjustsFontForContentSizeCategory = true; stopName.numberOfLines = 2
         stopDistance.font = .monospacedDigitSystemFont(ofSize:19,weight:.semibold); stopDistance.textColor = .systemBlue
-        status.font = .systemFont(ofSize:13,weight:.medium); status.textColor = .secondaryLabel; status.numberOfLines = 2
+        status.font = UIFontMetrics(forTextStyle:.footnote).scaledFont(for:.systemFont(ofSize:13,weight:.medium),maximumPointSize:22); status.adjustsFontForContentSizeCategory = true; status.textColor = .secondaryLabel; status.numberOfLines = 2
         status.text = "GPX ufficiale · GPS in primo piano"
-        let end = UIButton(type:.system); end.setTitle("Termina",for:.normal); end.tintColor = .systemRed; end.addTarget(self,action:#selector(finish),for:.touchUpInside)
-        let sound = UIButton(type:.system); sound.setImage(UIImage(systemName:voice ? "speaker.wave.2.fill" : "speaker.slash.fill"),for:.normal); sound.accessibilityLabel = "Attiva o disattiva annunci"; sound.addTarget(self,action:#selector(toggleVoice(_:)),for:.touchUpInside)
-        let center = UIButton(type:.system); center.setImage(UIImage(systemName:"location.fill"),for:.normal); center.accessibilityLabel = "Centra GPS"; center.addTarget(self,action:#selector(recenter),for:.touchUpInside)
-        let buttons = UIStackView(arrangedSubviews:[end,UIView(),sound,center]); buttons.spacing = 25
-        let attribution = UILabel(); attribution.text = "GPX Academy · manovre © OpenStreetMap contributors"; attribution.font = .systemFont(ofSize:10); attribution.textColor = .secondaryLabel
-        let bottom = UIStackView(arrangedSubviews:[label,stopName,stopDistance,status,buttons,attribution]); bottom.axis = .vertical; bottom.spacing = 8
-        let bottomPanel = panel(bottom,dark:false); view.addSubview(bottomPanel)
-        NSLayoutConstraint.activate([bottomPanel.bottomAnchor.constraint(equalTo:view.safeAreaLayoutGuide.bottomAnchor,constant:-8),bottomPanel.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:12),bottomPanel.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-12)])
+        let end = UIButton(type:.system); end.setTitle("Termina",for:.normal); end.tintColor = .systemRed; end.accessibilityIdentifier = "endNavigation"; touchTarget(end); end.addTarget(self,action:#selector(finish),for:.touchUpInside)
+        let sound = UIButton(type:.system); sound.setImage(UIImage(systemName:voice ? "speaker.wave.2.fill" : "speaker.slash.fill"),for:.normal); sound.accessibilityLabel = "Attiva o disattiva annunci"; sound.accessibilityIdentifier = "toggleVoice"; touchTarget(sound); sound.addTarget(self,action:#selector(toggleVoice(_:)),for:.touchUpInside)
+        let center = UIButton(type:.system); center.setImage(UIImage(systemName:"location.fill"),for:.normal); center.accessibilityLabel = "Centra GPS"; center.accessibilityIdentifier = "recenter"; touchTarget(center); center.addTarget(self,action:#selector(recenter),for:.touchUpInside)
+        let compass = MKCompassButton(mapView:map); compass.compassVisibility = .visible
+        compass.accessibilityLabel = "Orienta a nord"; compass.accessibilityIdentifier = "compass"; touchTarget(compass)
+        let buttons = UIStackView(arrangedSubviews:[end,UIView(),sound,center]); buttons.spacing = 12; buttons.alignment = .center
+        end.setContentCompressionResistancePriority(.required,for:.horizontal)
+        let attribution = UILabel(); attribution.text = "GPX Academy · manovre © OpenStreetMap contributors"; attribution.font = .systemFont(ofSize:10); attribution.textColor = .secondaryLabel; attribution.numberOfLines = 2
+        let bottom = UIStackView(arrangedSubviews:[label,stopName,stopDistance,status,attribution]); bottom.axis = .vertical; bottom.spacing = 8
+        bottomPanel = panel(bottom,dark:false,footer:buttons); bottomPanel.accessibilityIdentifier = "stopPanel"; view.addSubview(bottomPanel); view.addSubview(compass)
+        NSLayoutConstraint.activate([
+            bottomPanel.bottomAnchor.constraint(equalTo:view.safeAreaLayoutGuide.bottomAnchor,constant:-8),
+            bottomPanel.leadingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.leadingAnchor,constant:12),
+            bottomPanel.trailingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.trailingAnchor,constant:-12),
+            bottomPanel.heightAnchor.constraint(lessThanOrEqualTo:view.safeAreaLayoutGuide.heightAnchor,multiplier:0.48),
+            bottomPanel.topAnchor.constraint(greaterThanOrEqualTo:topPanel.bottomAnchor,constant:60),
+            compass.trailingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.trailingAnchor,constant:-12),
+            compass.bottomAnchor.constraint(equalTo:bottomPanel.topAnchor,constant:-8)
+        ])
         for recognizer in map.gestureRecognizers ?? [] { recognizer.addTarget(self,action:#selector(mapGesture(_:))) }
     }
 
-    private func panel(_ content: UIView,dark: Bool) -> UIView {
+    private func touchTarget(_ button: UIButton) {
+        button.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(greaterThanOrEqualToConstant:44),
+            button.heightAnchor.constraint(equalToConstant:44)
+        ])
+    }
+
+    // Text scrolls if space is limited. The footer and repeat button stay visible.
+    private func panel(_ content: UIView,dark: Bool,trailing: UIButton? = nil,footer: UIView? = nil) -> UIView {
         let panel = UIVisualEffectView(effect:UIBlurEffect(style:dark ? .systemChromeMaterialDark : .systemMaterial))
         panel.translatesAutoresizingMaskIntoConstraints = false; panel.layer.cornerRadius = 24; panel.clipsToBounds = true
         if dark { panel.contentView.backgroundColor = UIColor(red:0.03,green:0.19,blue:0.12,alpha:0.8) }
-        content.translatesAutoresizingMaskIntoConstraints = false; panel.contentView.addSubview(content)
-        NSLayoutConstraint.activate([content.topAnchor.constraint(equalTo:panel.contentView.topAnchor,constant:18),content.bottomAnchor.constraint(equalTo:panel.contentView.bottomAnchor,constant:-18),content.leadingAnchor.constraint(equalTo:panel.contentView.leadingAnchor,constant:18),content.trailingAnchor.constraint(equalTo:panel.contentView.trailingAnchor,constant:-18)])
+        let scroll = UIScrollView(); scroll.translatesAutoresizingMaskIntoConstraints = false
+        scroll.contentInsetAdjustmentBehavior = .never; scroll.showsVerticalScrollIndicator = true
+        panel.contentView.addSubview(scroll)
+        content.translatesAutoresizingMaskIntoConstraints = false; scroll.addSubview(content)
+        let naturalHeight = scroll.heightAnchor.constraint(equalTo:content.heightAnchor); naturalHeight.priority = .defaultHigh
+        NSLayoutConstraint.activate([
+            scroll.topAnchor.constraint(equalTo:panel.contentView.topAnchor,constant:12),
+            scroll.leadingAnchor.constraint(equalTo:panel.contentView.leadingAnchor,constant:12),
+            content.topAnchor.constraint(equalTo:scroll.contentLayoutGuide.topAnchor),
+            content.bottomAnchor.constraint(equalTo:scroll.contentLayoutGuide.bottomAnchor),
+            content.leadingAnchor.constraint(equalTo:scroll.contentLayoutGuide.leadingAnchor),
+            content.trailingAnchor.constraint(equalTo:scroll.contentLayoutGuide.trailingAnchor),
+            content.widthAnchor.constraint(equalTo:scroll.frameLayoutGuide.widthAnchor), naturalHeight
+        ])
+        if let trailing {
+            panel.contentView.addSubview(trailing)
+            NSLayoutConstraint.activate([
+                trailing.trailingAnchor.constraint(equalTo:panel.contentView.trailingAnchor,constant:-12),
+                trailing.centerYAnchor.constraint(equalTo:panel.contentView.centerYAnchor),
+                scroll.trailingAnchor.constraint(equalTo:trailing.leadingAnchor,constant:-8)
+            ])
+        } else { scroll.trailingAnchor.constraint(equalTo:panel.contentView.trailingAnchor,constant:-12).isActive = true }
+        if let footer {
+            footer.translatesAutoresizingMaskIntoConstraints = false; panel.contentView.addSubview(footer)
+            NSLayoutConstraint.activate([
+                footer.topAnchor.constraint(equalTo:scroll.bottomAnchor,constant:10),
+                footer.bottomAnchor.constraint(equalTo:panel.contentView.bottomAnchor,constant:-12),
+                footer.leadingAnchor.constraint(equalTo:panel.contentView.leadingAnchor,constant:12),
+                footer.trailingAnchor.constraint(equalTo:panel.contentView.trailingAnchor,constant:-12)
+            ])
+        } else { scroll.bottomAnchor.constraint(equalTo:panel.contentView.bottomAnchor,constant:-12).isActive = true }
         return panel
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        guard let topPanel, let bottomPanel else { return }
+        map.layoutMargins = UIEdgeInsets(top:topPanel.frame.maxY+8,left:16,bottom:view.bounds.maxY-bottomPanel.frame.minY+8,right:16)
     }
     func location(_ location: CLLocation) { fix = location; updateCamera() }
     func message(_ message: String) { status.text = message }

@@ -142,3 +142,49 @@ select,.panel input:not([type="checkbox"]){background:white;color:#1c1c1e;border
 #confirmStopProposalLabel{align-items:flex-start;padding:12px;border:1px solid #e6c97b;background:#fff8e4;border-radius:12px;color:#66501a;line-height:1.5;font-size:13px}
 #confirmStopProposal{flex:none;margin-top:4px;min-width:18px;min-height:18px}
 .guidance-status[data-ready="partial"]{color:#795619;background:#fff8e8;border-color:#eed797}
+
+/* Safe-area-aware overlay flow: growing text never pushes a button over another. */
+:root{--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px)}
+button,select,summary{touch-action:manipulation}
+button{min-width:44px;min-height:44px;overflow-wrap:anywhere}
+.brand{min-width:0}.brand>div:last-child{min-width:0}.brand small{overflow-wrap:anywhere}
+header{padding-left:max(13px,var(--safe-left));padding-right:max(13px,var(--safe-right))}
+.sidebar-scroll{min-width:0}.sidebar .button-row{flex-wrap:wrap}.sidebar .button-row>button{flex:1 1 110px}
+.wizard-buttons{padding-bottom:calc(14px + var(--safe-bottom));gap:10px}
+.map-wrap{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,auto) minmax(44px,1fr) auto minmax(0,auto);gap:8px;padding:12px}
+#map{position:absolute;inset:0;z-index:0}
+.map-wrap>.map-top,.map-wrap>.next-card,.map-wrap>.map-controls{position:relative;inset:auto;min-width:0;margin:0;max-width:none}
+.map-wrap>.map-top{grid-row:1;max-height:90px;overflow:auto}
+.map-top>div:not(.gps-indicator){min-width:0;overflow-wrap:anywhere}
+.map-wrap>.next-card{grid-row:4;max-height:160px;overflow:auto;overscroll-behavior:contain}
+.next-main{flex-wrap:wrap}.next-main>div:first-child{flex:1 1 140px;min-width:0}.mini-row>*{min-width:0;overflow-wrap:anywhere}
+.map-wrap>.map-controls{grid-row:3;justify-self:end}
+.map-controls button{width:48px;height:48px;background:#fff;color:#007aff;box-shadow:0 3px 14px #0002}
+.leaflet-control-zoom{display:none}
+body.navigating .map-wrap{grid-template-rows:auto minmax(0,auto) auto minmax(44px,1fr) auto minmax(0,auto);gap:8px;padding:calc(var(--safe-top) + 8px) max(12px,var(--safe-right)) calc(var(--safe-bottom) + 8px) max(12px,var(--safe-left))}
+body.navigating .nav-fullscreen-bar,body.navigating .voice-navigation-controls{position:relative;inset:auto;min-width:0;max-width:none;flex-wrap:wrap}
+body.navigating .nav-fullscreen-bar{grid-row:1}
+#exitNavigation{flex:1;min-width:0;white-space:normal}
+#headingStatus{max-width:40%;white-space:normal;overflow-wrap:anywhere}
+body.navigating .map-top{grid-row:2;inset:auto;max-height:14dvh;overflow:auto;padding:9px 12px}
+body.navigating .voice-navigation-controls{grid-row:3;gap:8px}
+#activateNavVoice{white-space:normal;flex:0 1 auto;min-height:44px}
+#voiceNavStatus{flex:1;min-width:95px;max-width:none;max-height:4.5em;overflow:auto}
+body.navigating .next-card{grid-row:6;inset:auto;max-height:30dvh;overflow:auto}
+body.navigating .map-controls{grid-row:5;inset:auto}
+body.navigating .toast.show{position:relative;inset:auto;grid-row:4;align-self:start;max-width:100%;max-height:100%;overflow:auto;pointer-events:none}
+@media(max-height:500px){
+ body.navigating .map-wrap{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(44px,1fr) auto}
+ body.navigating .nav-fullscreen-bar{grid-row:1;grid-column:1 / -1}
+ body.navigating .map-top{grid-row:2;grid-column:2;max-height:20dvh}
+ body.navigating .voice-navigation-controls{grid-row:2;grid-column:1}
+ body.navigating .next-card{grid-row:3 / 5;grid-column:1;align-self:end;max-height:35dvh}
+ body.navigating .map-controls{grid-row:4;grid-column:2}
+ body.navigating .toast.show{grid-row:3;grid-column:2}
+}
+.wizard-buttons{position:relative;bottom:auto}
+button#retryFeed,.app-update-banner button,.panel button{min-height:44px}
+#voiceRate{min-height:44px}
+html{scroll-padding-top:calc(var(--safe-top) + 12px);scroll-padding-bottom:calc(var(--safe-bottom) + 12px)}
+header{padding-top:var(--safe-top);height:calc(64px + var(--safe-top))}
+body:not(.navigating)::before{content:"";position:fixed;inset:0 0 auto;height:var(--safe-top);z-index:1500;background:#f5f5f7}

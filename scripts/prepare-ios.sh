@@ -4,6 +4,9 @@ cd "$(dirname "$0")/.."
 mkdir -p ios/Web
 # Copy originals, never alter the Academy catalog.
 cp index.html app.js route-stops.js style.css sw.js manifest.webmanifest icon.svg official-routes.json academy-supplemental-routes.json academy-evidence.json ios/Web/
+cp apple-touch-icon.png "ios/Web/"
+mkdir -p "ios/Web/icons"
+cp icons/*.png "ios/Web/icons/"
 if [ -n "${GITHUB_SHA:-}" ]; then
   TAG="ios-preview-${GITHUB_SHA:0:12}"
   { printf "window.LINEAPILOT_BUILD_TAG='%s';\n" "$TAG"; cat ios/Web/app.js; } > ios/Web/app.js.versioned

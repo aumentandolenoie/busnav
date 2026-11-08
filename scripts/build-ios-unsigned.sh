@@ -32,7 +32,16 @@ with zipfile.ZipFile(p) as z:
     assert info['CFBundleExecutable']=='LineaPilot'
     assert z.getinfo('Payload/LineaPilot.app/LineaPilot').file_size>0
     assert z.getinfo('Payload/LineaPilot.app/Web/official-routes.json').file_size>1000000
+    primary=info['CFBundleIcons']['CFBundlePrimaryIcon']
+    assert primary['CFBundleIconName']=='AppIcon'
+    assert primary['CFBundleIconFiles']
+    for name in primary['CFBundleIconFiles']:
+        assert any(n.startswith('Payload/LineaPilot.app/'+name) and n.endswith('.png') for n in z.namelist()), name
+    assert z.getinfo('Payload/LineaPilot.app/Assets.car').file_size>0
     prefix='Payload/LineaPilot.app/Web/'
+    assert z.getinfo(prefix+'apple-touch-icon.png').file_size>0
+    assert z.getinfo(prefix+'icons/icon-192.png').file_size>0
+    assert z.getinfo(prefix+'icons/icon-512.png').file_size>0
     original=z.read(prefix+'official-routes.json')
     extra=z.read(prefix+'academy-supplemental-routes.json')
     evidence=json.loads(z.read(prefix+'academy-evidence.json'))

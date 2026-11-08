@@ -4,6 +4,9 @@ cd "$(dirname "$0")/.."
 DEST="android/app/src/main/assets"
 mkdir -p "$DEST"
 cp index.html app.js route-stops.js style.css sw.js manifest.webmanifest icon.svg official-routes.json academy-supplemental-routes.json academy-evidence.json "$DEST/"
+cp apple-touch-icon.png "$DEST/"
+mkdir -p "$DEST/icons"
+cp icons/*.png "$DEST/icons/"
 if [ -d road-guidance ]; then
  mkdir -p "$DEST/road-guidance"
  find road-guidance -maxdepth 1 -type f -name '*.json' -exec cp '{}' "$DEST/road-guidance/" \;

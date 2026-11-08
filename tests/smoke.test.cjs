@@ -464,3 +464,15 @@ test('missing saved voice falls back visibly to the best installed Italian voice
  assert.match(result,/Voce automatica: Luca · Premium/);
  assert.match(describe([],'','ios'),/Nessuna voce italiana disponibile/);
 });
+
+test('iOS and Home Screen icons have opaque PNG assets at declared sizes',()=>{
+ function pngSize(path){const b=fs.readFileSync(path);assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal(b[25],2,'RGB icon must have no alpha');return [b.readUInt32BE(16),b.readUInt32BE(20)]}
+ assert.deepEqual(pngSize('apple-touch-icon.png'),[180,180]);
+ const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest'));
+ for(const size of [192,512]){assert.ok(manifest.icons.some(x=>x.src==='icons/icon-'+size+'.png'&&x.type==='image/png'));assert.deepEqual(pngSize('icons/icon-'+size+'.png'),[size,size])}
+ assert.match(html, /rel="apple-touch-icon"[^>]*href="apple-touch-icon.png"/);
+ const dir='ios/Sources/Assets.xcassets/AppIcon.appiconset/';
+ const catalog=JSON.parse(fs.readFileSync(dir+'Contents.json'));
+ for(const icon of catalog.images){const size=Number(icon.size.split('x')[0])*Number(icon.scale[0]);assert.deepEqual(pngSize(dir+icon.filename),[size,size])}
+ assert.match(fs.readFileSync('ios/project.yml','utf8'), /ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon/);
+});
