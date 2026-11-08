@@ -76,3 +76,30 @@ test('road offsets and coverage are normalized to the same distance model as GPS
  assert.equal(normalized.turns[0].at,40000);assert.equal(normalized.coverage.ranges[0][1],total);
  assert.equal(normalized.coverage.coveredM,total);
 });
+
+test('Academy ZIP adds only its two previously omitted tracks',()=>{
+ const crypto=require('node:crypto');
+ assert.equal(crypto.createHash('sha256').update(fs.readFileSync('official-routes.json')).digest('hex'),'1a6bb11b15550def33e20095758c0f48dc33259ef2f4010fd9bc5c22aa346ac7');
+ const supplemental=JSON.parse(fs.readFileSync('academy-supplemental-routes.json'));
+ assert.deepEqual(supplemental.map(r=>r.id),[787,788]);
+ assert.deepEqual(supplemental.map(r=>r.points.length),[395,958]);
+ const evidence=JSON.parse(fs.readFileSync('academy-evidence.json'));
+ assert.equal(evidence.catalog.total,789);
+ assert.ok(Object.values(evidence.routes).every(r=>r.sourcePaths.length));
+});
+test('official outside-service indicators suppress passenger matching, not GPX navigation',()=>{
+ const evidence=JSON.parse(fs.readFileSync('academy-evidence.json'));
+ for(const id of [45,182,290,404,420,488])assert.equal(evidence.routes[id].serviceStatus,'out-of-service');
+ assert.equal(evidence.routes[95].serviceStatus,'passenger-or-unspecified');
+ for(const id of [196,345,405])assert.equal(evidence.routes[id].serviceStatus,'conflicting-indicator');
+ const build=new Function(appFunction('buildAcademyMatches')+';return buildAcademyMatches')();
+ const result=build({_evidence:evidence.routes[182]});
+ assert.equal(result.outOfService,true);assert.equal(result.results.length,0);
+});
+test('page-attributed Academy line aliases participate in GTFS matching',()=>{
+ const evidence=JSON.parse(fs.readFileSync('academy-evidence.json'));
+ const api=new Function(['normAcademyCode','academyRouteCodes','gtfsFitsAcademyCode'].map(appFunction).join('\n')+';return gtfsFitsAcademyCode')();
+ assert.equal(api({category:'Colli',line:'MLA',variant:'',name:'MLA',_evidence:evidence.routes[575]},{route_short_name:'M'}),true);
+ assert.equal(api({category:'Extraurbano',line:'Deviazioni mercatali',variant:'597',name:'597',_evidence:evidence.routes[1]},{route_short_name:'E071'}),true);
+ assert.ok(evidence.routes[1].shiftMatches.some(r=>r.page>0&&r.document&&r.line==='E071'));
+});

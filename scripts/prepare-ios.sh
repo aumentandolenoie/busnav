@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p ios/Web
 # Copy originals, never alter the Academy catalog.
-cp index.html app.js route-stops.js style.css sw.js manifest.webmanifest icon.svg official-routes.json ios/Web/
+cp index.html app.js route-stops.js style.css sw.js manifest.webmanifest icon.svg official-routes.json academy-supplemental-routes.json academy-evidence.json ios/Web/
 if [ -n "${GITHUB_SHA:-}" ]; then
   TAG="ios-preview-${GITHUB_SHA:0:12}"
   { printf "window.LINEAPILOT_BUILD_TAG='%s';\n" "$TAG"; cat ios/Web/app.js; } > ios/Web/app.js.versioned
@@ -19,6 +19,8 @@ python3 - <<'PY'
 import json
 with open("ios/Web/official-routes.json", encoding="utf-8") as f:
     routes=json.load(f)
+extra=json.load(open('ios/Web/academy-supplemental-routes.json'))
+assert len(extra)==2 and len({r['id'] for r in routes+extra})==789
 assert len(routes)==787
 assert {c:sum(x["category"]==c for x in routes) for c in ["Extraurbano","Urbano","Colli"]}=={"Extraurbano":557,"Urbano":201,"Colli":29}
 print("Academy catalog: 787 intact routes.")

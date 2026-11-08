@@ -1,5 +1,5 @@
-const CACHE='lineapilot-shell-v24';
-const CORE=['./','./index.html','./style.css','./app.js','./route-stops.js','./icon.svg','./manifest.webmanifest'];
+const CACHE='lineapilot-shell-v25';
+const CORE=['./','./index.html','./style.css','./app.js','./route-stops.js','./academy-supplemental-routes.json','./academy-evidence.json','./icon.svg','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
  const keys=await caches.keys();

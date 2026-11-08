@@ -1,3 +1,5 @@
+> Aggiornamento Academy: **789 GPX**, con i 787 originali immutati e due tracciati recuperati dai file senza estensione standard. Audit fermate: **562 sequenze complete, 131 proposte da verificare, 95 fuori servizio, 1 non abbinato**. I turni invernali e gli indicatori sono stati analizzati con provenienza per pagina: vedi [audit dettagliato](reports/README.md) e `academy-evidence.json`. Voce stradale: **584 completi, 205 parziali, 99,69% della distanza GPX coperta**. I conteggi 787 sotto si riferiscono al catalogo originale.
+
 > **Audit navigazione aggiornato (8 novembre 2026):** [risultati, limiti e cause](reports/README.md), [fermate per tutti i GPX](reports/stop-coverage.csv), [copertura vocale e intervalli mancanti](reports/voice-coverage.csv). Le proposte parziali di fermate richiedono verifica esplicita; la voce stradale è sospesa nei tratti non validati.
 
 # LineaPilot Academy — prototipo PWA per autisti Busitalia Veneto

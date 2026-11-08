@@ -388,37 +388,30 @@ $('exitNavigation').addEventListener('click',()=>{stopNavigation();$('navStatus'
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&navigationFullscreen){stopNavigation();$('navStatus').textContent='Navigazione terminata'}});
 
 
-const ACADEMY_EXPECTED={Extraurbano:557,Colli:29,Urbano:201};
+const ACADEMY_EXPECTED={Extraurbano:559,Colli:29,Urbano:201};
 const ACADEMY_DOCUMENTS={
   'Turni Invernali':{'Feriale':['1 FERIALE dal 02_11_2026 - _27-5.pdf'],'Sabato':['2 SABATO  anno scolastico 2026 - _27-2.pdf'],'Festivo':['3 FESTIVO EXTRAURBANO anno scolastico 2026 - _27-1.pdf']},
   'Indicatori di percorso':{'Colli':['Linee Colli.pdf'],'Extraurbano':['Linee Extraurbanee.pdf'],'Urbano':['Linee Urbane.pdf']}
 };
 const sortIt=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true,sensitivity:'base'});
 function academyGroupName(r){return String(r.line||'Altri percorsi').trim();}
+// XMLHttpRequest is supported by WKURLSchemeHandler for bundled JSON.
+async function readAcademyJSON(path){
+ if(nativeMode)return new Promise((resolve,reject)=>{
+  const xhr=new XMLHttpRequest();xhr.open('GET','./'+path,true);
+  xhr.onload=()=>{if(xhr.status!==0&&(xhr.status<200||xhr.status>=300)){reject(Error('Academy HTTP '+xhr.status));return}try{resolve(JSON.parse(xhr.responseText))}catch(e){reject(e)}};
+  xhr.onerror=()=>reject(Error('Dati Academy locali non accessibili'));xhr.send();
+ });
+ const response=await fetch('./'+path);if(!response.ok)throw Error('HTTP '+response.status);return response.json();
+}
 async function loadAcademy(){try{
- let data;
- if(nativeMode){
-  // WKWebView custom URL schemes can reject fetch() even for same-origin resources.
-  // XMLHttpRequest is supported by WKURLSchemeHandler for bundled JSON.
-  data=await new Promise((resolve,reject)=>{
-   const xhr=new XMLHttpRequest();
-   xhr.open('GET','./official-routes.json',true);
-   xhr.onload=()=>{
-    if(xhr.status!==0&&(xhr.status<200||xhr.status>=300)){reject(Error('Academy HTTP '+xhr.status));return}
-    try{resolve(JSON.parse(xhr.responseText))}catch(e){reject(e)}
-   };
-   xhr.onerror=()=>reject(Error('Catalogo Academy locale non accessibile'));
-   xhr.send();
-  });
- }else{
-  const res=await fetch('./official-routes.json');
-  if(!res.ok)throw Error('HTTP '+res.status);
-  data=await res.json();
- }if(!Array.isArray(data))throw Error('Catalogo non valido');
+ const [original,supplemental,evidence]=await Promise.all(['official-routes.json','academy-supplemental-routes.json','academy-evidence.json'].map(readAcademyJSON));
+ if(!Array.isArray(original)||original.length!==787||!Array.isArray(supplemental)||supplemental.length!==2)throw Error('Catalogo non valido');
+ const data=[...original,...supplemental].map(r=>({...r,_evidence:evidence.routes[String(r.id)]}));
  academy=data;const ids=new Set(data.map(r=>r.id)),stats={};
  for(const category of Object.keys(ACADEMY_EXPECTED))stats[category]=data.filter(r=>r.category===category).length;
- const complete=data.length===787&&ids.size===787&&Object.keys(ACADEMY_EXPECTED).every(k=>stats[k]===ACADEMY_EXPECTED[k])&&data.every(r=>Array.isArray(r.points)&&r.points.length>=2);
- $('academyCount').textContent=complete?'Catalogo completo: 787/787 GPX (557 Extraurbano, 29 Colli, 201 Urbano).':'ATTENZIONE: catalogo incompleto o non valido ('+data.length+'/787).';
+ const complete=data.length===789&&ids.size===789&&Object.keys(ACADEMY_EXPECTED).every(k=>stats[k]===ACADEMY_EXPECTED[k])&&data.every(r=>Array.isArray(r.points)&&r.points.length>=2);
+ $('academyCount').textContent=complete?'Catalogo completo: 789/789 GPX (559 Extraurbano, 29 Colli, 201 Urbano).':'ATTENZIONE: catalogo incompleto o non valido ('+data.length+'/789).';
  $('officialInfo').textContent=complete?'Seleziona categoria, linea e variante. Le due sezioni documentali contengono PDF, non tracciati GPS.':'Controllare official-routes.json prima della navigazione.';
  filterAcademy();
 }catch(e){$('academyCount').textContent='Catalogo GPX non disponibile';$('officialInfo').textContent='Errore caricamento GPX: '+e.message}}
@@ -478,7 +471,7 @@ function normAcademyCode(s){
 }
 function academyRouteCodes(r){
  // Line or directory must not override the original Academy name: these are match candidates only.
- const values=[r.line,r.variant];
+ const values=[r.line,r.variant,...(r._evidence?.lineAliases||[])];
  if(/^\d+[A-Z]*\b/i.test(r.name||''))values.push(String(r.name).trim().split(/[\s|_-]/)[0]);
  const keys=new Set(values.map(normAcademyCode).filter(Boolean));
  // Variant 10D matches GTFS route 10; "Deviazioni mercatali" may have variant 523.
@@ -680,6 +673,7 @@ function renderAcademyStopComparison(){
  }
 }
 function buildAcademyMatches(chosen,broad=false){
+ if(chosen._evidence?.serviceStatus==='out-of-service')return {results:[],segments:0,groupCount:0,outOfService:true};
  const pts=chosen.points.map(([lat,lng])=>({lat,lng})),dists=shapeMetrics(pts),total=dists.at(-1)||1;
  const {segments,groupCount}=candidateGtfsSegments(chosen,pts,dists,broad);
  const results=[],full=x=>x.start<Math.max(700,total*.12)&&x.end>total*.85&&x.span>total*.68;
@@ -725,11 +719,13 @@ function buildAcademyMatches(chosen,broad=false){
    results.push({trip:x.trip,legs:[x],stops:x.stops,averageError:x.meanError,coverage:x.span/total,match,association:'partial-sequence',reviewRequired:true,incompleteRoute:true,omittedStops:x.omittedStops||[]});
   }
  }
+ if(chosen._evidence?.serviceStatus==='conflicting-indicator')for(const result of results)result.reviewRequired=true;
  results.sort((a,b)=>Number(a.reviewRequired)-Number(b.reviewRequired)||b.coverage-a.coverage||a.averageError-b.averageError);
  return {results,segments:segments.length,groupCount,broad};
 }
 function findGtfsForAcademy(){
  if(!selectedOfficial||!feed)return;
+ if(selectedOfficial._evidence?.serviceStatus==='out-of-service'){academyGtfsMatches=new Map();setOptions($('academyGtfsTrip'),[],'Fuori servizio');$('academyGtfsStatus').textContent='Indicatore ufficiale FUORI SERVIZIO: trasferimento senza sequenza di fermate passeggeri. La guida stradale sul GPX resta disponibile.';$('mergeOfficial').disabled=true;return}
  const button=$('findGtfsAcademy');button.disabled=true;
  $('academyGtfsStatus').textContent='Confronto delle fermate GTFS con il GPX Academy…';
  academyGtfsMatches=new Map();$('academyDiff').hidden=true;$('academyDiffList').replaceChildren();
@@ -785,9 +781,10 @@ $('academySearch').addEventListener('input',filterAcademyRoutes);
 $('academyRoute').addEventListener('change',onAcademySelected);
 function selectedGTFS(){return tripsInDirection().find(t=>t.trip_id===$('tripSelect').value)}
 function showAcademyRoute(merge=false){const chosen=selectedOfficial;if(!chosen){toast('Seleziona un GPX Academy');return}const points=chosen.points.map(([lat,lng])=>({lat,lng}));const dists=shapeMetrics(points);let stops=[],offsets=[],diagnostic='GPX pronto. Per annunciare le fermate scegli una sequenza GTFS Busitalia verificata.';let trip={trip_headsign:chosen.name};let reliable=false;
+if(chosen._evidence?.serviceStatus==='out-of-service'){if(merge){toast('Indicatore FUORI SERVIZIO: nessuna fermata passeggeri');return}diagnostic='Trasferimento FUORI SERVIZIO, confermato dagli indicatori Academy. Navigazione stradale sul GPX.'}
 if(merge){if(!feed){toast('Prima importa il GTFS');return}const academyMatch=academyGtfsMatches.get($('academyGtfsTrip').value);if(academyMatch?.reviewRequired&&!$('confirmStopProposal').checked){toast('Verifica e conferma la proposta di fermate prima di usarla');return}const gt=academyMatch?.trip||selectedGTFS();if(!gt){toast('Seleziona una corsa GTFS corrispondente');return}const gtfsRoute=feed.routesById.get(gt.route_id);const num=normAcademyCode(gtfsRoute?.route_short_name||'');const officialNum=[...academyRouteCodes(chosen)].join(', ');if(gtfsRoute?._stopAuthority==='supplemental'){$('officialInfo').textContent='Le fermate MOM non sono utilizzate. Importa Busitalia come feed principale; le fermate comuni sono già nel suo GTFS.';toast('Fermate MOM escluse');return}if(!academyMatch&&!gtfsFitsAcademyCode(chosen,gtfsRoute||{})){$('officialInfo').textContent=`Abbinamento bloccato: linea GTFS ${num} diversa dal GPX ${officialNum}. Seleziona la corsa corretta.`;toast('Linea GPX e GTFS non corrispondono');return}
 const candidates=academyMatch?.stops||(feed.timesByTrip.get(gt.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));if(candidates.length<2){toast('Nessuna sequenza di fermate disponibile');return}const match=matchStopsStrict(candidates,points,dists);diagnostic=match.message;if(!match.ok){$('officialInfo').textContent=diagnostic;toast('Abbinamento non affidabile: navigazione fermate non abilitata');return}stops=candidates;offsets=match.offsets;trip={...gt,trip_headsign:academyMatch?.legs?.length>1?chosen.name:gt.trip_headsign};reliable=true}
-stopNavigation();current={trip,stops,points,dists,offsets,fallback:false,academy:chosen,reliable,stopProposal:merge?academyGtfsMatches.get($('academyGtfsTrip').value):null};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastAlong=0;turns=[];roadGuidanceReady=loadRoadGuidance(chosen,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#0da2a5',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);map.fitBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length?stops.length+' fermate':'Fermate non associate';$('navStatus').textContent='GPX Academy caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'GPX senza fermate';$('nextDetail').textContent=merge?'GPS e simulazione disponibili':'Associa prima una corsa GTFS per gli annunci';$('nextDistance').textContent='—';$('demoBtn').disabled=false;$('startNav').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent='Verifica istruzioni stradali…';$('officialInfo').textContent=diagnostic;toast(merge?'GPX Academy e fermate GTFS associati':'Tracciato GPX Academy visualizzato');}
+stopNavigation();current={trip,stops,points,dists,offsets,fallback:false,academy:chosen,reliable,stopProposal:merge?academyGtfsMatches.get($('academyGtfsTrip').value):null};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastAlong=0;turns=[];roadGuidanceReady=loadRoadGuidance(chosen,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#0da2a5',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);map.fitBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length?stops.length+' fermate':chosen._evidence?.serviceStatus==='out-of-service'?'Fuori servizio':'Fermate non associate';$('navStatus').textContent='GPX Academy caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'GPX senza fermate';$('nextDetail').textContent=chosen._evidence?.serviceStatus==='out-of-service'?'Trasferimento: seguire il GPX ufficiale':merge?'GPS e simulazione disponibili':'Associa prima una corsa GTFS per gli annunci';$('nextDistance').textContent='—';$('demoBtn').disabled=false;$('startNav').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent='Verifica istruzioni stradali…';const evidence=chosen._evidence;const indicator=evidence?.indicatorRecords?.[0];const shift=evidence?.shiftMatches?.[0];if(indicator)diagnostic+=' Indicatore '+indicator.display+': '+indicator.fixed+' (pag. '+indicator.page+').';if(shift)diagnostic+=' Riscontro nei turni: '+shift.shift+', '+shift.departure+'–'+shift.arrival+', linea '+shift.line+' (pag. '+shift.page+').';if(evidence?.serviceStatus==='conflicting-indicator')diagnostic+=' Codici indicatore discordanti: verifica la corsa prima di confermare le fermate.';$('officialInfo').textContent=diagnostic;toast(merge?'GPX Academy e fermate GTFS associati':'Tracciato GPX Academy visualizzato');}
 function matchStopsStrict(stops,points,dists){return RouteStops.match(stops,points,dists)}
 $('showOfficial').addEventListener('click',()=>showAcademyRoute(false));$('mergeOfficial').addEventListener('click',()=>showAcademyRoute(true));
 
@@ -1274,7 +1271,7 @@ initializeGTFS();
 let wizardStep=0;
 function refreshReadySummary(){
  $('readyRoute').textContent=current?.academy?.name||'Scegli un percorso';
- $('readyStops').textContent=current?.stops?.length?current.stops.length+' fermate associate'+(current.stopProposal?.reviewRequired?' · proposta confermata ('+Math.round(current.stopProposal.coverage*100)+'% del GPX)':'')+' · '+niceDistance(current.dists.at(-1)):'Nessuna fermata associata: annunci fermata non disponibili.';
+ $('readyStops').textContent=current?.academy?._evidence?.serviceStatus==='out-of-service'?'Trasferimento fuori servizio: nessuna fermata passeggeri prevista.':current?.stops?.length?current.stops.length+' fermate associate'+(current.stopProposal?.reviewRequired?' · proposta confermata ('+Math.round(current.stopProposal.coverage*100)+'% del GPX)':'')+' · '+niceDistance(current.dists.at(-1)):'Nessuna fermata associata: annunci fermata non disponibili.';
  const count=turns.filter(t=>t.verifiedRoad).length,coverage=current?.guidanceCoverage;
  $('readyGuidance').textContent=coverage?(coverage.complete?
   (count?count+' manovre stradali disponibili':'GPX verificato senza manovre stradali da annunciare'):
@@ -1291,7 +1288,7 @@ function showWizardStep(step){
  });
  $('wizardBack').hidden=wizardStep===0;
  $('wizardNext').hidden=wizardStep===2;
- $('wizardNext').textContent=wizardStep===1?'Continua senza fermate':'Continua';
+ $('wizardNext').textContent=wizardStep===1&&current?.academy?._evidence?.serviceStatus!=='out-of-service'?'Continua senza fermate':'Continua';
  refreshReadySummary();
  document.querySelector('.sidebar-scroll').scrollTop=0;
  window.scrollTo({top:0,behavior:'smooth'});

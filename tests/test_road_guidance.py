@@ -146,6 +146,16 @@ class AcademyRoadTests(unittest.TestCase):
         module.convert(route,response,allow_empty=True)
         with self.assertRaises(ValueError):module.convert(route,response,allow_empty=True,strict_local=True)
 
+    def test_precise_short_window_keeps_a_real_turn_near_boundary(self):
+        points=[[45,11],[45,11.0005],[45.0006,11.0005]]
+        route={'id':'short-turn','points':points}
+        response={'trip':{'language':'it-IT','legs':[{'shape':encode_polyline6(points),'maneuvers':[
+            {'type':10,'begin_shape_index':1,'instruction':'Svolta a destra'}]}]}}
+        self.assertFalse(module.convert(route,response,allow_empty=True)['turns'])
+        output=module.convert(route,response,allow_empty=True,strict_local=True)
+        self.assertEqual(len(output['turns']),1)
+        self.assertTrue(output['validation']['passed'])
+
     def test_trace_uses_bus_costing_and_italian(self):
         request = module.trace_request(self.points)
         self.assertEqual(request["costing"], "bus")

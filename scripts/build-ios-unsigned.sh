@@ -24,7 +24,7 @@ echo "Unsigned device IPA built: build/ios/LineaPilot-unsigned.ipa"
 
 
 python3 - <<'PYIPA'
-import zipfile,plistlib
+import zipfile,plistlib,json,hashlib
 p='build/ios/LineaPilot-unsigned.ipa'
 with zipfile.ZipFile(p) as z:
     assert z.testzip() is None
@@ -32,5 +32,17 @@ with zipfile.ZipFile(p) as z:
     assert info['CFBundleExecutable']=='LineaPilot'
     assert z.getinfo('Payload/LineaPilot.app/LineaPilot').file_size>0
     assert z.getinfo('Payload/LineaPilot.app/Web/official-routes.json').file_size>1000000
+    prefix='Payload/LineaPilot.app/Web/'
+    original=z.read(prefix+'official-routes.json')
+    extra=z.read(prefix+'academy-supplemental-routes.json')
+    evidence=json.loads(z.read(prefix+'academy-evidence.json'))
+    assert len(json.loads(original))==787 and len(json.loads(extra))==2
+    assert evidence['catalog']['total']==789
+    coverage=json.loads(z.read(prefix+'road-guidance/coverage.json'))
+    assert len(coverage['routes'])==789
+    assert coverage['gpxSHA256']==hashlib.sha256(original+b'\0'+extra).hexdigest()
+    for route in coverage['routes']:
+        if route['status'] in ('validated','partial'):
+            assert z.getinfo(prefix+'road-guidance/'+str(route['id'])+'.json').file_size>0
 print('IPA payload, executable, plist and bundled official GPX validated')
 PYIPA

@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['ios/**', 'scripts/**', 'app.js', 'route-stops.js', 'index.html', 'style.css', 'official-routes.json', 'road-guidance/**', '.github/workflows/ios-ipa.yml']
+    paths: ['ios/**', 'scripts/**', 'app.js', 'route-stops.js', 'index.html', 'style.css', 'official-routes.json', 'academy-supplemental-routes.json', 'academy-evidence.json', 'road-guidance/**', '.github/workflows/ios-ipa.yml']
   pull_request:
     branches: [main]
     paths: ['ios/**', 'scripts/**', 'app.js', 'route-stops.js', 'index.html', 'style.css', '.github/workflows/ios-ipa.yml']
@@ -90,6 +90,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add reports/stop-coverage.json reports/stop-coverage.csv
           if ! git diff --cached --quiet; then
-            git commit -m 'Update stop coverage audit for all 787 immutable GPX'
+            git commit -m 'Update stop coverage audit for all 789 immutable GPX'
             git push origin HEAD:main
           fi
