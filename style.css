@@ -188,3 +188,4 @@ button#retryFeed,.app-update-banner button,.panel button{min-height:44px}
 html{scroll-padding-top:calc(var(--safe-top) + 12px);scroll-padding-bottom:calc(var(--safe-bottom) + 12px)}
 header{padding-top:var(--safe-top);height:calc(64px + var(--safe-top))}
 body:not(.navigating)::before{content:"";position:fixed;inset:0 0 auto;height:var(--safe-top);z-index:1500;background:#f5f5f7}
+#headingStatus,#activateNavVoice{color:#fff}
