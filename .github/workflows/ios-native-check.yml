@@ -13,13 +13,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Exercise native GPX matching
         run: |
-          swiftc ios/Sources/GPXTracker.swift tests/main.swift -o /tmp/gpx-tests
+          swiftc ios/Sources/GPXTracker.swift ios/Sources/GuidanceCoverage.swift tests/main.swift -o /tmp/gpx-tests
           /tmp/gpx-tests
       - name: Generate native project
         run: |
           mkdir -p ios/Web
-          cp index.html app.js style.css official-routes.json ios/Web/
+          cp index.html app.js route-stops.js style.css official-routes.json ios/Web/
           command -v xcodegen >/dev/null || brew install xcodegen
           (cd ios && xcodegen generate)
       - name: Compile actual iPhone application
         run: bash scripts/build-ios-unsigned.sh
+

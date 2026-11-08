@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 DEST="android/app/src/main/assets"
 mkdir -p "$DEST"
-cp index.html app.js style.css sw.js manifest.webmanifest icon.svg official-routes.json "$DEST/"
+cp index.html app.js route-stops.js style.css sw.js manifest.webmanifest icon.svg official-routes.json "$DEST/"
 if [ -d road-guidance ]; then
  mkdir -p "$DEST/road-guidance"
  find road-guidance -maxdepth 1 -type f -name '*.json' -exec cp '{}' "$DEST/road-guidance/" \;
@@ -20,3 +20,4 @@ assert len(routes) == 787
 assert {name: sum(r['category'] == name for r in routes) for name in ('Extraurbano','Urbano','Colli')} == {'Extraurbano':557,'Urbano':201,'Colli':29}
 print('Android Academy GPX: 787 percorsi originali.')
 PY
+

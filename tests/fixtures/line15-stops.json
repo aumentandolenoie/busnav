@@ -1,0 +1,302 @@
+{
+  "sourceURL": "https://proxy.busone.app/biv/gtfs.zip",
+  "retrievedAt": "2026-11-08",
+  "routes": {
+    "172": {
+      "trip": {
+        "trip_id": "593573",
+        "route_id": "162",
+        "service_id": "m_314308309313310",
+        "trip_headsign": "AEROPORTO MARCO POLO - PADOVA",
+        "trip_short_name": "2498158",
+        "direction_id": "0",
+        "block_id": "busone:biv:b:8b32890b3f4ae57643b76265",
+        "shape_id": "125529",
+        "wheelchair_accessible": ""
+      },
+      "stops": [
+        {
+          "stop": {
+            "stop_id": "9300",
+            "stop_code": "9284",
+            "stop_name": "AEROPORTO VENEZIA MARCO POLO R",
+            "stop_desc": "AEROPORTO VENEZIA MARCO POLO R",
+            "stop_lat": "45.5051574707031",
+            "stop_lon": "12.339599609375",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.5051574707031,
+            "lng": 12.339599609375
+          },
+          "seq": 1
+        },
+        {
+          "stop": {
+            "stop_id": "10311",
+            "stop_code": "10304",
+            "stop_name": "VIA SAN MARCO - SAN LAZZARO",
+            "stop_desc": "VIA SAN MARCO - SAN LAZZARO",
+            "stop_lat": "45.4155120849609",
+            "stop_lon": "11.9198608398438",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.4155120849609,
+            "lng": 11.9198608398438
+          },
+          "seq": 2
+        },
+        {
+          "stop": {
+            "stop_id": "9651",
+            "stop_code": "9635",
+            "stop_name": "VENEZIA - CAVALCAVIA",
+            "stop_desc": "VENEZIA - CAVALCAVIA",
+            "stop_lat": "45.411792755127",
+            "stop_lon": "11.9101219177246",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.411792755127,
+            "lng": 11.9101219177246
+          },
+          "seq": 3
+        },
+        {
+          "stop": {
+            "stop_id": "11399",
+            "stop_code": "11419",
+            "stop_name": "PADOVA STANGA V. VENEZIA",
+            "stop_desc": "PADOVA STANGA V. VENEZIA",
+            "stop_lat": "45.4090309143066",
+            "stop_lon": "11.9011631011963",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.4090309143066,
+            "lng": 11.9011631011963
+          },
+          "seq": 4
+        },
+        {
+          "stop": {
+            "stop_id": "11398",
+            "stop_code": "11418",
+            "stop_name": "PADOVA FIAT",
+            "stop_desc": "PADOVA FIAT",
+            "stop_lat": "45.4111289978027",
+            "stop_lon": "11.8955068588257",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.4111289978027,
+            "lng": 11.8955068588257
+          },
+          "seq": 5
+        },
+        {
+          "stop": {
+            "stop_id": "11465",
+            "stop_code": "11485",
+            "stop_name": "PADOVA FIERA",
+            "stop_desc": "PADOVA FIERA",
+            "stop_lat": "45.4129219055176",
+            "stop_lon": "11.8907165527344",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.4129219055176,
+            "lng": 11.8907165527344
+          },
+          "seq": 6
+        },
+        {
+          "stop": {
+            "stop_id": "7658",
+            "stop_code": "7603",
+            "stop_name": "PADOVA AUTOSTAZIONE",
+            "stop_desc": "PADOVA AUTOSTAZIONE",
+            "stop_lat": "45.4164505004883",
+            "stop_lon": "11.8826522827148",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.4164505004883,
+            "lng": 11.8826522827148
+          },
+          "seq": 7
+        }
+      ]
+    },
+    "176": {
+      "trip": {
+        "trip_id": "593571",
+        "route_id": "162",
+        "service_id": "m_309308310313314",
+        "trip_headsign": "PADOVA - AEROPORTO MARCO POLO",
+        "trip_short_name": "2498171",
+        "direction_id": "0",
+        "block_id": "busone:biv:b:5953ed0f388e124c37022999",
+        "shape_id": "125530",
+        "wheelchair_accessible": ""
+      },
+      "stops": [
+        {
+          "stop": {
+            "stop_id": "7658",
+            "stop_code": "7603",
+            "stop_name": "PADOVA AUTOSTAZIONE",
+            "stop_desc": "PADOVA AUTOSTAZIONE",
+            "stop_lat": "45.4164505004883",
+            "stop_lon": "11.8826522827148",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.4164505004883,
+            "lng": 11.8826522827148
+          },
+          "seq": 1
+        },
+        {
+          "stop": {
+            "stop_id": "6083",
+            "stop_code": "6007",
+            "stop_name": "PADOVA FIERA",
+            "stop_desc": "PADOVA FIERA",
+            "stop_lat": "45.413200378418",
+            "stop_lon": "11.8897075653076",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.413200378418,
+            "lng": 11.8897075653076
+          },
+          "seq": 2
+        },
+        {
+          "stop": {
+            "stop_id": "8242",
+            "stop_code": "8200",
+            "stop_name": "PADOVA FIAT",
+            "stop_desc": "PADOVA FIAT",
+            "stop_lat": "45.4115104675293",
+            "stop_lon": "11.8942861557007",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.4115104675293,
+            "lng": 11.8942861557007
+          },
+          "seq": 3
+        },
+        {
+          "stop": {
+            "stop_id": "7575",
+            "stop_code": "7520",
+            "stop_name": "PADOVA STANGA V. VENEZIA",
+            "stop_desc": "PADOVA STANGA V. VENEZIA",
+            "stop_lat": "45.409049987793",
+            "stop_lon": "11.9032974243164",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.409049987793,
+            "lng": 11.9032974243164
+          },
+          "seq": 4
+        },
+        {
+          "stop": {
+            "stop_id": "8435",
+            "stop_code": "8406",
+            "stop_name": "VENEZIA - CAVALCAVIA",
+            "stop_desc": "VENEZIA - CAVALCAVIA",
+            "stop_lat": "45.4117088317871",
+            "stop_lon": "11.9101696014404",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.4117088317871,
+            "lng": 11.9101696014404
+          },
+          "seq": 5
+        },
+        {
+          "stop": {
+            "stop_id": "7797",
+            "stop_code": "7754",
+            "stop_name": "VIA SAN MARCO - DELLE GRAZIE",
+            "stop_desc": "VIA SAN MARCO - DELLE GRAZIE",
+            "stop_lat": "45.4154930114746",
+            "stop_lon": "11.9198980331421",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.4154930114746,
+            "lng": 11.9198980331421
+          },
+          "seq": 6
+        },
+        {
+          "stop": {
+            "stop_id": "9300",
+            "stop_code": "9284",
+            "stop_name": "AEROPORTO VENEZIA MARCO POLO R",
+            "stop_desc": "AEROPORTO VENEZIA MARCO POLO R",
+            "stop_lat": "45.5051574707031",
+            "stop_lon": "12.339599609375",
+            "zone_id": "4",
+            "stop_url": "",
+            "location_type": "",
+            "parent_station": "",
+            "stop_timezone": "",
+            "wheelchair_boarding": "",
+            "lat": 45.5051574707031,
+            "lng": 12.339599609375
+          },
+          "seq": 7
+        }
+      ]
+    }
+  }
+}

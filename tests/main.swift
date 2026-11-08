@@ -20,3 +20,11 @@ _ = loop.update([45,11.0001],speed:6,time:10,accuracy:5)
 let crossing = loop.update([45,11],speed:6,time:11,accuracy:5)!
 check(crossing.along < 100,"Crossing jumped to final lap")
 print("GPXTracker: validation, stale fixes, off-route, recovery, crossing, endpoints passed")
+
+let coverage = GuidanceCoverage(complete: false, percent: 75, ranges: [[0,100],[150,200]])
+check(coverage.contains(progress:80,maneuver:90), "Valid maneuver suppressed")
+check(!coverage.contains(progress:80,maneuver:175), "Maneuver across uncovered gap accepted")
+check(!coverage.contains(progress:125), "Uncovered interval accepted")
+check(coverage.contains(progress:175,maneuver:190), "Coverage did not resume after gap")
+check(!GuidanceCoverage(complete:false,percent:0,ranges:[]).contains(progress:0), "Empty coverage accepted")
+print("GuidanceCoverage: gaps suppress maneuvers without blocking valid later intervals")

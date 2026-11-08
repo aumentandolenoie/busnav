@@ -14,6 +14,7 @@ xcodebuild -project ios/LineaPilot.xcodeproj \
 APP="$PWD/build/ios/DerivedData/Build/Products/Release-iphoneos/LineaPilot.app"
 test -f "$APP/Info.plist"
 test -s "$APP/Web/official-routes.json"
+test -s "$APP/Web/route-stops.js"
 rm -rf build/ios/Payload build/ios/LineaPilot-unsigned.ipa
 mkdir -p build/ios/Payload
 cp -R "$APP" build/ios/Payload/

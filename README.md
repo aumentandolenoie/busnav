@@ -1,3 +1,5 @@
+> **Audit navigazione aggiornato (8 novembre 2026):** [risultati, limiti e cause](reports/README.md), [fermate per tutti i GPX](reports/stop-coverage.csv), [copertura vocale e intervalli mancanti](reports/voice-coverage.csv). Le proposte parziali di fermate richiedono verifica esplicita; la voce stradale è sospesa nei tratti non validati.
+
 # LineaPilot Academy — prototipo PWA per autisti Busitalia Veneto
 
 **Prototipo indipendente, non una soluzione approvata da Busitalia Veneto. Non usare per decidere manovre durante il servizio.**
@@ -173,3 +175,4 @@ Il test Android reale, i permessi in uso, le voci offline e il procedimento d'in
 - IPA e APK: avviso **in-app** quando una nuova release della stessa piattaforma è disponibile; controllo al primo avvio e al ritorno in primo piano (non più di una volta ogni 10 minuti). Il pulsante apre la release GitHub; **non installa automaticamente**.
 - Le IPA unsigned vanno reimportate in LiveContainer/firmate; gli APK debug di GitHub Actions **non garantiscono aggiornamenti sopra la versione precedente** senza una firma Android stabile configurata con i secret `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Se le firme differiscono, Android rifiuta l'aggiornamento in-place e richiede disinstallazione, con possibile perdita dei dati locali. Non suggerire di disinstallare senza aver prima considerato la perdita di dati.
 - L'app non dispone di notifiche push di sistema per aggiornamenti quando è chiusa; l'avviso appare all'apertura o al ritorno in primo piano. Il catalogo GPX Academy è immutato.
+

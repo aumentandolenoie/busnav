@@ -1,0 +1,6 @@
+build/
+ios/Web/
+ios/LineaPilot.xcodeproj/
+investigation/
+__pycache__/
+*.pyc

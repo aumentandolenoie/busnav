@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['ios/**', 'scripts/**', 'app.js', 'index.html', 'style.css', 'official-routes.json', 'road-guidance/**', '.github/workflows/ios-ipa.yml']
+    paths: ['ios/**', 'scripts/**', 'app.js', 'route-stops.js', 'index.html', 'style.css', 'official-routes.json', 'road-guidance/**', '.github/workflows/ios-ipa.yml']
   pull_request:
     branches: [main]
-    paths: ['ios/**', 'scripts/**', 'app.js', 'index.html', 'style.css', '.github/workflows/ios-ipa.yml']
+    paths: ['ios/**', 'scripts/**', 'app.js', 'route-stops.js', 'index.html', 'style.css', '.github/workflows/ios-ipa.yml']
 permissions:
   contents: write
 concurrency:
@@ -56,11 +56,15 @@ jobs:
         run: |
           gh release download "ios-preview-${GITHUB_SHA:0:12}" --pattern navigation-data.zip
           unzip -oq navigation-data.zip
+      - name: Audit stops on every official GPX using the current feed
+        run: |
+          python3 scripts/download_gtfs_for_audit.py build/audit-feed.json
+          node scripts/audit_stops.cjs build/audit-feed.json reports/stop-coverage.json
       - name: Regression tests
         run: |
-          node --test tests/smoke.test.cjs
+          node --test tests/*.test.cjs
           python3 -m unittest discover -s tests -p 'test_road_guidance.py' -v
-          swiftc ios/Sources/GPXTracker.swift tests/main.swift -o /tmp/gpx-tests
+          swiftc ios/Sources/GPXTracker.swift ios/Sources/GuidanceCoverage.swift tests/main.swift -o /tmp/gpx-tests
           /tmp/gpx-tests
       - name: Prepare bundled web assets
         run: bash scripts/prepare-ios.sh
@@ -76,5 +80,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="ios-preview-${GITHUB_SHA:0:12}"
-          gh release upload "$TAG" build/ios/LineaPilot-unsigned.ipa --clobber
-          gh release edit "$TAG" --notes "IPA unsigned da importare in LiveContainer. Mappa Apple nativa, GPX Academy vincolanti, fermate selezionate e voce italiana. Istruzioni Valhalla/OSM incluse solo dove il confronto geometrico col GPX supera i controlli; copertura esatta in coverage.json. In LiveContainer tenere l'app in primo piano. Compilazione e test automatici verificati; GPS, audio e stabilità richiedono prova su iPhone."
+          gh release upload "$TAG" build/ios/LineaPilot-unsigned.ipa reports/stop-coverage.csv --clobber
+          gh release edit "$TAG" --notes "IPA unsigned da importare in LiveContainer. Mappa Apple nativa, GPX Academy vincolanti, fermate selezionate e voce italiana. Istruzioni Valhalla/OSM incluse solo dove il confronto geometrico col GPX supera i controlli; copertura completa o parziale e intervalli mancanti in coverage.json. Fermate complete e proposte da verificare sono distinte; controlli di tutti i GPX in stop-coverage.csv. In LiveContainer tenere l'app in primo piano. Compilazione e test automatici verificati; GPS, audio e stabilità richiedono prova su iPhone."
+
+      - name: Preserve the full stop audit in the repository
+        if: github.event_name != 'pull_request'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/stop-coverage.json reports/stop-coverage.csv
+          if ! git diff --cached --quiet; then
+            git commit -m 'Update stop coverage audit for all 787 immutable GPX'
+            git push origin HEAD:main
+          fi

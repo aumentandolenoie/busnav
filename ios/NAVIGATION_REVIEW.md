@@ -34,3 +34,7 @@ Ogni risposta passa controlli di lunghezza, copertura in entrambe le direzioni c
 - https://valhalla.github.io/valhalla/api/turn-by-turn/api-reference/
 - https://developer.apple.com/documentation/mapkit/mkmapview
 - https://developer.apple.com/documentation/corelocation/cllocationmanager
+
+## Audit successivo delle coperture
+
+Vedi `../reports/README.md` per il controllo di tutti i 787 GPX e il caso della linea 15. Il matcher fermate ora preserva i ritorni e le visite ripetute, distingue i capolinea dai punti intermedi e separa sequenze complete da proposte da verificare. `GuidanceCoverage` impedisce istruzioni stradali nei tratti non validati e impedisce di anticipare una manovra oltre un intervallo mancante; gli annunci fermata restano indipendenti. GPS e manovre non hanno la stessa nozione di copertura.

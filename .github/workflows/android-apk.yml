@@ -7,6 +7,7 @@ on:
       - 'android/**'
       - 'scripts/prepare-android.sh'
       - 'app.js'
+      - 'route-stops.js'
       - 'index.html'
       - 'style.css'
       - 'official-routes.json'
@@ -17,6 +18,7 @@ on:
       - 'android/**'
       - 'scripts/prepare-android.sh'
       - 'app.js'
+      - 'route-stops.js'
       - 'index.html'
       - 'style.css'
       - 'official-routes.json'
@@ -70,3 +72,4 @@ jobs:
             --title "LineaPilot Android APK - $TAG" \
             --notes "APK sperimentale con GPS in primo piano e voce italiana Android. Se non è configurata una chiave Android stabile, serve disinstallare la precedente build per installare la nuova. Installazione sempre manuale. GPX Academy obbligatori e immutati." \
             --prerelease --target "$GITHUB_SHA"
+

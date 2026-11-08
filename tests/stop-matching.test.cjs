@@ -1,0 +1,66 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('fs');
+const matcher=require('../route-stops.js');
+const catalog=JSON.parse(fs.readFileSync('official-routes.json'));
+const fixture=JSON.parse(fs.readFileSync('tests/fixtures/line15-stops.json'));
+function pointsFor(id){const points=catalog.find(r=>r.id===id).points.map(([lat,lng])=>({lat,lng})),ds=[0];for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],rad=Math.PI/180,h=Math.sin((b.lat-a.lat)*rad/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin((b.lng-a.lng)*rad/2)**2;ds.push(ds.at(-1)+12742000*Math.atan2(Math.sqrt(h),Math.sqrt(1-h)))}return {points,ds}}
+test('line 15 outbound uses its own seven GTFS stops, with bounded terminal exceptions',()=>{
+ const {points,ds}=pointsFor(176),stops=fixture.routes['176'].stops;
+ const original=JSON.stringify(stops),result=matcher.match(stops,points,ds);
+ assert.equal(result.ok,true);assert.equal(result.offsets.length,7);assert.equal(result.endpointExceptions,2);
+ assert.equal(result.offsets[0],0);assert.equal(result.offsets.at(-1),ds.at(-1));
+ assert.ok(result.errors.slice(1,-1).every(d=>d<7));assert.equal(JSON.stringify(stops),original);
+ assert.equal(stops[5].stop.stop_name,'VIA SAN MARCO - DELLE GRAZIE');
+ const opposite=fixture.routes['172'].stops;
+ assert.equal(opposite[1].stop.stop_name,'VIA SAN MARCO - SAN LAZZARO');
+ assert.notDeepEqual(stops.map(s=>s.stop.stop_id),opposite.map(s=>s.stop.stop_id).reverse());
+});
+test('line 15 inbound still accepts its original GTFS direction',()=>{
+ const {points,ds}=pointsFor(172),result=matcher.match(fixture.routes['172'].stops,points,ds);
+ assert.equal(result.ok,true);assert.equal(result.offsets.length,7);
+ assert.ok(result.offsets.every((n,i,a)=>i===0||n>=a[i-1]));
+});
+test('a distant intermediate stop cannot hide behind an outlier allowance',()=>{
+ const points=[{lat:45,lng:11},{lat:45,lng:11.01}],ds=[0,787];
+ const stops=[points[0],{lat:45.05,lng:11.005},points[1]].map((p,i)=>({stop:{...p,stop_id:String(i)}}));
+ assert.equal(matcher.match(stops,points,ds).ok,false);
+});
+test('ordered alignment preserves separate visits to a stop on a loop',()=>{
+ const points=[{lat:45,lng:11},{lat:45,lng:11.01},{lat:45.01,lng:11.01},{lat:45,lng:11}],ds=[0,787,1900,3260];
+ const stops=[points[0],points[1],points[2],points[3]].map((p,i)=>({stop:{...p,stop_id:String(i)}}));
+ const result=matcher.match(stops,points,ds);assert.equal(result.ok,true);
+ assert.equal(result.offsets[0],0);assert.equal(result.offsets.at(-1),3260);
+});
+test('reverse-direction GTFS is rejected, never silently reversed',()=>{
+ const {points,ds}=pointsFor(176);
+ assert.equal(matcher.match(fixture.routes['172'].stops,points,ds).ok,false);
+});
+
+function appFunction(name){
+ const s=fs.readFileSync('app.js','utf8'),m=new RegExp('function\\s+'+name+'\\s*\\(').exec(s);
+ let i=s.indexOf('{',m.index),depth=1,end=i+1;
+ while(depth){if(s[end]==='{')depth++;if(s[end]==='}')depth--;end++}
+ return s.slice(m.index,end);
+}
+test('numeric GTFS suffixes and urban/extraurban domains retain their meaning',()=>{
+ const api=new Function(['normAcademyCode','academyRouteCodes','gtfsFitsAcademyCode'].map(appFunction).join('\n')+';return gtfsFitsAcademyCode')();
+ const chosen=line=>({category:'Extraurbano',line:String(line),variant:'',name:''});
+ assert.equal(api(chosen(9),{route_short_name:'E0092'}),true);
+ assert.equal(api(chosen(10),{route_short_name:'E0102'}),true);
+ assert.equal(api(chosen(102),{route_short_name:'E0102'}),false);
+ assert.equal(api(chosen(15),{route_short_name:'U15'}),false);
+ assert.equal(api({category:'Urbano',line:'15'}, {route_short_name:'E015V'}),false);
+});
+
+test('partial road guidance never claims full coverage or accepts a maneuver in a gap',()=>{
+ const api=new Function(['academyFingerprint','validRoadGuidance'].map(appFunction).join('\n')+';return {academyFingerprint,validRoadGuidance}')();
+ const points=[[45,11],[45,11.01]],chosen={id:'demo',points},total=787;
+ const data={version:1,source:'valhalla-osm',language:'it-IT',academyId:'demo',fingerprint:api.academyFingerprint(points),officialLengthM:total,
+  validation:{passed:true,maxDeviationM:5,p95DeviationM:3},turns:[{at:200,kind:'turn',side:'destra',text:'Svolta a destra'}],
+  coverage:{complete:false,percent:(total-100)/total*100,ranges:[[0,300],[400,total]]}};
+ assert.equal(api.validRoadGuidance(data,chosen,[0,total]),true);
+ assert.equal(api.validRoadGuidance({...data,coverage:{...data.coverage,complete:true}},chosen,[0,total]),false);
+ assert.equal(api.validRoadGuidance({...data,turns:[{...data.turns[0],at:350}]},chosen,[0,total]),false);
+ assert.equal(api.validRoadGuidance({...data,coverage:{...data.coverage,percent:100}},chosen,[0,total]),false);
+ assert.equal(api.validRoadGuidance({...data,turns:[],noManeuvers:true,coverage:{complete:true,percent:100,ranges:[[0,total]]}},chosen,[0,total]),true);
+});

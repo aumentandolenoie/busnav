@@ -4,6 +4,14 @@ import AVFoundation
 import MachO
 
 struct NativeRoute: Decodable {
+    typealias Coverage = GuidanceCoverage
+    let coverage: Coverage?
+    func supportsGuidance(at along: Double, maneuver: Double? = nil) -> Bool {
+        coverage?.contains(progress: along, maneuver: maneuver) ?? true
+    }
+    func nextTurn(at along: Double) -> Turn? {
+        turns.first { $0.verifiedRoad == true && $0.at > along-12 && supportsGuidance(at: along, maneuver: $0.at) }
+    }
     struct Turn: Decodable {
         let at: Double
         let side: String
@@ -235,6 +243,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             return
         }
         matched = true
+        onStatus?("GPS ±\(Int(location.horizontalAccuracy)) m · GPX ufficiale")
         along = hit.along
         while stopIndex < route.stops.count && along > route.offsets[stopIndex] + 35 {
             stopIndex += 1
@@ -255,7 +264,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             }
         }
         if turnsEnabled && voiceEnabled && hit.distance < 65 {
-            for (index, turn) in route.turns.enumerated() where turn.verifiedRoad == true && turn.at > along - 12 && turn.at < along + 450 {
+            for (index, turn) in route.turns.enumerated() where turn.verifiedRoad == true && route.supportsGuidance(at: along, maneuver: turn.at) && turn.at > along - 12 && turn.at < along + 450 {
                 let distance = turn.at - along
                 let lead = max(150, min(350, max(speed, 6) * 18))
                 let stage = turnStages[index, default: 0]
@@ -275,7 +284,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
 
     func repeatInstruction() {
         guard voiceEnabled, matched, let route else { return }
-        if let turn = route.turns.first(where: { $0.verifiedRoad == true && $0.at > along - 12 }), let text = turn.text {
+        if turnsEnabled, let turn = route.nextTurn(at: along), let text = turn.text {
             speak("Tra \(Int(max(0, turn.at-along).rounded())) metri, \(text)", stopPriority: true)
         } else if stopIndex < route.stops.count {
             speak("Prossima fermata: \(route.stops[stopIndex])", stopPriority: true)

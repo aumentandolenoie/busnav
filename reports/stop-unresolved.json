@@ -1,0 +1,226 @@
+[
+  {
+    "id": 45,
+    "name": "999CavarzereRottanovaDiretto",
+    "reason": "Nessuna sequenza di servizio GTFS verificabile lungo questo GPX; fermate vicine non equivalgono a fermate servite.",
+    "lengthM": 7407,
+    "nearbyStopsForReferenceOnly": [
+      {
+        "id": "6382",
+        "name": "SERV. ACQUEDOTTO R",
+        "along": 3191,
+        "distance": 12
+      },
+      {
+        "id": "9303",
+        "name": "SERV. ACQUEDOTTO",
+        "along": 3198,
+        "distance": 44
+      },
+      {
+        "id": "6487",
+        "name": "ROTTANOVA",
+        "along": 7375,
+        "distance": 4
+      }
+    ]
+  },
+  {
+    "id": 95,
+    "name": "Dev. partite a Chioggia A/R",
+    "reason": "Nessuna sequenza di servizio GTFS verificabile lungo questo GPX; fermate vicine non equivalgono a fermate servite.",
+    "lengthM": 2667,
+    "nearbyStopsForReferenceOnly": [
+      {
+        "id": "11861",
+        "name": "VIA MAESTRI DEL LAVORO",
+        "along": 551,
+        "distance": 10
+      }
+    ]
+  },
+  {
+    "id": 182,
+    "name": "999 | Venezia P.le Roma - Tronchetto",
+    "reason": "Nessuna sequenza di servizio GTFS verificabile lungo questo GPX; fermate vicine non equivalgono a fermate servite.",
+    "lengthM": 969,
+    "nearbyStopsForReferenceOnly": [
+      {
+        "id": "11476",
+        "name": "VENEZIA P.LE ROMA",
+        "along": 0,
+        "distance": 38
+      }
+    ]
+  },
+  {
+    "id": 290,
+    "name": "999 | Bassano - Mussolente",
+    "reason": "Nessuna sequenza di servizio GTFS verificabile lungo questo GPX; fermate vicine non equivalgono a fermate servite.",
+    "lengthM": 6668,
+    "nearbyStopsForReferenceOnly": [
+      {
+        "id": "10671",
+        "name": "BASSANO IST.BROCCHI R",
+        "along": 493,
+        "distance": 72
+      },
+      {
+        "id": "9324",
+        "name": "BASSANO IST.BROCCHI",
+        "along": 498,
+        "distance": 78
+      },
+      {
+        "id": "8605",
+        "name": "MUSSOLENTE MUNICIPIO",
+        "along": 6668,
+        "distance": 32
+      },
+      {
+        "id": "10664",
+        "name": "MUSSOLENTE MUNICIPIO R",
+        "along": 6668,
+        "distance": 53
+      }
+    ]
+  },
+  {
+    "id": 404,
+    "name": "999 | Carmignano - San Pietro In Gù",
+    "reason": "Nessuna sequenza di servizio GTFS verificabile lungo questo GPX; fermate vicine non equivalgono a fermate servite.",
+    "lengthM": 3886,
+    "nearbyStopsForReferenceOnly": [
+      {
+        "id": "9330",
+        "name": "CARMIGNANO DI BRENTA",
+        "along": 13,
+        "distance": 3
+      },
+      {
+        "id": "10290",
+        "name": "CARMIGNANO V. EUROPA R",
+        "along": 558,
+        "distance": 1
+      },
+      {
+        "id": "8196",
+        "name": "CARMIGNANO V. EUROPA",
+        "along": 602,
+        "distance": 2
+      },
+      {
+        "id": "9508",
+        "name": "S. PIETRO IN GU'  R",
+        "along": 3886,
+        "distance": 23
+      },
+      {
+        "id": "10044",
+        "name": "S. PIETRO IN GU'",
+        "along": 3886,
+        "distance": 17
+      }
+    ]
+  },
+  {
+    "id": 420,
+    "name": "999 | Caselle - Villanova Diretta",
+    "reason": "Nessuna sequenza di servizio GTFS verificabile lungo questo GPX; fermate vicine non equivalgono a fermate servite.",
+    "lengthM": 5273,
+    "nearbyStopsForReferenceOnly": [
+      {
+        "id": "7511",
+        "name": "CASELLE INTERNA",
+        "along": 0,
+        "distance": 13
+      },
+      {
+        "id": "7905",
+        "name": "CASELLE INTERNA R",
+        "along": 0,
+        "distance": 15
+      },
+      {
+        "id": "7176",
+        "name": "CASELLE DEI RUFFI",
+        "along": 126,
+        "distance": 4
+      },
+      {
+        "id": "8246",
+        "name": "CASELLE DEI RUFFI",
+        "along": 133,
+        "distance": 5
+      },
+      {
+        "id": "8938",
+        "name": "MADONNA MORA",
+        "along": 517,
+        "distance": 3
+      },
+      {
+        "id": "11400",
+        "name": "MADONNA MORA",
+        "along": 645,
+        "distance": 2
+      },
+      {
+        "id": "9601",
+        "name": "MURELLE V. CORNARA",
+        "along": 2277,
+        "distance": 1
+      },
+      {
+        "id": "7903",
+        "name": "MURELLE V. CORNARA R",
+        "along": 2289,
+        "distance": 2
+      },
+      {
+        "id": "10254",
+        "name": "MURELLE CHIESA",
+        "along": 2829,
+        "distance": 1
+      },
+      {
+        "id": "8555",
+        "name": "MURELLE CHIESA R",
+        "along": 2857,
+        "distance": 7
+      },
+      {
+        "id": "5980",
+        "name": "BV. PEROTTI R",
+        "along": 5207,
+        "distance": 8
+      },
+      {
+        "id": "8644",
+        "name": "BV. PEROTTI",
+        "along": 5273,
+        "distance": 13
+      }
+    ]
+  },
+  {
+    "id": 488,
+    "name": "999 | Bojon - Lova",
+    "reason": "Nessuna sequenza di servizio GTFS verificabile lungo questo GPX; fermate vicine non equivalgono a fermate servite.",
+    "lengthM": 3789,
+    "nearbyStopsForReferenceOnly": [
+      {
+        "id": "11345",
+        "name": "BOJON P. LIVELLO R",
+        "along": 0,
+        "distance": 95
+      },
+      {
+        "id": "10602",
+        "name": "LOVA R",
+        "along": 3774,
+        "distance": 2
+      }
+    ]
+  }
+]

@@ -125,6 +125,8 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             return
         }
         var request = URLRequest(url: gtfsURL)
+        request.setValue("LineaPilot; https://github.com/aumentandolenoie/busnav", forHTTPHeaderField: "X-BusOne-Client")
+        request.setValue("personal", forHTTPHeaderField: "X-BusOne-Use")
         request.timeoutInterval = 60
         request.cachePolicy = .reloadIgnoringLocalCacheData
         gtfsDownload = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in

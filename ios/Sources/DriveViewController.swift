@@ -103,12 +103,13 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
             updateCamera()
             return
         }
-        if let next = route.turns.first(where: { $0.verifiedRoad == true && $0.at > along-12 }) {
+        if let next = route.nextTurn(at: along) {
             turnDistance.text = distance(max(0,next.at-along))
             instruction.text = next.text
             symbol.image = UIImage(systemName: next.kind == "roundabout" ? "arrow.triangle.2.circlepath" : next.side == "sinistra" ? "arrow.turn.up.left" : "arrow.turn.up.right") ?? UIImage(systemName:"arrow.up")
         } else {
-            instruction.text = "Segui il GPX ufficiale"; turnDistance.text = distance(geometry.distances.last!-along)
+            instruction.text = route.supportsGuidance(at: along) ? "Segui il GPX ufficiale" : "Manovre non disponibili qui: segui il GPX ufficiale"
+            turnDistance.text = route.supportsGuidance(at: along) ? distance(geometry.distances.last!-along) : "Tratto non coperto"
             symbol.image = UIImage(systemName:"arrow.up")
         }
         if stop < route.stops.count {
