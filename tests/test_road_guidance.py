@@ -85,6 +85,29 @@ class AcademyRoadTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "no road maneuvers"):
             module.convert(self.route, self.response)
 
+    def test_roundabout_exit_comes_from_road_network(self):
+        maneuver = self.response["trip"]["legs"][0]["maneuvers"][1]
+        maneuver.update(type=26, roundabout_exit_count=3)
+        output = module.convert(self.route, self.response)
+        self.assertEqual(output["turns"][0]["text"], "Alla rotonda, prendi la 3ª uscita")
+        self.assertEqual(output["turns"][0]["kind"], "roundabout")
+        del maneuver["roundabout_exit_count"]
+        with self.assertRaises(ValueError):
+            module.convert(self.route, self.response)
+
+    def test_never_simplifies_gpx_to_meet_api_point_limit(self):
+        with self.assertRaises(ValueError):
+            module.downsample(self.points, limit=2)
+
+    def test_two_close_turns_are_not_silently_dropped(self):
+        # Correct directions can be closer together than the old 55m filter.
+        self.route["points"] = [[45,11],[45,11.005],[45.0002,11.005],[45.005,11.005]]
+        self.response["trip"]["legs"][0]["shape"] = encode_polyline6(self.route["points"])
+        self.response["trip"]["legs"][0]["maneuvers"].insert(2,{
+            "type":15,"begin_shape_index":2,"instruction":"Svolta a sinistra"})
+        output=module.convert(self.route,self.response)
+        self.assertEqual(len(output["turns"]),2)
+
     def test_trace_uses_bus_costing_and_italian(self):
         request = module.trace_request(self.points)
         self.assertEqual(request["costing"], "bus")
@@ -94,3 +117,4 @@ class AcademyRoadTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

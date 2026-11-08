@@ -5,6 +5,7 @@ import CoreLocation
 final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
     private var webView: WKWebView!
     private let navigation = NativeNavigation()
+    private var drive: DriveViewController?
     private var lastLocation: CLLocation?
     private var gtfsDownload: URLSessionDataTask?
     private let gtfsURL = URL(string: "https://proxy.busone.app/biv/gtfs.zip")!
@@ -32,7 +33,10 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             webView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
         navigation.onLocation = { [weak self] fix in self?.deliverLocation(fix) }
-        navigation.onStatus = { [weak self] message in self?.deliverStatus(message) }
+        navigation.onStatus = { [weak self] message in self?.deliverStatus(message); self?.drive?.message(message) }
+        navigation.onProgress = { [weak self] along, deviation, stop, reliable in
+            self?.drive?.update(along: along, deviation: deviation, stop: stop, reliable: reliable)
+        }
         webView.load(URLRequest(url: URL(string: "lineapilot://app/index.html")!))
         NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
@@ -52,15 +56,29 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             guard let raw = body["route"] as? [String: Any],
                   let data = try? JSONSerialization.data(withJSONObject: raw),
                   let route = try? JSONDecoder().decode(NativeRoute.self, from: data),
-                  route.points.count >= 2 else {
+                  GPXTracker(points: route.points) != nil,
+                  route.offsets.count == route.stops.count else {
                 deliverStatus("Percorso nativo non valido")
                 return
             }
             navigation.configureVoice(identifier: body["voiceId"] as? String, rate: body["rate"] as? Double)
             navigation.start(route: route, voiceEnabled: body["voice"] as? Bool ?? true,
                              turnsEnabled: body["turnVoice"] as? Bool ?? true)
+            let screen = DriveViewController(route: route)
+            screen.onEnd = { [weak self] in
+                self?.navigation.stop(); self?.drive = nil
+                UIApplication.shared.isIdleTimerDisabled = false
+                self?.webView.evaluateJavaScript("stopNavigation()", completionHandler: nil)
+            }
+            screen.onVoiceToggle = { [weak self] enabled in self?.navigation.voiceEnabled = enabled }
+            screen.onRepeat = { [weak self] in self?.navigation.repeatInstruction() }
+            drive = screen
+            UIApplication.shared.isIdleTimerDisabled = true
+            present(screen, animated: true)
         case "stop":
             navigation.stop()
+            drive?.dismiss(animated: true); drive = nil
+            UIApplication.shared.isIdleTimerDisabled = false
         case "settings":
             navigation.voiceEnabled = body["voice"] as? Bool ?? navigation.voiceEnabled
             navigation.turnsEnabled = body["turnVoice"] as? Bool ?? navigation.turnsEnabled
@@ -197,6 +215,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
 
     private func deliverLocation(_ location: CLLocation) {
         lastLocation = location
+        drive?.location(location)
         guard UIApplication.shared.applicationState == .active else { return }
         let payload: [String: Any] = [
             "lat": location.coordinate.latitude,
@@ -225,3 +244,4 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
         NotificationCenter.default.removeObserver(self)
     }
 }
+

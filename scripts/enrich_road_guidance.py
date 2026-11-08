@@ -13,7 +13,7 @@ import urllib.request
 import urllib.error
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-MAX_INPUT_POINTS = 550
+MAX_INPUT_POINTS = 16000
 MAX_DISTANCE_M = 45.0
 MAX_POINT_DISTANCE_M = 85.0
 MAX_LENGTH_DEVIATION = 0.07
@@ -101,8 +101,7 @@ def downsample(points, limit=MAX_INPUT_POINTS):
     if len(points) <= limit:
         return points
     # This is only for the trace API. The canonical route is NEVER simplified.
-    indices = sorted({round(i * (len(points) - 1) / (limit - 1)) for i in range(limit)})
-    return [points[i] for i in indices]
+    raise ValueError("Trace exceeds supported point limit; never discard obligatory GPX bends")
 
 
 def trace_request(points):
@@ -128,6 +127,47 @@ def get_response(endpoint, points):
         return json.load(reply)
 
 
+def sampled(points, spacing=25):
+    output = [points[0]]
+    for a, b in zip(points, points[1:]):
+        steps = max(1, math.ceil(distance(a,b)/spacing))
+        for step in range(1,steps+1):
+            t = step/steps
+            output.append((a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t))
+    return output
+
+
+def ordered_projection(points, official, distances):
+    # Spatial index accelerates large catalogs. Candidate segment projection is
+    # exact; ordered tie-breaking disambiguates crossings/repeated termini.
+    try:
+        from scipy.spatial import cKDTree
+    except ImportError:
+        return [project(p, official, distances) for p in points]
+    latitude = math.radians(official[0][0])
+    scale = (111320,111320*math.cos(latitude))
+    dense, segment = [], []
+    for i,(a,b) in enumerate(zip(official,official[1:])):
+        steps = max(1,math.ceil(distance(a,b)/35))
+        for j in range(steps+1):
+            t=j/steps
+            dense.append(((a[0]+(b[0]-a[0])*t)*scale[0],(a[1]+(b[1]-a[1])*t)*scale[1]))
+            segment.append(i)
+    tree=cKDTree(dense)
+    result=[]
+    previous=0
+    for p in points:
+        _, indices=tree.query((p[0]*scale[0],p[1]*scale[1]),k=min(16,len(dense)))
+        candidates=[]
+        for i in {segment[int(j)] for j in indices}:
+            deviation,at=project(p,official[i:i+2], [0,distances[i+1]-distances[i]])
+            candidates.append((deviation,distances[i]+at))
+        minimum=min(x[0] for x in candidates)
+        forward=[x for x in candidates if x[0]<=minimum+3 and x[1]>=previous-30]
+        hit=min(forward,key=lambda x:abs(x[1]-previous)) if forward else min(candidates)
+        previous=max(previous,hit[1]); result.append(hit)
+    return result
+
 def convert(route, response):
     official = [(float(a), float(b)) for a,b in route["points"]]
     if len(official) < 2:
@@ -147,7 +187,12 @@ def convert(route, response):
     if abs(official_dist[-1] - matched_dist[-1]) > max(90, official_dist[-1] * MAX_LENGTH_DEVIATION):
         raise ValueError("Road shape length differs from obligatory Academy GPX")
     # Verify direction and continuity, not merely a high GPS proximity score.
-    projected = [project(p, official, official_dist) for p in matched]
+    projected = ordered_projection(matched, official, official_dist)
+    dense_matched = sampled(matched)
+    dense_errors = [x[0] for x in ordered_projection(dense_matched, official, official_dist)]
+    reverse_errors = [x[0] for x in ordered_projection(sampled(official), matched, matched_dist)]
+    if max(dense_errors + reverse_errors) > MAX_POINT_DISTANCE_M:
+        raise ValueError("Road trace skips or leaves an obligatory GPX segment")
     errors = sorted(x[0] for x in projected)
     if errors[-1] > MAX_POINT_DISTANCE_M or errors[int((len(errors)-1)*0.95)] > MAX_DISTANCE_M:
         raise ValueError("Road geometry deviates from obligatory Academy GPX")
@@ -173,9 +218,13 @@ def convert(route, response):
             continue
         if not instruction or len(instruction) > 160:
             continue
-        if maneuvers and at < maneuvers[-1]["at"] + 55:
+        if maneuvers and at <= maneuvers[-1]["at"]:
             continue
         if typ in (26, 27):
+            exit_count = maneuver.get("roundabout_exit_count")
+            if not isinstance(exit_count, int) or exit_count < 1:
+                continue
+            instruction = f"Alla rotonda, prendi la {exit_count}ª uscita"
             kind = "roundabout"
             side = "rotatoria"
         else:
@@ -223,3 +272,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

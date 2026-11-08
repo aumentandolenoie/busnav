@@ -120,3 +120,22 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
 #checkUpdates{font-size:12px;min-height:44px}
 body.navigating .app-update-banner{display:none!important}
 @media(max-width:800px){.app-update-banner{padding:12px 14px}.app-update-banner .button-row{width:100%}.app-update-banner button{flex:1}}
+
+/* Guided preparation, using the system type and a quiet iOS palette. */
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1c1c1e;background:#f5f5f7;color-scheme:light}
+header{background:#fafafcf2;border-color:#e1e2e6;padding-top:env(safe-area-inset-top);height:calc(64px + env(safe-area-inset-top))}
+.brand small,.help,.sub,.sidebar-footer{color:#63636b}.pill{background:#e8edf5;color:#345375}
+main{grid-template-columns:410px minmax(0,1fr);height:calc(100dvh - 64px - env(safe-area-inset-top))}
+.sidebar{background:#f5f5f7;border-color:#dedee3}.sidebar-scroll{padding:28px 24px}.sidebar-scroll>h1{font-size:32px;letter-spacing:-1.1px;line-height:1.12;margin:10px 0}.sidebar-scroll>.sub{font-size:15px;line-height:1.5;margin-bottom:22px}
+button{background:#e9e9ed;color:#007aff;border:0;min-height:48px;border-radius:14px;font-size:15px}button:hover:not(:disabled){background:#dfe7f4}.primary,button#startNav{background:#007aff;color:white}.primary:hover:not(:disabled){background:#0067d9}
+select,.panel input:not([type="checkbox"]){background:white;color:#1c1c1e;border:1px solid #dcdce2;border-radius:12px;font-size:16px;padding:14px 12px;min-height:50px}
+.panel label:not(.file-button):not(.toggle){font-size:13px;color:#56565f;margin-bottom:18px}
+.panel{border-color:#dedee4}.section-title{color:#63636b;font-size:11px;letter-spacing:1px}.section-title span:first-child{color:#007aff}
+.network-status{background:white;border-color:#e2e2e8;padding:14px;border-radius:16px}.network-status-head{color:#34343a}.network-status p{color:#63636b}
+.wizard-progress{display:flex;gap:5px;margin:20px 0 24px}.wizard-progress span{flex:1;border-top:4px solid #dcdce4;padding:10px 0;color:#787881;font-size:12px;font-weight:600}.wizard-progress [aria-current="step"]{border-color:#007aff;color:#007aff}
+.wizard-step{padding-top:0}.wizard-step h2{font-size:26px;letter-spacing:-.6px;overflow-wrap:anywhere}.wizard-buttons{display:flex;gap:10px;padding:20px 0}.wizard-buttons button{flex:1}
+.match-panel{background:white;border-color:#e2e2e8;margin-top:0;padding:16px;gap:16px}.match-panel button:enabled#mergeOfficial{background:#007aff;border:0;color:white}.secondary-action{background:#e9f2ff}.match-panel .help{font-size:13px}
+.variant-preview,.academy-diff{background:#f5f5f7;border-color:#dcdce4;color:#303038}.variant-preview>strong{color:#25252b}.variant-preview summary,.variant-stops-list{color:#51515b}.variant-stops-list li{border-color:#dedee4}
+.advanced-panel>summary,.stops-panel>summary,.toggle{color:#34343b}.tag{background:#e7f0ff;color:#007aff}.stop-row{border-color:#dedee4}.stop-row.current{background:#e3efff}.stop-row.current strong{color:#0067d9}.stop-num{border-color:#b3b3bd;color:#63636b}.stop-row small{color:#63636b}.guidance-status{padding:16px;background:white;border-radius:16px;line-height:1.5;font-size:14px;border:1px solid #dcdce4}.guidance-status[data-ready="yes"]{color:#18733c;background:#effaf3;border-color:#d3eddc}
+.map-top,.next-card{background:#fffffff2;border-color:#e1e2e6;color:#1c1c1e;box-shadow:0 6px 30px #1c1c1e18;backdrop-filter:blur(20px)}.map-top small,.next-main span,.mini-row{color:#63636b}.distance{color:#007aff}.gps-indicator{background:#edf3fc;color:#345375}.next-title{color:#007aff}.progress-track{background:#e8e8ed}
+@media(max-width:800px){main{height:auto}.sidebar{min-height:calc(100dvh - 64px - env(safe-area-inset-top))}.sidebar-scroll{padding:22px 22px calc(12px + env(safe-area-inset-bottom))}.map-wrap{height:48dvh}.sidebar-scroll>h1{font-size:32px}.wizard-step{min-height:220px}.wizard-buttons{position:sticky;bottom:0;background:#f5f5f7f2;backdrop-filter:blur(15px);padding:14px 0}.help{font-size:13px}.wizard-step .section-title{margin-bottom:18px}}

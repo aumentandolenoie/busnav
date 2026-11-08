@@ -11,13 +11,16 @@ struct NativeRoute: Decodable {
         let text: String?
         let verifiedRoad: Bool?
     }
+    let name: String?
+    let stopCoordinates: [[Double]]?
     let points: [[Double]]        // Latitude, longitude in canonical Academy order
     let offsets: [Double]         // Metres along the canonical GPX
     let stops: [String]           // Busitalia GTFS names only, no MOM supplements
     let turns: [Turn]             // Geometric indications, NOT verified road turns
 }
 
-final class NativeNavigation: NSObject, CLLocationManagerDelegate {
+final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynthesizerDelegate {
+    var onProgress: ((Double, Double, Int, Bool) -> Void)?
     var onLocation: ((CLLocation) -> Void)?
     var onStatus: ((String) -> Void)?
     var voiceEnabled = true
@@ -66,6 +69,10 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
     private let synthesizer = AVSpeechSynthesizer()
     private var route: NativeRoute?
     private var distances: [Double] = []
+    private var tracker: GPXTracker?
+    private var lastOffRouteAlert = Date.distantPast
+    private var speakingStop = false
+    private var matched = false
     private var active = false
     private var along = 0.0
     private var previousFixDate: Date?
@@ -77,6 +84,8 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
     override init() {
         super.init()
         manager.delegate = self
+        synthesizer.delegate = self
+        NotificationCenter.default.addObserver(self, selector: #selector(audioInterrupted(_:)), name: AVAudioSession.interruptionNotification, object: nil)
         manager.activityType = .automotiveNavigation
         manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         manager.distanceFilter = 3
@@ -88,21 +97,17 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
         self.route = route
         self.voiceEnabled = voiceEnabled
         self.turnsEnabled = turnsEnabled
-        distances = [0]
-        for i in 1..<route.points.count {
-            let a = route.points[i - 1], b = route.points[i]
-            guard a.count == 2, b.count == 2 else {
-                onStatus?("Geometria del percorso non valida")
-                self.route = nil
-                return
-            }
-            distances.append(distances[i - 1] + metres(a, b))
-        }
-        guard route.offsets.count == route.stops.count else {
-            onStatus?("Fermate e distanze non corrispondono")
+        guard let geometry = GPXTracker(points: route.points),
+              route.offsets.count == route.stops.count,
+              route.offsets.allSatisfy({ $0.isFinite && $0 >= 0 && $0 <= geometry.distances.last! + 50 }),
+              zip(route.offsets, route.offsets.dropFirst()).allSatisfy({ pair in pair.0 <= pair.1 }),
+              route.turns.allSatisfy({ $0.at.isFinite && $0.at >= 0 && $0.at <= geometry.distances.last! }) else {
+            onStatus?("Geometria GPX o sequenza fermate non valida")
             self.route = nil
             return
         }
+        tracker = geometry
+        distances = geometry.distances
         along = 0
         stopIndex = 0
         previousFixDate = nil
@@ -125,11 +130,14 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
 
     func stop() {
         active = false
+        matched = false
+        speakingStop = false
         locationUpdatesStarted = false
         manager.stopUpdatingLocation()
         manager.allowsBackgroundLocationUpdates = false
         synthesizer.stopSpeaking(at: .immediate)
         route = nil
+        tracker = nil
         previousFixDate = nil
         candidate = nil
         stopStages.removeAll()
@@ -178,37 +186,31 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard active, let route else { return }
         for location in locations {
-            guard location.horizontalAccuracy >= 0, location.horizontalAccuracy <= 110,
-                  location.timestamp.timeIntervalSinceNow > -20 else { continue }
+            guard location.horizontalAccuracy >= 0, location.horizontalAccuracy <= 65,
+                  location.timestamp.timeIntervalSinceNow > -8,
+                  location.timestamp.timeIntervalSinceNow < 2 else { continue }
             onLocation?(location)
             updateProgress(location: location, route: route)
         }
     }
 
     private func updateProgress(location: CLLocation, route: NativeRoute) {
-        let hit = nearest(location.coordinate, on: route.points)
-        guard hit.distance <= 180 else {
-            onStatus?("GPS a \(Int(hit.distance)) m dal GPX: annunci sospesi")
+        let speed = max(0, location.speed)
+        guard let hit = tracker?.update([location.coordinate.latitude, location.coordinate.longitude],
+                                        speed: speed, time: location.timestamp.timeIntervalSince1970,
+                                        accuracy: location.horizontalAccuracy) else {
+            matched = false
+            let distance = tracker?.project([location.coordinate.latitude, location.coordinate.longitude]).distance ?? 0
+            onProgress?(along, distance, stopIndex, false)
+            onStatus?(distance > 85 ? "Fuori percorso · segui il GPX ufficiale" : "GPS in riallineamento · annunci sospesi")
+            if distance > 85 && Date().timeIntervalSince(lastOffRouteAlert) > 45 {
+                if voiceEnabled { speak("Sei fuori dal percorso ufficiale. Controlla la posizione sul GPX.", stopPriority: true) }
+                lastOffRouteAlert = Date()
+            }
             return
         }
-        let speed = max(0, location.speed)
-        let elapsed = previousFixDate.map { max(0.5, min(20, location.timestamp.timeIntervalSince($0))) } ?? 1
-        previousFixDate = location.timestamp
-        let maximumJump = max(90, min(400, max(speed, 5) * elapsed * 2.5 + 70))
-        if along > 0, hit.along > along + maximumJump {
-            if let previous = candidate,
-               location.timestamp.timeIntervalSince(previous.at) < 20,
-               abs(previous.along - hit.along) < max(180, speed * elapsed * 3 + 75) {
-                candidate = nil
-            } else {
-                candidate = (hit.along, location.timestamp)
-                onStatus?("Riallineamento GPS al GPX")
-                return
-            }
-        } else {
-            candidate = nil
-        }
-        along = max(along, hit.along - 25)
+        matched = true
+        along = hit.along
         while stopIndex < route.stops.count && along > route.offsets[stopIndex] + 35 {
             stopIndex += 1
         }
@@ -216,35 +218,32 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
         if stopIndex == 0 && route.offsets.count > 1 &&
            route.offsets[0] < 50 && abs(along - route.offsets[0]) < 30 { stopIndex = 1 }
 
+        onProgress?(along, hit.distance, stopIndex, true)
         let remaining = stopIndex < route.offsets.count ? route.offsets[stopIndex] - along : .infinity
         if voiceEnabled && stopIndex < route.stops.count && hit.distance < 100 && remaining >= 0 {
             let stage = stopStages[stopIndex, default: 0]
             let lead = max(140, min(400, max(speed, 6) * 22))
-            if stage == 0 && remaining <= lead {
-                speak("Tra \(Int(max(50, remaining / 50 * 50).rounded())) metri, prossima fermata: \(route.stops[stopIndex]).")
+            if stage == 0 && remaining <= lead && !speakingStop {
+                speak("Tra \(Int(max(50, (remaining / 50).rounded() * 50))) metri, prossima fermata: \(route.stops[stopIndex]).", stopPriority: true)
                 stopStages[stopIndex] = 1
             } else if stage == 1 && remaining <= 65 && remaining >= 8 && speed > 2 {
-                speak("Fermata in arrivo: \(route.stops[stopIndex]).")
+                speak("Fermata in arrivo: \(route.stops[stopIndex]).", stopPriority: true)
                 stopStages[stopIndex] = 2
             }
         }
-        if turnsEnabled && voiceEnabled && hit.distance < 85 && remaining > 170 {
-            for (index, turn) in route.turns.enumerated() where turn.at > along + 15 && turn.at < along + 450 {
+        if turnsEnabled && voiceEnabled && hit.distance < 65 {
+            for (index, turn) in route.turns.enumerated() where turn.verifiedRoad == true && turn.at > along - 12 && turn.at < along + 450 {
                 let distance = turn.at - along
                 let lead = max(150, min(350, max(speed, 6) * 18))
                 let stage = turnStages[index, default: 0]
                 if stage == 0 && distance <= lead && !synthesizer.isSpeaking {
                     if turn.verifiedRoad == true, let message = turn.text, !message.isEmpty {
                         speak("Tra circa \(Int(distance.rounded())) metri, \(message).")
-                    } else {
-                        speak("Possibile svolta a \(turn.side) tra circa \(Int(distance.rounded())) metri.")
                     }
                     turnStages[index] = 1
-                } else if stage == 1 && distance <= 85 && !synthesizer.isSpeaking {
+                } else if stage == 1 && distance <= max(20, speed * 3) && !synthesizer.isSpeaking {
                     if turn.verifiedRoad == true, let message = turn.text, !message.isEmpty {
-                        speak("Tra poco, \(message).")
-                    } else {
-                        speak("Possibile svolta a \(turn.side) tra poco.")
+                        speak(message)
                     }
                     turnStages[index] = 2
                 }
@@ -253,16 +252,47 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
         }
     }
 
+    func repeatInstruction() {
+        guard voiceEnabled, matched, let route else { return }
+        if let turn = route.turns.first(where: { $0.verifiedRoad == true && $0.at > along - 12 }), let text = turn.text {
+            speak("Tra \(Int(max(0, turn.at-along).rounded())) metri, \(text)", stopPriority: true)
+        } else if stopIndex < route.stops.count {
+            speak("Prossima fermata: \(route.stops[stopIndex])", stopPriority: true)
+        } else { speak("Segui il percorso ufficiale.", stopPriority: true) }
+    }
+
     func testVoice() {
         speak("Voce nativa LineaPilot attiva.")
     }
 
-    private func speak(_ text: String) {
+    @objc private func audioInterrupted(_ note: Notification) {
+        guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
+        if type == .began { synthesizer.stopSpeaking(at: .immediate); speakingStop = false }
+        // Stale utterances are discarded; next GPS fixes schedule current cues.
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        speakingStop = false
+        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        // Do not deactivate the session here: a priority stop may already be starting.
+    }
+
+    private func speak(_ text: String, stopPriority: Bool = false) {
         guard !text.isEmpty else { return }
+        if synthesizer.isSpeaking {
+            guard stopPriority && !speakingStop else { return }
+            synthesizer.stopSpeaking(at: .immediate)
+        }
+        speakingStop = stopPriority
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
+            speakingStop = false
             onStatus?("Audio nativo non disponibile: \(error.localizedDescription)")
             return
         }
@@ -287,27 +317,4 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate {
         synthesizer.speak(utterance)
     }
 
-    private func metres(_ a: [Double], _ b: [Double]) -> Double {
-        CLLocation(latitude: a[0], longitude: a[1]).distance(from: CLLocation(latitude: b[0], longitude: b[1]))
-    }
-
-    private func nearest(_ coordinate: CLLocationCoordinate2D, on points: [[Double]]) -> (along: Double, distance: Double) {
-        var best = (along: 0.0, distance: Double.infinity)
-        let latitudeScale = 111_320.0
-        for i in 0..<(points.count - 1) {
-            let a = points[i], b = points[i + 1]
-            let longitudeScale = latitudeScale * cos(coordinate.latitude * .pi / 180)
-            let dx = (b[1] - a[1]) * longitudeScale
-            let dy = (b[0] - a[0]) * latitudeScale
-            let px = (coordinate.longitude - a[1]) * longitudeScale
-            let py = (coordinate.latitude - a[0]) * latitudeScale
-            let lengthSquared = dx * dx + dy * dy
-            let t = lengthSquared > 0 ? max(0, min(1, (px * dx + py * dy) / lengthSquared)) : 0
-            let distance = hypot(px - t * dx, py - t * dy)
-            if distance < best.distance {
-                best = (distances[i] + t * (distances[i + 1] - distances[i]), distance)
-            }
-        }
-        return best
-    }
 }

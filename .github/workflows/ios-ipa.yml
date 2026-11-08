@@ -1,57 +1,74 @@
 name: LineaPilot iOS unsigned IPA
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'ios/**'
-      - 'scripts/prepare-ios.sh'
-      - 'scripts/build-ios-unsigned.sh'
-      - 'app.js'
-      - 'index.html'
-      - 'style.css'
-      - 'official-routes.json'
-      - 'road-guidance/**'
-      - 'scripts/enrich_road_guidance.py'
-      - '.github/workflows/ios-ipa.yml'
   push:
     branches: [main]
-    paths:
-      - 'ios/**'
-      - 'scripts/prepare-ios.sh'
-      - 'scripts/build-ios-unsigned.sh'
-      - 'app.js'
-      - 'index.html'
-      - 'style.css'
-      - 'official-routes.json'
-      - 'road-guidance/**'
-      - 'scripts/enrich_road_guidance.py'
-      - '.github/workflows/ios-ipa.yml'
+    paths: ['ios/**', 'scripts/**', 'app.js', 'index.html', 'style.css', 'official-routes.json', 'road-guidance/**', '.github/workflows/ios-ipa.yml']
+  pull_request:
+    branches: [main]
+    paths: ['ios/**', 'scripts/**', 'app.js', 'index.html', 'style.css', '.github/workflows/ios-ipa.yml']
 permissions:
   contents: write
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
+  road-data:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install geometry validator
+        run: python3 -m pip install scipy
+      - name: Test instruction validation
+        run: python3 -m unittest discover -s tests -p 'test_road_guidance.py' -v
+      - name: Build current OSM graph and annotate immutable official GPX
+        run: bash scripts/build-road-guidance.sh
+      - name: Publish navigation data and exact coverage report
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="ios-preview-${GITHUB_SHA:0:12}"
+          zip -qr navigation-data.zip road-guidance
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "$GITHUB_SHA" --title "LineaPilot · $TAG" --notes "Build in preparazione. GPX Academy intatti. Vedi coverage.json per le istruzioni stradali disponibili."
+          gh release upload "$TAG" navigation-data.zip road-guidance/coverage.json --clobber
+      - name: Valhalla diagnostic logs
+        if: failure()
+        run: docker logs --tail 150 busnav-valhalla || true
   build-ios:
+    needs: road-data
+    if: always() && (needs.road-data.result == 'success' || github.event_name == 'pull_request')
     runs-on: macos-15
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare web assets
-        run: bash scripts/prepare-ios.sh
-      - name: Install XcodeGen
-        run: |
-          command -v xcodegen >/dev/null || brew install xcodegen
-          (cd ios && xcodegen generate)
-      - name: Compile unsigned iOS device app and package IPA
-        run: bash scripts/build-ios-unsigned.sh
-      # Releases avoid the exhausted Actions artifact storage quota.
-      # A release is created only on main (never for a pull request).
-      - name: Publish unsigned IPA as prerelease
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Load validated road instructions
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="ios-preview-$(git rev-parse --short=12 HEAD)"
-          gh release create "$TAG" build/ios/LineaPilot-unsigned.ipa \
-            --title "LineaPilot iOS unsigned - $TAG" \
-            --notes "Prototipo iOS NON FIRMATO, destinato a test di sideloading con SideStore. Servono firma e autorizzazioni iOS per installarlo. GPS e voce con schermo bloccato da collaudare: non è navigazione certificata." \
-            --prerelease --target "$GITHUB_SHA"
+          gh release download "ios-preview-${GITHUB_SHA:0:12}" --pattern navigation-data.zip
+          unzip -oq navigation-data.zip
+      - name: Regression tests
+        run: |
+          node --test tests/smoke.test.cjs
+          python3 -m unittest discover -s tests -p 'test_road_guidance.py' -v
+          swiftc ios/Sources/GPXTracker.swift tests/main.swift -o /tmp/gpx-tests
+          /tmp/gpx-tests
+      - name: Prepare bundled web assets
+        run: bash scripts/prepare-ios.sh
+      - name: Generate Xcode project
+        run: |
+          command -v xcodegen >/dev/null || brew install xcodegen
+          (cd ios && xcodegen generate)
+      - name: Compile and validate unsigned device IPA for LiveContainer
+        run: bash scripts/build-ios-unsigned.sh
+      - name: Publish installable LiveContainer package
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="ios-preview-${GITHUB_SHA:0:12}"
+          gh release upload "$TAG" build/ios/LineaPilot-unsigned.ipa --clobber
+          gh release edit "$TAG" --notes "IPA unsigned da importare in LiveContainer. Mappa Apple nativa, GPX Academy vincolanti, fermate selezionate e voce italiana. Istruzioni Valhalla/OSM incluse solo dove il confronto geometrico col GPX supera i controlli; copertura esatta in coverage.json. In LiveContainer tenere l'app in primo piano. Compilazione e test automatici verificati; GPS, audio e stabilità richiedono prova su iPhone."

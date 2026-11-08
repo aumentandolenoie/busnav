@@ -149,7 +149,7 @@ test('turn cues are staged, deduplicated and stop-prioritized',()=>{
   ${fns}
   return {guide:planTurnVoice,lead:turnAlertDistance,stages:spokenTurnStages};
  `)(calls);
- const turn={side:'destra'};
+ const turn={side:'destra',verifiedRoad:true,text:'Svolta a destra'};
  run.guide(turn,0,320,20,12,Infinity);
  run.guide(turn,0,260,20,12,Infinity);
  run.guide(turn,0,70,20,12,Infinity);
@@ -158,11 +158,13 @@ test('turn cues are staged, deduplicated and stop-prioritized',()=>{
  assert.equal(calls[0].priority,'turn');
  assert.match(calls[0].msg,/destra/);
  assert.equal(run.stages.get(0),2);
- run.guide({side:'sinistra'},1,170,10,10,90);
+ run.guide({side:'sinistra',verifiedRoad:true,text:'Svolta a sinistra'},1,170,10,10,90);
  assert.equal(calls.length,2,'Stop announcement must take precedence over turns');
- run.guide({side:'sinistra'},1,150,10,10,Infinity);
+ run.guide({side:'sinistra',verifiedRoad:true,text:'Svolta a sinistra'},1,150,10,10,Infinity);
  assert.equal(calls.length,3);
  assert.match(calls[2].msg,/sinistra/);
+ run.guide({side:'destra'},9,140,10,10,Infinity);
+ assert.equal(calls.length,3,'Geometric bends must never be spoken as road instructions');
 });
 
 test('native iOS bridge does not replace web PWA GPS',()=>{
@@ -367,7 +369,7 @@ test('road guidance validates official Academy fingerprint, language and geometr
 });
 test('Academy remains the ONLY navigation route for web and native while Italian cues are optional',()=>{
  assert.match(js,/loadRoadGuidance\(chosen,dists\)/);
- assert.match(js,/turns=computeTurns\(points,dists\);loadRoadGuidance/);
+ assert.match(js,/turns=\[\];roadGuidanceReady=loadRoadGuidance/);
  assert.match(js,/String\(current\.academy\.id\)!==id/);
  assert.match(js,/verifiedRoad:true/);
  assert.match(js,/turn\.verifiedRoad\?turn\.text:'Possibile svolta a '/);
@@ -375,7 +377,7 @@ test('Academy remains the ONLY navigation route for web and native while Italian
  const swift=fs.readFileSync('ios/Sources/NativeNavigation.swift','utf8');
  assert.match(swift,/verifiedRoad: Bool\?/);
  assert.match(swift,/Tra circa/);
- assert.match(swift,/let hit = nearest\(location\.coordinate, on: route\.points\)/);
+ assert.match(swift,/let hit = tracker\?\.update/);
  const prepare=fs.readFileSync('scripts/prepare-ios.sh','utf8');
  assert.match(prepare,/road-guidance/);
  assert.match(prepare,/official-routes\.json/);
@@ -434,3 +436,4 @@ test('automatic Italian Apple voice prefers enhanced quality and update checks r
  assert.match(android,/protected void onResume\(\)/);
  assert.match(android,/lineaPilotCheckUpdatesOnResume/);
 });
+
