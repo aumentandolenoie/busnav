@@ -60,10 +60,33 @@ import MapKit
         var actual = Array(repeating:CLLocationCoordinate2D(),count:points.count)
         line.getCoordinates(&actual,range:NSRange(location:0,length:points.count))
         for i in points.indices { XCTAssertEqual(actual[i].latitude,points[i][0],accuracy:0.000001); XCTAssertEqual(actual[i].longitude,points[i][1],accuracy:0.000001) }
-        let fit = descendants(preview).first { $0.accessibilityIdentifier == "previewFitRoute" }!
+        let fit = descendants(preview).first { $0.accessibilityIdentifier == "previewCenterGPS" }!
         XCTAssertGreaterThanOrEqual(fit.bounds.width,44); XCTAssertGreaterThanOrEqual(fit.bounds.height,44)
     }
+    func testDraggingSuspendsCameraUntilPositionButtonIsPressed() throws {
+        let data = "{\"name\":\"Test\",\"points\":[[45,11],[45,11.01]],\"offsets\":[],\"stops\":[]}".data(using:.utf8)!
+        let route = try JSONDecoder().decode(NativeRoute.self,from:data)
+        let drive = DriveViewController(route:route,voiceEnabled:false)
+        drive.loadViewIfNeeded(); drive.view.frame = CGRect(x:0,y:0,width:390,height:844); drive.view.layoutIfNeeded()
+        let map = descendants(drive.view).compactMap { $0 as? MKMapView }.first!
+        let first = CLLocation(latitude:45,longitude:11)
+        drive.location(first)
+        let pan = BeganPan()
+        drive.perform(NSSelectorFromString("mapGesture:"),with:pan)
+        let before = map.camera.centerCoordinate
+        drive.location(CLLocation(latitude:45.01,longitude:11.02))
+        drive.update(along:100,deviation:0,stop:0,reliable:true)
+        XCTAssertEqual(map.camera.centerCoordinate.latitude,before.latitude,accuracy:0.000001)
+        XCTAssertEqual(map.camera.centerCoordinate.longitude,before.longitude,accuracy:0.000001)
+        let center = descendants(drive.view).first { $0.accessibilityIdentifier == "recenter" } as! UIButton
+        center.sendActions(for:.touchUpInside)
+        XCTAssertEqual(map.camera.centerCoordinate.latitude,45.01,accuracy:0.00001)
+        XCTAssertEqual(map.camera.centerCoordinate.longitude,11.02,accuracy:0.00001)
+        XCTAssertTrue(map.gestureRecognizers!.contains { $0 is UIPanGestureRecognizer && $0.delegate === drive })
+    }
+    private final class BeganPan: UIPanGestureRecognizer { override var state: UIGestureRecognizer.State { get { .began } set {} } }
     private func descendants(_ view: UIView) -> [UIView] {
         view.subviews.flatMap { [$0] + descendants($0) }
     }
 }
+

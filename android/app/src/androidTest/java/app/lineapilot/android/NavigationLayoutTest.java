@@ -36,6 +36,27 @@ import static org.junit.Assert.*;
                 for(View control:controls){Rect r=new Rect();assertTrue(control.getGlobalVisibleRect(r));int[] position=new int[2];control.getLocationOnScreen(position);Rect full=new Rect(position[0],position[1],position[0]+control.getWidth(),position[1]+control.getHeight());assertEquals("Clipped control: "+control.getTag(),full,r);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(full));assertTrue(control.getWidth()>=48*d-1);assertTrue(control.getHeight()>=48*d-1);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(r));for(Rect other:rectangles)assertFalse("Overlapping controls",Rect.intersects(r,other));rectangles.add(r);}
                 assertTrue(a.session.screen.nativeMap.mapView instanceof org.maplibre.android.maps.MapView);
             });
+            final int[] touch=new int[2];
+            scenario.onActivity(a->{DriverView screen=a.session.screen;int[] origin=new int[2];screen.getLocationOnScreen(origin);touch[0]=origin[0]+screen.getWidth()/2;touch[1]=origin[1]+(screen.getChildAt(1).getBottom()+screen.getChildAt(2).getTop())/2;});
+            android.app.UiAutomation automation=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation();
+            long down=android.os.SystemClock.uptimeMillis();
+            for(int i=0;i<=12;i++){
+                int action=i==0?MotionEvent.ACTION_DOWN:i==12?MotionEvent.ACTION_UP:MotionEvent.ACTION_MOVE;
+                MotionEvent event=MotionEvent.obtain(down,android.os.SystemClock.uptimeMillis(),action,touch[0]-i*8,touch[1],0);automation.injectInputEvent(event,true);event.recycle();android.os.SystemClock.sleep(20);
+            }
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+            scenario.onActivity(a->{
+                DriverView screen=a.session.screen;
+                org.maplibre.android.geometry.LatLng before=screen.nativeMap.map.getCameraPosition().target;
+                android.location.Location fix=new android.location.Location("test");fix.setLatitude(45.02);fix.setLongitude(11.03);
+                screen.location(fix,true,0);
+                org.maplibre.android.geometry.LatLng after=screen.nativeMap.map.getCameraPosition().target;
+                assertEquals("GPS must not recenter after a drag",before.getLatitude(),after.getLatitude(),0.000001);
+                assertEquals(before.getLongitude(),after.getLongitude(),0.000001);
+                screen.findViewWithTag("nav-center").performClick();
+                assertEquals(45.02,screen.nativeMap.map.getCameraPosition().target.getLatitude(),0.00001);
+                assertEquals(11.03,screen.nativeMap.map.getCameraPosition().target.getLongitude(),0.00001);
+            });
             android.graphics.Bitmap screenshot=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
             scenario.onActivity(a->{
                 try{
@@ -52,3 +73,4 @@ import static org.junit.Assert.*;
     }
     private void collect(View root,List<View> out){if(root.getTag()!=null&&root.getTag().toString().startsWith("nav-"))out.add(root);if(root instanceof ViewGroup){ViewGroup group=(ViewGroup)root;for(int i=0;i<group.getChildCount();i++)collect(group.getChildAt(i),out);}}
 }
+

@@ -18,7 +18,7 @@ final class DriverView extends FrameLayout {
     DriverView(MainActivity c,NavigationSession s,boolean test){
         super(c);session=s;setTag("driver-screen");setBackgroundColor(Color.WHITE);
         nativeMap=new NativeMap(c,null,test);addView(nativeMap,new LayoutParams(-1,-1));nativeMap.show(s.route.points,s.route.stopCoordinates,s.route.stops);
-        nativeMap.mapView.setOnTouchListener((v,event)->{if(event.getActionMasked()==android.view.MotionEvent.ACTION_DOWN)following=false;return false;});
+        nativeMap.onUserGesture=()->following=false;
         top=card(c,Color.rgb(20,57,40));top.setOrientation(LinearLayout.HORIZONTAL);top.setGravity(Gravity.CENTER_VERTICAL);
         symbol=new ImageView(c);symbol.setImageDrawable(new NavigationIcon("forward",Color.WHITE));symbol.setScaleType(ImageView.ScaleType.FIT_CENTER);top.addView(symbol,new LinearLayout.LayoutParams(dp(36),dp(48)));
         topText=new BoundedScroll(c);LinearLayout texts=column(c);distance=label(c,"Attesa GPS",36,Color.WHITE,true);distance.setMaxLines(1);distance.setEllipsize(android.text.TextUtils.TruncateAt.END);instruction=label(c,"Segui il percorso ufficiale",25,Color.WHITE,true);instruction.setMaxLines(3);instruction.setEllipsize(android.text.TextUtils.TruncateAt.END);texts.addView(distance);texts.addView(instruction);topText.addView(texts);
@@ -62,3 +62,4 @@ final class DriverView extends FrameLayout {
     private int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     private static final class BoundedScroll extends ScrollView {int limit=400;BoundedScroll(Context c){super(c);setFillViewport(false);} @Override protected void onMeasure(int w,int h){super.onMeasure(w,MeasureSpec.makeMeasureSpec(limit,MeasureSpec.AT_MOST));}}
 }
+

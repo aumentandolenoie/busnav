@@ -21,6 +21,8 @@ final class NativeMap extends FrameLayout {
     private static boolean initialized;
     final MapView mapView;MapLibreMap map;
     private double[][] route=new double[0][2],stops=new double[0][2];private String[] names=new String[0];
+    Runnable onUserGesture;
+    private double[] pendingCenter;
     private double[] fix;private boolean pendingFit;
     private final boolean offlineTest;private boolean started,destroyed;private final TextView attribution;
     static synchronized void initialize(Context context){
@@ -36,6 +38,7 @@ final class NativeMap extends FrameLayout {
         LayoutParams ap=new LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.START);ap.setMargins(dp(8),0,0,dp(8));addView(attribution,ap);
         mapView.getMapAsync(m->{
             map=m;map.setPrefetchZoomDelta(0);
+            map.addOnCameraMoveStartedListener(reason->{if(reason==MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE&&onUserGesture!=null)onUserGesture.run();});
             map.getUiSettings().setCompassEnabled(false);map.getUiSettings().setRotateGesturesEnabled(false);
             map.getUiSettings().setLogoEnabled(false);
             map.getUiSettings().setAttributionMargins(dp(8),0,0,dp(8));
@@ -48,7 +51,7 @@ final class NativeMap extends FrameLayout {
                 s.addLayer(new CircleLayer("stop-dots","stops").withProperties(circleColor("#007aff"),circleRadius(5f),circleStrokeColor("#ffffff"),circleStrokeWidth(2f)));
                 s.addSource(new GeoJsonSource("gps",FeatureCollection.fromFeatures(new Feature[0])));
                 s.addLayer(new CircleLayer("gps-dot","gps").withProperties(circleColor("#007aff"),circleRadius(10f),circleStrokeColor("#ffffff"),circleStrokeWidth(4f)));
-                drawRoute();drawFix();map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(45.4064,11.8768),11));if(route.length>1)fitRoute();
+                drawRoute();drawFix();map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(45.4064,11.8768),11));if(route.length>1)fitRoute();if(pendingCenter!=null)centerLocation(pendingCenter[0],pendingCenter[1]);
             });
             map.addOnMapClickListener(p->{List<Feature> fs=map.queryRenderedFeatures(map.getProjection().toScreenLocation(p),"stop-dots");if(!fs.isEmpty())Toast.makeText(c,fs.get(0).getStringProperty("name"),Toast.LENGTH_SHORT).show();return !fs.isEmpty();});
         });
@@ -62,6 +65,10 @@ final class NativeMap extends FrameLayout {
     }
     void location(double lat,double lon){fix=new double[]{lat,lon};drawFix();}
     private void drawFix(){if(map==null||map.getStyle()==null||fix==null)return;GeoJsonSource s=map.getStyle().getSourceAs("gps");if(s!=null)s.setGeoJson(Feature.fromGeometry(Point.fromLngLat(fix[1],fix[0])));}
+    void centerLocation(double lat,double lon){
+        location(lat,lon);pendingFit=false;pendingCenter=new double[]{lat,lon};
+        if(map!=null&&map.getStyle()!=null){map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat,lon),16));pendingCenter=null;}
+    }
     void fitRoute(){
         if(map==null||route.length<2||getWidth()==0||getHeight()==0)return;
         try{List<LatLng> ps=new ArrayList<>();for(double[] p:route)ps.add(new LatLng(p[0],p[1]));map.moveCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().includes(ps).build(),dp(28)));pendingFit=false;}catch(IllegalStateException ignored){pendingFit=true;}
@@ -71,3 +78,4 @@ final class NativeMap extends FrameLayout {
     void setInsets(int top,int bottom){if(map!=null)map.setPadding(dp(8),top,dp(8),bottom);LayoutParams p=(LayoutParams)attribution.getLayoutParams();if(p.bottomMargin!=bottom){p.bottomMargin=bottom;attribution.setLayoutParams(p);}}
     void start(){if(started||destroyed)return;mapView.onStart();mapView.onResume();started=true;}void pause(){if(!started||destroyed)return;mapView.onPause();mapView.onStop();started=false;}void destroy(){if(destroyed)return;pause();mapView.onDestroy();destroyed=true;}void lowMemory(){mapView.onLowMemory();}
 }
+

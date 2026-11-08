@@ -38,6 +38,7 @@ public final class MainActivity extends Activity {
     private FrameLayout root,preview;
     NativeMap previewMap;
     NavigationSession session;
+    private PreviewLocation previewLocation;
     boolean layoutTest;
     private AudioManager audio;
     private AudioFocusRequest focus;
@@ -67,7 +68,8 @@ public final class MainActivity extends Activity {
         web = new WebView(this);root.addView(web,new FrameLayout.LayoutParams(-1,-1));
         preview=new FrameLayout(this);previewMap=new NativeMap(this,savedInstanceState,layoutTest);preview.addView(previewMap,new FrameLayout.LayoutParams(-1,-1));
         TextView caption=new TextView(this);caption.setText("Anteprima · GPX ufficiale");caption.setTextSize(12);caption.setTextColor(Color.DKGRAY);caption.setPadding(dp(8),dp(6),dp(8),dp(6));caption.setBackgroundColor(0xeeffffff);FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.START);cp.setMargins(dp(12),dp(8),dp(64),0);preview.addView(caption,cp);
-        ImageButton fit=new ImageButton(this);fit.setImageDrawable(new NavigationIcon("fit",Color.rgb(0,122,255)));fit.setScaleType(ImageView.ScaleType.FIT_CENTER);fit.setContentDescription("Mostra tutto il percorso");fit.setTag("preview-fit");fit.setPadding(dp(12),dp(12),dp(12),dp(12));fit.setMinimumWidth(dp(48));GradientDrawable bg=new GradientDrawable();bg.setColor(Color.WHITE);bg.setCornerRadius(dp(12));fit.setBackground(bg);fit.setOnClickListener(v->previewMap.fitRoute());FrameLayout.LayoutParams fp=new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.TOP|Gravity.END);fp.setMargins(0,dp(8),dp(12),0);preview.addView(fit,fp);
+        previewLocation=new PreviewLocation(this,previewMap);
+        ImageButton fit=new ImageButton(this);fit.setImageDrawable(new NavigationIcon("location",Color.rgb(0,122,255)));fit.setScaleType(ImageView.ScaleType.FIT_CENTER);fit.setContentDescription("Centra posizione attuale");fit.setTag("preview-center");fit.setPadding(dp(12),dp(12),dp(12),dp(12));fit.setMinimumWidth(dp(48));GradientDrawable bg=new GradientDrawable();bg.setColor(Color.WHITE);bg.setCornerRadius(dp(12));fit.setBackground(bg);fit.setOnClickListener(v->centerPreview());FrameLayout.LayoutParams fp=new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.TOP|Gravity.END);fp.setMargins(0,dp(8),dp(12),0);preview.addView(fit,fp);
         root.addView(preview,new FrameLayout.LayoutParams(-1,dp(240),Gravity.BOTTOM));root.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->layoutPreparation());
         audio=(AudioManager)getSystemService(AUDIO_SERVICE);
         focus=new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()).setOnAudioFocusChangeListener(change->{if(change==AudioManager.AUDIOFOCUS_LOSS||change==AudioManager.AUDIOFOCUS_LOSS_TRANSIENT)stopNativeSpeech();}).build();
@@ -134,6 +136,7 @@ public final class MainActivity extends Activity {
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
+        if(requestCode==44){if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED||checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED)previewLocation.request();else Toast.makeText(this,"Abilita Posizione nelle Impostazioni",Toast.LENGTH_LONG).show();}
         if(requestCode==43&&session!=null){boolean granted=false;for(int result:results)if(result==PackageManager.PERMISSION_GRANTED)granted=true;if(granted)session.resume();else session.screen.message("GPS non autorizzato");}
         if (requestCode == 42 && pendingLocation != null) {
             boolean granted = false;
@@ -157,7 +160,7 @@ public final class MainActivity extends Activity {
         if (web.canGoBack()) web.goBack(); else super.onBackPressed();
     }
 
-    @Override protected void onPause(){if(session!=null){session.pause();session.screen.nativeMap.pause();}if(previewMap!=null)previewMap.pause();super.onPause();}
+    @Override protected void onPause(){if(previewLocation!=null)previewLocation.cancel();if(session!=null){session.pause();session.screen.nativeMap.pause();}if(previewMap!=null)previewMap.pause();super.onPause();}
     @Override public void onLowMemory(){super.onLowMemory();if(previewMap!=null)previewMap.lowMemory();if(session!=null)session.screen.nativeMap.lowMemory();}
     @Override protected void onDestroy() {
         if(session!=null){session.stop();session.screen.nativeMap.destroy();session=null;}
@@ -167,6 +170,10 @@ public final class MainActivity extends Activity {
         super.onDestroy();
     }
 
+    private void centerPreview(){
+        if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED&&checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},44);return;}
+        previewLocation.request();
+    }
     private int dp(float value){return Math.round(value*getResources().getDisplayMetrics().density);}
     private void layoutPreparation(){
         if(root==null||preview==null)return;int h=root.getHeight()-root.getPaddingTop()-root.getPaddingBottom();if(h<=0)return;
@@ -180,7 +187,7 @@ public final class MainActivity extends Activity {
         try{
             NativeRoute route=new NativeRoute(body.getJSONObject("route"));endNavigation(false);
             ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.clearFocus();
-            configureVoice(body);previewMap.pause();preview.setVisibility(View.INVISIBLE);web.setVisibility(View.INVISIBLE);
+            previewLocation.cancel();configureVoice(body);previewMap.pause();preview.setVisibility(View.INVISIBLE);web.setVisibility(View.INVISIBLE);
             session=new NavigationSession(this,route,body.optBoolean("voice",true),body.optBoolean("turnVoice",true),body.optBoolean("demo",false));
             root.addView(session.screen,new FrameLayout.LayoutParams(-1,-1));getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);session.screen.nativeMap.start();session.resume();
         }catch(Exception e){error("Percorso nativo non valido: "+e.getMessage());}
@@ -278,4 +285,5 @@ public final class MainActivity extends Activity {
         }
     }
 }
+
 

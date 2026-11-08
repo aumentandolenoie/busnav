@@ -2,7 +2,7 @@ import UIKit
 import MapKit
 
 // Native Apple cartography, but the ONLY route overlay is the supplied Academy GPX.
-final class DriveViewController: UIViewController, MKMapViewDelegate {
+final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate {
     private let map = MKMapView()
     private let instruction = UILabel()
     private let turnDistance = UILabel()
@@ -106,7 +106,14 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
             compass.trailingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.trailingAnchor,constant:-12),
             compass.bottomAnchor.constraint(equalTo:bottomPanel.topAnchor,constant:-8)
         ])
-        for recognizer in map.gestureRecognizers ?? [] { recognizer.addTarget(self,action:#selector(mapGesture(_:))) }
+        // MapKit installs its own recognizers on internal subviews. Observe gestures
+        // independently and simultaneously, without stealing map scrolling/zooming.
+        for recognizer in [UIPanGestureRecognizer(target:self,action:#selector(mapGesture(_:))),
+                           UIPinchGestureRecognizer(target:self,action:#selector(mapGesture(_:))),
+                           UIRotationGestureRecognizer(target:self,action:#selector(mapGesture(_:)))] {
+            recognizer.delegate = self; recognizer.cancelsTouchesInView = false
+            map.addGestureRecognizer(recognizer)
+        }
     }
 
     private func touchTarget(_ button: UIView) {
@@ -203,7 +210,10 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         lastHeading = heading
         map.setCamera(MKMapCamera(lookingAtCenter:fix.coordinate,fromDistance:650,pitch:55,heading:heading),animated:false)
     }
-    @objc private func mapGesture(_ gesture: UIGestureRecognizer) { if gesture.state == .began { following = false } }
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { true }
+    @objc private func mapGesture(_ gesture: UIGestureRecognizer) {
+        if gesture.state == .began || gesture.state == .changed { following = false }
+    }
     @objc private func recenter() { following = true; updateCamera() }
     @objc private func repeatCue() { onRepeat?() }
     @objc private func toggleVoice(_ sender:UIButton) { voice.toggle(); sender.setImage(UIImage(systemName:voice ? "speaker.wave.2.fill" : "speaker.slash.fill"),for:.normal); onVoiceToggle?(voice) }
@@ -216,3 +226,4 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         let pin = MKMarkerAnnotationView(annotation:annotation,reuseIdentifier:"stop"); pin.markerTintColor = .systemBlue; pin.glyphImage = UIImage(systemName:annotation === demoMarker ? "location.fill" : "bus.fill"); pin.canShowCallout = true; pin.displayPriority = .defaultLow; return pin
     }
 }
+
