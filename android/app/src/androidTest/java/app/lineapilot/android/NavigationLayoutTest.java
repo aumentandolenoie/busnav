@@ -38,7 +38,14 @@ import static org.junit.Assert.*;
             });
             android.graphics.Bitmap screenshot=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
             scenario.onActivity(a->{
-                try(java.io.FileOutputStream output=new java.io.FileOutputStream(new java.io.File(a.getFilesDir(),"native-navigation.png"))){assertTrue(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,output));}catch(Exception e){throw new AssertionError(e);}
+                try{
+                    android.content.ContentValues values=new android.content.ContentValues();
+                    values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME,a.getResources().getConfiguration().fontScale>1.1?"lineapilot-navigation-large.png":"lineapilot-navigation-standard.png");
+                    values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE,"image/png");
+                    values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH,android.os.Environment.DIRECTORY_DOWNLOADS);
+                    android.net.Uri uri=a.getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);assertNotNull(uri);
+                    try(java.io.OutputStream output=a.getContentResolver().openOutputStream(uri)){assertTrue(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,output));}
+                }catch(Exception e){throw new AssertionError(e);}
                 a.endNavigation();assertNull(a.session);
             });
         }

@@ -109,10 +109,11 @@ jobs:
             adb shell wm size 720x1280
             adb shell wm density 320
             gradle -p android --no-daemon connectedDebugAndroidTest
-            adb exec-out run-as app.lineapilot.android cat files/native-navigation.png > build/android-native-navigation.png
+            adb pull /sdcard/Download/lineapilot-navigation-standard.png build/android-native-navigation.png
             adb shell settings put system font_scale 1.5
             gradle -p android --no-daemon connectedDebugAndroidTest --rerun-tasks
-            adb exec-out run-as app.lineapilot.android cat files/native-navigation.png > build/android-native-large-text.png
+            adb pull /sdcard/Download/lineapilot-navigation-large.png build/android-native-large-text.png
+            python3 -c "from pathlib import Path; files=[Path('build/android-native-navigation.png'),Path('build/android-native-large-text.png')]; assert all(p.stat().st_size>1000 and p.read_bytes().startswith(bytes([137,80,78,71,13,10,26,10])) for p in files)"
 
       - name: Pubblica APK come prerelease
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
