@@ -1,0 +1,41 @@
+name: Diagnose unnumbered roundabout instructions
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/roundabout-recovery.yml']
+permissions:
+  contents: write
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load and enumerate the actual unnumbered maneuvers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/reuse_road_guidance.py
+          python3 - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          import enrich_road_guidance as road
+          rows=[]
+          for r in road.load_catalog():
+              data=json.loads(Path('road-guidance',str(r['id'])+'.json').read_text())
+              for turn in data['turns']:
+                  if turn['kind']!='roundabout' or 'GPX ufficiale' not in turn['text']:continue
+                  audits=sorted(data.get('roundaboutAudit',[]),key=lambda a:abs(a['at']-turn['at']))
+                  rows.append({'id':r['id'],'name':r['name'],'at':turn['at'],'reportedExit':audits[0].get('reportedExit') if audits and abs(audits[0]['at']-turn['at'])<3 else None})
+          Path('reports/roundabout-recovery-input.json').write_text(json.dumps({'count':len(rows),'maneuvers':rows},ensure_ascii=False,indent=2)+'\n')
+          print('Actual unnumbered roundabout maneuvers:',len(rows))
+          PY
+      - name: Preserve diagnosis input
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/roundabout-recovery-input.json
+          git diff --cached --quiet || git commit -m 'Enumerate unnumbered roundabouts for precise recovery diagnosis'
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
