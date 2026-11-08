@@ -64,7 +64,7 @@ import MapKit
         XCTAssertGreaterThanOrEqual(fit.bounds.width,44); XCTAssertGreaterThanOrEqual(fit.bounds.height,44)
     }
     func testDraggingSuspendsCameraUntilPositionButtonIsPressed() throws {
-        let data = "{\"name\":\"Test\",\"points\":[[45,11],[45,11.01]],\"offsets\":[],\"stops\":[]}".data(using:.utf8)!
+        let data = "{\"name\":\"Test\",\"points\":[[45,11],[45,11.01]],\"offsets\":[],\"stops\":[],\"turns\":[]}".data(using:.utf8)!
         let route = try JSONDecoder().decode(NativeRoute.self,from:data)
         let drive = DriveViewController(route:route,voiceEnabled:false)
         drive.loadViewIfNeeded(); drive.view.frame = CGRect(x:0,y:0,width:390,height:844); drive.view.layoutIfNeeded()
