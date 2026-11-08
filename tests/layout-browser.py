@@ -46,13 +46,15 @@ with sync_playwright() as p:
       results.append({'case':name,**report})
      else:
       assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(name,'horizontal overflow')
-      for button in page.locator('.sidebar button').all():
+      for button in page.locator('button').all():
        if not button.is_visible():continue
        button.scroll_into_view_if_needed()
        r=button.bounding_box();assert r['width']>=43.9 and r['height']>=43.9,(name,'small prep button',r)
+       assert button.evaluate('(e) => {const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return e===hit||e.contains(hit)}'),(name,'covered prep button',button.get_attribute('id'))
       results.append({'case':name,'preparationControls':'passed'})
      page.screenshot(path=str(out/(name+'.png')),full_page=False)
     page.close()
   browser.close()
+(out/'results.json').write_text(json.dumps(results,indent=2))
 (out/'results.json').write_text(json.dumps(results,indent=2))
 print(f'{len(results)} browser layout scenarios passed; screenshots and rectangles in {out}')

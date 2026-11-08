@@ -4,7 +4,7 @@ on:
   push:
     paths: ['style.css', 'index.html', 'tests/layout-browser.py', '.github/workflows/layout-check.yml']
 permissions:
-  contents: read
+  contents: write
 jobs:
   layout:
     runs-on: ubuntu-latest
@@ -14,8 +14,26 @@ jobs:
       - run: python3 -m pip install playwright
       - run: python3 -m playwright install --with-deps chromium webkit
       - run: python3 tests/layout-browser.py
-      - uses: actions/upload-artifact@v4
+      - name: Save browser screenshots without Actions artifact storage
         if: always()
-        with:
-          name: iphone-layout-screenshots
-          path: build/layout-browser
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -d build/layout-browser || exit 0
+          TAG="layout-audit-${GITHUB_SHA:0:12}"
+          zip -qr layout-screenshots.zip build/layout-browser
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "$GITHUB_SHA" --title "Verifica layout iPhone · $TAG" --notes "Screenshot e risultati dei controlli su safe area, sovrapposizioni e dimensioni dei pulsanti. Non contiene una IPA."
+          gh release upload "$TAG" layout-screenshots.zip --clobber
+      - name: Preserve representative browser layout previews
+        if: success()
+        run: |
+          mkdir -p reports/layout-previews
+          cp build/layout-browser/webkit-navigation-390x844-0.png reports/layout-previews/iphone-navigation.png
+          cp build/layout-browser/webkit-navigation-320x568-1.png reports/layout-previews/compact-large-text.png
+          cp build/layout-browser/results.json reports/layout-previews/browser-results.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/layout-previews
+          git diff --cached --quiet || git commit -m 'Save browser safe-area layout evidence'
+          git pull --rebase origin main
+          git push origin HEAD:main

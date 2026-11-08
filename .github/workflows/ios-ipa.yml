@@ -91,5 +91,6 @@ jobs:
           git add reports/stop-coverage.json reports/stop-coverage.csv
           if ! git diff --cached --quiet; then
             git commit -m 'Update stop coverage audit for all 789 immutable GPX'
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
