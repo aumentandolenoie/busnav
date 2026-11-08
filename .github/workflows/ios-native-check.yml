@@ -2,7 +2,6 @@ name: iOS native navigation checks
 on:
   workflow_dispatch:
   push:
-    branches: [main]
     paths: ['ios/**', 'tests/main.swift', '.github/workflows/ios-native-check.yml']
 permissions:
   contents: read

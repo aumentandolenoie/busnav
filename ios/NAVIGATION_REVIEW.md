@@ -14,6 +14,8 @@
 
 La build scarica l'estratto Geofabrik **Nord-Est Italia corrente**, avvia l'immagine upstream `ghcr.io/valhalla/valhalla-scripted` e chiama `trace_route` con costo autobus e lingua italiana. Non usa servizi demo esterni. Nessun punto GPX viene eliminato per soddisfare i limiti API.
 
+Per modifiche native successive, i dati già validati vengono riutilizzati per meno di sette giorni solo se hash dei GPX e versione del validatore coincidono; altrimenti il grafo viene rigenerato.
+
 Ogni risposta passa controlli di lunghezza, copertura in entrambe le direzioni campionata ogni 25 m, estremi, progressione e fingerprint completa. Una rotonda viene annunciata con un numero di uscita solo se presente nella risposta stradale. Curve geometriche, inversioni o risposte non validate non generano istruzioni vocali.
 
 `coverage.json`, allegato alla release, elenca esattamente quali percorsi hanno istruzioni validate e perché gli altri sono stati esclusi. Una mancata copertura viene mostrata nel riepilogo prima dell'avvio. Nessuna dichiarazione di copertura totale è implicita nella compilazione riuscita.

@@ -16,14 +16,16 @@ struct NativeRoute: Decodable {
     let points: [[Double]]        // Latitude, longitude in canonical Academy order
     let offsets: [Double]         // Metres along the canonical GPX
     let stops: [String]           // Busitalia GTFS names only, no MOM supplements
-    let turns: [Turn]             // Geometric indications, NOT verified road turns
+    let turns: [Turn]             // Validated road annotations only; geometry never routes
 }
 
 final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynthesizerDelegate {
     var onProgress: ((Double, Double, Int, Bool) -> Void)?
     var onLocation: ((CLLocation) -> Void)?
     var onStatus: ((String) -> Void)?
-    var voiceEnabled = true
+    var voiceEnabled = true {
+        didSet { if !voiceEnabled { synthesizer.stopSpeaking(at: .immediate); speakingStop = false } }
+    }
     var turnsEnabled = true
     var voiceIdentifier: String = ""
     var voiceRate: Float = 1.0
@@ -68,15 +70,16 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     }
     private let synthesizer = AVSpeechSynthesizer()
     private var route: NativeRoute?
-    private var distances: [Double] = []
     private var tracker: GPXTracker?
     private var lastOffRouteAlert = Date.distantPast
     private var speakingStop = false
     private var matched = false
     private var active = false
     private var along = 0.0
-    private var previousFixDate: Date?
-    private var candidate: (along: Double, at: Date)?
+    private var lastGoodFix = Date.distantPast
+    private var watchdog: Timer?
+    private var interrupted = false
+    private var staleWarning = false
     private var stopIndex = 0
     private var stopStages: [Int: Int] = [:]
     private var turnStages: [Int: Int] = [:]
@@ -107,14 +110,24 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             return
         }
         tracker = geometry
-        distances = geometry.distances
         along = 0
         stopIndex = 0
-        previousFixDate = nil
-        candidate = nil
+        lastGoodFix = Date()
+        staleWarning = false
         stopStages.removeAll()
         turnStages.removeAll()
         active = true
+        lastOffRouteAlert = .distantPast
+        watchdog = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
+            guard let self, self.active, Date().timeIntervalSince(self.lastGoodFix) > 15 else { return }
+            self.matched = false
+            self.onProgress?(self.along, 0, self.stopIndex, false)
+            self.onStatus?("Segnale GPS assente · annunci sospesi")
+            if !self.staleWarning {
+                self.synthesizer.stopSpeaking(at: .immediate); self.speakingStop = false
+                self.staleWarning = true
+            }
+        }
         switch manager.authorizationStatus {
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
@@ -130,6 +143,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
 
     func stop() {
         active = false
+        watchdog?.invalidate(); watchdog = nil
         matched = false
         speakingStop = false
         locationUpdatesStarted = false
@@ -138,8 +152,8 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         synthesizer.stopSpeaking(at: .immediate)
         route = nil
         tracker = nil
-        previousFixDate = nil
-        candidate = nil
+        lastGoodFix = Date()
+        staleWarning = false
         stopStages.removeAll()
         turnStages.removeAll()
         try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
@@ -180,18 +194,28 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        matched = false
+        synthesizer.stopSpeaking(at: .immediate); speakingStop = false
+        onProgress?(along, 0, stopIndex, false)
         onStatus?("Errore GPS: \(error.localizedDescription)")
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard active, let route else { return }
-        for location in locations {
-            guard location.horizontalAccuracy >= 0, location.horizontalAccuracy <= 65,
-                  location.timestamp.timeIntervalSinceNow > -8,
-                  location.timestamp.timeIntervalSinceNow < 2 else { continue }
-            onLocation?(location)
-            updateProgress(location: location, route: route)
+        // Core Location can deliver a historical batch after resuming. Never
+        // replay directions for locations that the vehicle has already passed.
+        guard let location = locations.max(by: { $0.timestamp < $1.timestamp }) else { return }
+        guard location.horizontalAccuracy >= 0, location.horizontalAccuracy <= 65,
+              location.timestamp.timeIntervalSinceNow > -8,
+              location.timestamp.timeIntervalSinceNow < 2 else {
+            matched = false
+            onProgress?(along, 0, stopIndex, false)
+            onStatus?(manager.accuracyAuthorization == .reducedAccuracy ? "Attiva Posizione precisa per LiveContainer nelle impostazioni iOS" : "GPS poco preciso · annunci sospesi")
+            return
         }
+        lastGoodFix = Date(); staleWarning = false
+        onLocation?(location)
+        updateProgress(location: location, route: route)
     }
 
     private func updateProgress(location: CLLocation, route: NativeRoute) {
@@ -224,11 +248,9 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             let stage = stopStages[stopIndex, default: 0]
             let lead = max(140, min(400, max(speed, 6) * 22))
             if stage == 0 && remaining <= lead && !speakingStop {
-                speak("Tra \(Int(max(50, (remaining / 50).rounded() * 50))) metri, prossima fermata: \(route.stops[stopIndex]).", stopPriority: true)
-                stopStages[stopIndex] = 1
+                if speak("Tra \(Int(max(50, (remaining / 50).rounded() * 50))) metri, prossima fermata: \(route.stops[stopIndex]).", stopPriority: true) { stopStages[stopIndex] = 1 }
             } else if stage == 1 && remaining <= 65 && remaining >= 8 && speed > 2 {
-                speak("Fermata in arrivo: \(route.stops[stopIndex]).", stopPriority: true)
-                stopStages[stopIndex] = 2
+                if speak("Fermata in arrivo: \(route.stops[stopIndex]).", stopPriority: true) { stopStages[stopIndex] = 2 }
             }
         }
         if turnsEnabled && voiceEnabled && hit.distance < 65 {
@@ -238,14 +260,12 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
                 let stage = turnStages[index, default: 0]
                 if stage == 0 && distance <= lead && !synthesizer.isSpeaking {
                     if turn.verifiedRoad == true, let message = turn.text, !message.isEmpty {
-                        speak("Tra circa \(Int(distance.rounded())) metri, \(message).")
+                        if speak("Tra circa \(Int(max(0,distance).rounded())) metri, \(message).") { turnStages[index] = 1 }
                     }
-                    turnStages[index] = 1
                 } else if stage == 1 && distance <= max(20, speed * 3) && !synthesizer.isSpeaking {
                     if turn.verifiedRoad == true, let message = turn.text, !message.isEmpty {
-                        speak(message)
+                        if speak(message) { turnStages[index] = 2 }
                     }
-                    turnStages[index] = 2
                 }
                 break
             }
@@ -268,7 +288,8 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     @objc private func audioInterrupted(_ note: Notification) {
         guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
-        if type == .began { synthesizer.stopSpeaking(at: .immediate); speakingStop = false }
+        interrupted = type == .began
+        if interrupted { synthesizer.stopSpeaking(at: .immediate); speakingStop = false }
         // Stale utterances are discarded; next GPS fixes schedule current cues.
     }
 
@@ -281,10 +302,10 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         // Do not deactivate the session here: a priority stop may already be starting.
     }
 
-    private func speak(_ text: String, stopPriority: Bool = false) {
-        guard !text.isEmpty else { return }
+    @discardableResult private func speak(_ text: String, stopPriority: Bool = false) -> Bool {
+        guard !text.isEmpty, !interrupted else { return false }
         if synthesizer.isSpeaking {
-            guard stopPriority && !speakingStop else { return }
+            guard stopPriority && !speakingStop else { return false }
             synthesizer.stopSpeaking(at: .immediate)
         }
         speakingStop = stopPriority
@@ -294,7 +315,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         } catch {
             speakingStop = false
             onStatus?("Audio nativo non disponibile: \(error.localizedDescription)")
-            return
+            return false
         }
         let utterance = AVSpeechUtterance(string: text)
         let chosen = AVSpeechSynthesisVoice.speechVoices()
@@ -315,6 +336,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
                             max(AVSpeechUtteranceMinimumSpeechRate,
                                 AVSpeechUtteranceDefaultSpeechRate * voiceRate))
         synthesizer.speak(utterance)
+        return true
     }
 
 }

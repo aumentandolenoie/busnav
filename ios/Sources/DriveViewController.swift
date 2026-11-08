@@ -23,8 +23,9 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
     var onRepeat: (() -> Void)?
     private var voice = true
 
-    init(route: NativeRoute) {
+    init(route: NativeRoute, voiceEnabled: Bool) {
         self.route = route
+        self.voice = voiceEnabled
         self.geometry = GPXTracker(points: route.points)!
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen
@@ -59,6 +60,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         instruction.font = .systemFont(ofSize:25,weight:.semibold); instruction.numberOfLines = 3; instruction.textColor = .white
         instruction.text = route.turns.contains(where: { $0.verifiedRoad == true }) ? "Segui il percorso ufficiale" : "Manovre stradali non disponibili"
         turnDistance.font = .systemFont(ofSize:36,weight:.bold); turnDistance.textColor = .white
+        turnDistance.adjustsFontSizeToFitWidth = true; turnDistance.minimumScaleFactor = 0.5
         turnDistance.text = "Attesa GPS"
         let repeatButton = UIButton(type:.system); repeatButton.setImage(UIImage(systemName:"speaker.wave.2.fill"),for:.normal); repeatButton.tintColor = .white
         repeatButton.accessibilityLabel = "Ripeti indicazione"; repeatButton.addTarget(self,action:#selector(repeatCue),for:.touchUpInside)
@@ -73,10 +75,11 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         status.font = .systemFont(ofSize:13,weight:.medium); status.textColor = .secondaryLabel; status.numberOfLines = 2
         status.text = "GPX ufficiale · GPS in primo piano"
         let end = UIButton(type:.system); end.setTitle("Termina",for:.normal); end.tintColor = .systemRed; end.addTarget(self,action:#selector(finish),for:.touchUpInside)
-        let sound = UIButton(type:.system); sound.setImage(UIImage(systemName:"speaker.wave.2.fill"),for:.normal); sound.accessibilityLabel = "Attiva o disattiva annunci"; sound.addTarget(self,action:#selector(toggleVoice(_:)),for:.touchUpInside)
+        let sound = UIButton(type:.system); sound.setImage(UIImage(systemName:voice ? "speaker.wave.2.fill" : "speaker.slash.fill"),for:.normal); sound.accessibilityLabel = "Attiva o disattiva annunci"; sound.addTarget(self,action:#selector(toggleVoice(_:)),for:.touchUpInside)
         let center = UIButton(type:.system); center.setImage(UIImage(systemName:"location.fill"),for:.normal); center.accessibilityLabel = "Centra GPS"; center.addTarget(self,action:#selector(recenter),for:.touchUpInside)
         let buttons = UIStackView(arrangedSubviews:[end,UIView(),sound,center]); buttons.spacing = 25
-        let bottom = UIStackView(arrangedSubviews:[label,stopName,stopDistance,status,buttons]); bottom.axis = .vertical; bottom.spacing = 8
+        let attribution = UILabel(); attribution.text = "GPX Academy · manovre © OpenStreetMap contributors"; attribution.font = .systemFont(ofSize:10); attribution.textColor = .secondaryLabel
+        let bottom = UIStackView(arrangedSubviews:[label,stopName,stopDistance,status,buttons,attribution]); bottom.axis = .vertical; bottom.spacing = 8
         let bottomPanel = panel(bottom,dark:false); view.addSubview(bottomPanel)
         NSLayoutConstraint.activate([bottomPanel.bottomAnchor.constraint(equalTo:view.safeAreaLayoutGuide.bottomAnchor,constant:-8),bottomPanel.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:12),bottomPanel.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-12)])
         for recognizer in map.gestureRecognizers ?? [] { recognizer.addTarget(self,action:#selector(mapGesture(_:))) }
@@ -97,12 +100,13 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         if !reliable {
             instruction.text = deviation > 85 ? "Fuori dal percorso ufficiale" : "Verifica posizione GPS"
             turnDistance.text = "Annunci sospesi"; symbol.image = UIImage(systemName:"exclamationmark.triangle")
+            updateCamera()
             return
         }
         if let next = route.turns.first(where: { $0.verifiedRoad == true && $0.at > along-12 }) {
             turnDistance.text = distance(max(0,next.at-along))
             instruction.text = next.text
-            symbol.image = UIImage(systemName: next.kind == "roundabout" ? "arrow.trianglehead.clockwise.rotate.90" : next.side == "sinistra" ? "arrow.turn.up.left" : "arrow.turn.up.right") ?? UIImage(systemName:"arrow.up")
+            symbol.image = UIImage(systemName: next.kind == "roundabout" ? "arrow.triangle.2.circlepath" : next.side == "sinistra" ? "arrow.turn.up.left" : "arrow.turn.up.right") ?? UIImage(systemName:"arrow.up")
         } else {
             instruction.text = "Segui il GPX ufficiale"; turnDistance.text = distance(geometry.distances.last!-along)
             symbol.image = UIImage(systemName:"arrow.up")

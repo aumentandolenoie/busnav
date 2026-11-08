@@ -23,7 +23,13 @@ jobs:
         run: python3 -m pip install scipy
       - name: Test instruction validation
         run: python3 -m unittest discover -s tests -p 'test_road_guidance.py' -v
+      - name: Reuse recent validated annotations for the same official GPX
+        id: reuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/reuse_road_guidance.py
       - name: Build current OSM graph and annotate immutable official GPX
+        if: steps.reuse.outputs.reused != 'true'
         run: bash scripts/build-road-guidance.sh
       - name: Publish navigation data and exact coverage report
         env:

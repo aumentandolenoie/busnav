@@ -62,9 +62,9 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
                 return
             }
             navigation.configureVoice(identifier: body["voiceId"] as? String, rate: body["rate"] as? Double)
-            navigation.start(route: route, voiceEnabled: body["voice"] as? Bool ?? true,
-                             turnsEnabled: body["turnVoice"] as? Bool ?? true)
-            let screen = DriveViewController(route: route)
+            let voice = body["voice"] as? Bool ?? true
+            let turnVoice = body["turnVoice"] as? Bool ?? true
+            let screen = DriveViewController(route: route, voiceEnabled: voice)
             screen.onEnd = { [weak self] in
                 self?.navigation.stop(); self?.drive = nil
                 UIApplication.shared.isIdleTimerDisabled = false
@@ -74,7 +74,9 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             screen.onRepeat = { [weak self] in self?.navigation.repeatInstruction() }
             drive = screen
             UIApplication.shared.isIdleTimerDisabled = true
-            present(screen, animated: true)
+            present(screen, animated: true) { [weak self] in
+                self?.navigation.start(route: route, voiceEnabled: voice, turnsEnabled: turnVoice)
+            }
         case "stop":
             navigation.stop()
             drive?.dismiss(animated: true); drive = nil
