@@ -1,0 +1,614 @@
+{
+  "sourceRelease": "ios-preview-d3fa109381fc",
+  "routes": 789,
+  "maneuvers": 19953,
+  "roundaboutExitHistogram": {
+    "1": 261,
+    "2": 11108,
+    "3": 13
+  },
+  "roundaboutsWithoutVerifiedNumber": 0,
+  "verifiedNumberChecks": 0,
+  "samples": [
+    {
+      "id": "614",
+      "at": 2240,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 3350,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 3679,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 5218,
+      "exit": 1,
+      "text": "Alla rotonda, prendi la 1ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 5253,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 7471,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 7548,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 8138,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 8494,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 9630,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 10594,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 10782,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "614",
+      "at": 11483,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 1650,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 1967,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 2377,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 2558,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 3349,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 3896,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 4007,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 6148,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 7606,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 7700,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 7915,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 8069,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 9118,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 9594,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 10314,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 10808,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 12408,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 13914,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 17468,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 23581,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 23781,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 24270,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 25089,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 26450,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 28373,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 38420,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "458",
+      "at": 39032,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 14271,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 15674,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 17140,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 18721,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 19828,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 19989,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 20185,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 20487,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 20717,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 21325,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "77",
+      "at": 21637,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "617",
+      "at": 980.0,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "617",
+      "at": 1162.0,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "617",
+      "at": 3239.2666279815785,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "617",
+      "at": 4475.2666279815785,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "617",
+      "at": 4561.2666279815785,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 442,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 767,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 2951,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 3277,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 3606,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 11644,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 11812,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 12596,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 13249,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 15765,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 20784,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 30745,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 35618,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 36253,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 37034,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 37353,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 37848,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 38376,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 39832,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 42121,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 43156,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 43200,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 43729,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 44018,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 44788,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 45413,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "513",
+      "at": 46061,
+      "exit": 1,
+      "text": "Alla rotonda, prendi la 1ª uscita"
+    },
+    {
+      "id": "151",
+      "at": 3096,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 3648,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 3700,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 4226,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 5384,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 6349,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 6535,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 7235,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 7579,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 8110,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 8552,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 9626,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 11058,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "673",
+      "at": 11253,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "132",
+      "at": 706,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "132",
+      "at": 1298,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    },
+    {
+      "id": "132",
+      "at": 1742,
+      "exit": 2,
+      "text": "Alla rotonda, prendi la 2ª uscita"
+    }
+  ]
+}
