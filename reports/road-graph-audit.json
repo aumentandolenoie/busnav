@@ -1,0 +1,27 @@
+[
+  {
+    "id": 0,
+    "name": "523 | Bojon - S. Angelo - Celeseo - Vigonovo - Padova",
+    "driveOnRight": true
+  },
+  {
+    "id": 1,
+    "name": "597 | Piove Di Sacco - S. Angelo - Celeseo - Vigonovo - Padova",
+    "driveOnRight": true
+  },
+  {
+    "id": 2,
+    "name": "868 | Padova - Vigonovo - Celeseo - S. Angelo - Bojon",
+    "driveOnRight": true
+  },
+  {
+    "id": 3,
+    "name": "868 | Padova - Vigonovo - Celeseo - S. Angelo - Bojon",
+    "driveOnRight": true
+  },
+  {
+    "id": 4,
+    "name": "915 | Padova - Vigonovo - Celeseo - S. Angelo - Piove Di Sacco",
+    "driveOnRight": true
+  }
+]

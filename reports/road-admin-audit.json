@@ -1,0 +1,12 @@
+{
+  "country": "IT",
+  "driveOnRight": true,
+  "source": "geofabrik/europe/italy-latest.osm.pbf",
+  "admins": [
+    [
+      "IT",
+      "Italia",
+      1
+    ]
+  ]
+}
