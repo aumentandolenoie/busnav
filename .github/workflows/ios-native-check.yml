@@ -1,0 +1,26 @@
+name: iOS native navigation checks
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['ios/**', 'tests/main.swift', '.github/workflows/ios-native-check.yml']
+permissions:
+  contents: read
+jobs:
+  native-check:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exercise native GPX matching
+        run: |
+          swiftc ios/Sources/GPXTracker.swift tests/main.swift -o /tmp/gpx-tests
+          /tmp/gpx-tests
+      - name: Generate native project
+        run: |
+          mkdir -p ios/Web
+          cp index.html app.js style.css official-routes.json ios/Web/
+          command -v xcodegen >/dev/null || brew install xcodegen
+          (cd ios && xcodegen generate)
+      - name: Compile actual iPhone application
+        run: bash scripts/build-ios-unsigned.sh
