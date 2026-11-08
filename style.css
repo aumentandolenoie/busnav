@@ -189,3 +189,10 @@ html{scroll-padding-top:calc(var(--safe-top) + 12px);scroll-padding-bottom:calc(
 header{padding-top:var(--safe-top);height:calc(64px + var(--safe-top))}
 body:not(.navigating)::before{content:"";position:fixed;inset:0 0 auto;height:var(--safe-top);z-index:1500;background:#f5f5f7}
 #headingStatus,#activateNavVoice{color:#fff}
+
+/* The installed apps show their native map below the guided preparation. */
+body.native-preview:not(.navigating) .map-wrap{display:none}
+body.native-preview main{display:block}
+body.native-preview .sidebar{border-right:0}
+body.native-preview .sidebar-scroll{overflow:visible}
+body.native-preview .sidebar{min-height:0}

@@ -30,21 +30,5 @@ print("Academy catalog: 787 intact routes.")
 PY
 
 
-# Bundle runtime libraries: the route picker must start without a CDN connection.
-mkdir -p ios/Web/vendor
-curl --fail --location --retry 3 https://unpkg.com/leaflet@1.9.4/dist/leaflet.js -o ios/Web/vendor/leaflet.js
-curl --fail --location --retry 3 https://unpkg.com/leaflet@1.9.4/dist/leaflet.css -o ios/Web/vendor/leaflet.css
-curl --fail --location --retry 3 https://unpkg.com/@tomickigrzegorz/leaflet-rotate@0.3.0/dist/leaflet-rotate.umd.min.js -o ios/Web/vendor/leaflet-rotate.js
-curl --fail --location --retry 3 https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js -o ios/Web/vendor/jszip.js
-python3 - <<'PYVENDOR'
-from pathlib import Path
-p=Path('ios/Web/index.html')
-s=p.read_text()
-for url,local in {
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js':'vendor/leaflet.js',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css':'vendor/leaflet.css',
-    'https://unpkg.com/@tomickigrzegorz/leaflet-rotate@0.3.0/dist/leaflet-rotate.umd.min.js':'vendor/leaflet-rotate.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js':'vendor/jszip.js',
-}.items(): s=s.replace(url,local)
-p.write_text(s)
-PYVENDOR
+# Bundle runtime libraries: the route picker starts without a CDN connection.
+bash scripts/bundle-web-libraries.sh ios/Web

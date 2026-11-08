@@ -3,15 +3,18 @@
 const $=id=>document.getElementById(id);
 const FEED='https://proxy.busone.app/biv/gtfs.zip';
 // iOS native bridge is present ONLY in the Swift wrapper. The web PWA remains unchanged.
-const nativeMode=!!window.webkit?.messageHandlers?.lineaPilot;
+const nativeMode=!!window.webkit?.messageHandlers?.lineaPilot||!!window.LineaPilotAndroid?.postMessage;
 let nativeActive=false;
 function nativePost(data){
  if(!nativeMode)return false;
- try{window.webkit.messageHandlers.lineaPilot.postMessage(data);return true}
+ try{if(window.LineaPilotAndroid?.postMessage)window.LineaPilotAndroid.postMessage(JSON.stringify(data));else window.webkit.messageHandlers.lineaPilot.postMessage(data);return true}
  catch(e){console.warn('Native bridge:',e);return false}
 }
 window.lineaPilotNativeReceive=(type,data)=>{
- if(type==='voices'){applyVoiceOptions(data?.voices||[],'ios');return}
+ if(type==='previewReady'){document.body.classList.add('native-preview');return}
+ if(type==='ended'){nativeActive=false;stopNavigation();return}
+ if(type==='error'){nativeActive=false;stopNavigation();toast(data?.message||'Navigazione nativa non disponibile');return}
+ if(type==='voices'){applyVoiceOptions(data?.voices||[],window.LineaPilotAndroid?'android':'ios');return}
  if(type==='releases'){processAppReleases(data?.releases||[],updateCheckManual);return}
  if(type==='updateError'){$('updateStatus').textContent='Verifica aggiornamenti non riuscita: '+(data?.message||'Errore rete');return}
  if(!nativeActive)return;
@@ -41,6 +44,7 @@ function voiceQualityLabel(voice){
  return 'qualità base';
 }
 function describeSelectedVoice(voices,id,source){
+ if(source==='android'){const selected=voices.find(v=>v.id===id)||voices.find(v=>!v.network)||voices[0];return selected?(id?'Voce selezionata: ':'Voce automatica: ')+selected.name+(selected.enhanced?' · qualità alta':'')+(selected.network?' · richiede Internet.':' · disponibile senza connessione.'):'Installa una voce italiana nelle impostazioni Sintesi vocale di Android, poi premi Rileva voci.'}
  if(source!=='ios')return 'Scegli una voce italiana e ascolta l’anteprima.';
  const selected=voices.find(v=>v.id===id)||voices[0];
  if(!selected)return 'Nessuna voce italiana disponibile. Scarica una voce italiana nelle impostazioni Accessibilità di iPhone, poi torna qui.';
@@ -288,7 +292,7 @@ function leaveNavigationView(){
  if(typeof map.setHeading==='function')map.setHeading(null);
  if(typeof map.stopHeadingUp==='function')map.stopHeadingUp();
  if(typeof map.setBearing==='function')map.setBearing(0);
- requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(lineLayer&&lineLayer.getBounds().isValid())map.fitBounds(lineLayer.getBounds(),{padding:[40,40]});});
+ requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(lineLayer&&lineLayer.getBounds().isValid())fitWebBounds(lineLayer.getBounds(),{padding:[40,40]});});
 }
 function headingFromGPX(points,dists,along){
  // Sample over a longer section of the official route, instead of its
@@ -799,11 +803,20 @@ $('academyLine').addEventListener('change',()=>{$('academySearch').value='';filt
 $('academySearch').addEventListener('input',filterAcademyRoutes);
 $('academyRoute').addEventListener('change',onAcademySelected);
 function selectedGTFS(){return tripsInDirection().find(t=>t.trip_id===$('tripSelect').value)}
+function fitWebBounds(bounds,options){
+ if(nativeMode&&document.body.classList.contains('native-preview'))return;
+ map.fitBounds(bounds,options);
+}
+function syncNativeRoutePreview(){
+ if(!nativeMode)return;
+ const route=current?.academy?{points:current.points.map(p=>[p.lat,p.lng]),stopCoordinates:current.stops.map(s=>[s.stop.lat,s.stop.lng]),stops:current.stops.map(s=>s.stop.stop_name)}:null;
+ nativePost({type:'previewRoute',route});
+}
 function showAcademyRoute(merge=false){const chosen=selectedOfficial;if(!chosen){toast('Seleziona un GPX Academy');return}const points=chosen.points.map(([lat,lng])=>({lat,lng}));const dists=shapeMetrics(points);let stops=[],offsets=[],diagnostic='GPX pronto. Per annunciare le fermate scegli una sequenza GTFS Busitalia verificata.';let trip={trip_headsign:chosen.name};let reliable=false;
 if(chosen._evidence?.serviceStatus==='out-of-service'){if(merge){toast('Indicatore FUORI SERVIZIO: nessuna fermata passeggeri');return}diagnostic='Trasferimento FUORI SERVIZIO, confermato dagli indicatori Academy. Navigazione stradale sul GPX.'}
 if(merge){if(!feed){toast('Prima importa il GTFS');return}const academyMatch=academyGtfsMatches.get($('academyGtfsTrip').value);if(academyMatch?.reviewRequired&&!$('confirmStopProposal').checked){toast('Verifica e conferma la proposta di fermate prima di usarla');return}const gt=academyMatch?.trip||selectedGTFS();if(!gt){toast('Seleziona una corsa GTFS corrispondente');return}const gtfsRoute=feed.routesById.get(gt.route_id);const num=normAcademyCode(gtfsRoute?.route_short_name||'');const officialNum=[...academyRouteCodes(chosen)].join(', ');if(gtfsRoute?._stopAuthority==='supplemental'){$('officialInfo').textContent='Le fermate MOM non sono utilizzate. Importa Busitalia come feed principale; le fermate comuni sono già nel suo GTFS.';toast('Fermate MOM escluse');return}if(!academyMatch&&!gtfsFitsAcademyCode(chosen,gtfsRoute||{})){$('officialInfo').textContent=`Abbinamento bloccato: linea GTFS ${num} diversa dal GPX ${officialNum}. Seleziona la corsa corretta.`;toast('Linea GPX e GTFS non corrispondono');return}
 const candidates=academyMatch?.stops||(feed.timesByTrip.get(gt.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));if(candidates.length<2){toast('Nessuna sequenza di fermate disponibile');return}const match=matchStopsStrict(candidates,points,dists);diagnostic=match.message;if(!match.ok){$('officialInfo').textContent=diagnostic;toast('Abbinamento non affidabile: navigazione fermate non abilitata');return}stops=candidates;offsets=match.offsets;trip={...gt,trip_headsign:academyMatch?.legs?.length>1?chosen.name:gt.trip_headsign};reliable=true}
-stopNavigation();current={trip,stops,points,dists,offsets,fallback:false,academy:chosen,reliable,stopProposal:merge?academyGtfsMatches.get($('academyGtfsTrip').value):null};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastAlong=0;turns=[];roadGuidanceReady=loadRoadGuidance(chosen,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#0da2a5',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);map.fitBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length?stops.length+' fermate':chosen._evidence?.serviceStatus==='out-of-service'?'Fuori servizio':'Fermate non associate';$('navStatus').textContent='GPX Academy caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'GPX senza fermate';$('nextDetail').textContent=chosen._evidence?.serviceStatus==='out-of-service'?'Trasferimento: seguire il GPX ufficiale':merge?'GPS e simulazione disponibili':'Associa prima una corsa GTFS per gli annunci';$('nextDistance').textContent='—';$('demoBtn').disabled=false;$('startNav').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent='Verifica istruzioni stradali…';const evidence=chosen._evidence;const indicator=evidence?.indicatorRecords?.[0];const shift=evidence?.shiftMatches?.[0];if(indicator)diagnostic+=' Indicatore '+indicator.display+': '+indicator.fixed+' (pag. '+indicator.page+').';if(shift)diagnostic+=' Riscontro nei turni: '+shift.shift+', '+shift.departure+'–'+shift.arrival+', linea '+shift.line+' (pag. '+shift.page+').';if(evidence?.serviceStatus==='conflicting-indicator')diagnostic+=' Codici indicatore discordanti: verifica la corsa prima di confermare le fermate.';$('officialInfo').textContent=diagnostic;toast(merge?'GPX Academy e fermate GTFS associati':'Tracciato GPX Academy visualizzato');}
+stopNavigation();current={trip,stops,points,dists,offsets,fallback:false,academy:chosen,reliable,stopProposal:merge?academyGtfsMatches.get($('academyGtfsTrip').value):null};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastAlong=0;turns=[];roadGuidanceReady=loadRoadGuidance(chosen,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#0da2a5',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);fitWebBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length?stops.length+' fermate':chosen._evidence?.serviceStatus==='out-of-service'?'Fuori servizio':'Fermate non associate';$('navStatus').textContent='GPX Academy caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'GPX senza fermate';$('nextDetail').textContent=chosen._evidence?.serviceStatus==='out-of-service'?'Trasferimento: seguire il GPX ufficiale':merge?'GPS e simulazione disponibili':'Associa prima una corsa GTFS per gli annunci';$('nextDistance').textContent='—';$('demoBtn').disabled=false;$('startNav').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent='Verifica istruzioni stradali…';const evidence=chosen._evidence;const indicator=evidence?.indicatorRecords?.[0];const shift=evidence?.shiftMatches?.[0];if(indicator)diagnostic+=' Indicatore '+indicator.display+': '+indicator.fixed+' (pag. '+indicator.page+').';if(shift)diagnostic+=' Riscontro nei turni: '+shift.shift+', '+shift.departure+'–'+shift.arrival+', linea '+shift.line+' (pag. '+shift.page+').';if(evidence?.serviceStatus==='conflicting-indicator')diagnostic+=' Codici indicatore discordanti: verifica la corsa prima di confermare le fermate.';$('officialInfo').textContent=diagnostic;toast(merge?'GPX Academy e fermate GTFS associati':'Tracciato GPX Academy visualizzato');syncNativeRoutePreview();}
 function matchStopsStrict(stops,points,dists){return RouteStops.match(stops,points,dists)}
 $('showOfficial').addEventListener('click',()=>showAcademyRoute(false));$('mergeOfficial').addEventListener('click',()=>showAcademyRoute(true));
 
@@ -843,7 +856,7 @@ function tripLabel(t){const times=feed.timesByTrip.get(t.trip_id)||[];const a=ti
 $('routeSelect').addEventListener('change',()=>{if(!current?.academy)stopNavigation();$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value);setOptions($('directionSelect'),groupTrips(),'Scegli direzione…');setOptions($('tripSelect'),[],'—');$('showRoute').disabled=true;$('startNav').disabled=!current?.academy;if(!current?.academy)clearRoute()});
 $('directionSelect').addEventListener('change',()=>{$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value);const trips=tripsInDirection().filter(t=>(feed.timesByTrip.get(t.trip_id)||[]).length>1);trips.sort((a,b)=>(feed.timesByTrip.get(a.trip_id)?.[0]?.departure||'').localeCompare(feed.timesByTrip.get(b.trip_id)?.[0]?.departure||''));setOptions($('tripSelect'),trips.map(t=>[t.trip_id,tripLabel(t)]),'Scegli corsa…');$('showRoute').disabled=true;$('startNav').disabled=!current?.academy;if(!current?.academy)clearRoute()});
 $('tripSelect').addEventListener('change',()=>{const ok=!!$('tripSelect').value;$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value)&&(!ok||!selectedOfficial);$('showRoute').disabled=!ok;if(current?.academy){$('startNav').disabled=false;return} $('startNav').disabled=!ok;if(ok)selectTrip();else if(!current?.academy)clearRoute()});
-function clearRoute(){current=null;if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=stopLayer=null;$('stopList').innerHTML='<p class="empty">Seleziona una corsa per vedere le fermate.</p>';$('stopCount').textContent='—';$('nextName').textContent='—';$('nextDetail').textContent='Carica una linea per iniziare';$('nextDistance').textContent='—';$('navStatus').textContent='Seleziona una corsa';$('progressBar').style.width='0%';$('progressLabel').textContent='0 / 0 fermate';$('turnHint').textContent='Percorso non attivo'}
+function clearRoute(){current=null;syncNativeRoutePreview();if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=stopLayer=null;$('stopList').innerHTML='<p class="empty">Seleziona una corsa per vedere le fermate.</p>';$('stopCount').textContent='—';$('nextName').textContent='—';$('nextDetail').textContent='Carica una linea per iniziare';$('nextDistance').textContent='—';$('navStatus').textContent='Seleziona una corsa';$('progressBar').style.width='0%';$('progressLabel').textContent='0 / 0 fermate';$('turnHint').textContent='Percorso non attivo'}
 const rad=Math.PI/180;function metres(a,b){let dlat=(b.lat-a.lat)*rad,dlng=(b.lng-a.lng)*rad,s=Math.sin(dlat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dlng/2)**2;return 12742000*Math.atan2(Math.sqrt(s),Math.sqrt(1-s))}
 function project(p,a,b){const x=(b.lng-a.lng)*111320*Math.cos((p.lat+a.lat)/2*rad),y=(b.lat-a.lat)*111320;const px=(p.lng-a.lng)*111320*Math.cos((p.lat+a.lat)/2*rad),py=(p.lat-a.lat)*111320;let t=(x*x+y*y)?Math.max(0,Math.min(1,(px*x+py*y)/(x*x+y*y))):0;return {t,d:Math.hypot(px-x*t,py-y*t)}}
 function shapeMetrics(points){const cumulative=[0];for(let i=1;i<points.length;i++)cumulative.push(cumulative[i-1]+metres(points[i-1],points[i]));return cumulative}
@@ -860,7 +873,7 @@ function pointAt(pts,dists,at){
  const idx=dists.findIndex(x=>x>=at);
  if(idx<=0)return pts[0];const t=(at-dists[idx-1])/(dists[idx]-dists[idx-1]||1);return {lat:pts[idx-1].lat+(pts[idx].lat-pts[idx-1].lat)*t,lng:pts[idx-1].lng+(pts[idx].lng-pts[idx-1].lng)*t}}
 function computeTurns(pts,dists){const list=[];const total=dists.at(-1)||0;for(let d=100;d<total-100;d+=30){const a=pointAt(pts,dists,d-75),b=pointAt(pts,dists,d),c=pointAt(pts,dists,d+75);const deg=deltaHeading(bearing(a,b),bearing(b,c));if(Math.abs(deg)>47&&(!list.length||d-list.at(-1).at>170))list.push({at:d,side:deg>0?'destra':'sinistra',deg})}return list}
-function selectTrip(){stopNavigation();const trip=tripsInDirection().find(t=>t.trip_id===$('tripSelect').value);if(!trip)return;const stops=(feed.timesByTrip.get(trip.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));let points=feed.shapesById.get(trip.shape_id)||[];let fallback=false;if(points.length<2){points=stops.map(s=>({lat:s.stop.lat,lng:s.stop.lng}));fallback=true}if(points.length<2){toast('La corsa non ha una geometria valida');return}const dists=shapeMetrics(points),offsets=stopOffsets(stops,points,dists);current={trip,stops,points,dists,offsets,fallback};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastProgress=0;lastAlong=0;turns=fallback?[]:computeTurns(points,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#2869ed',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);map.fitBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length+' fermate';$('navStatus').textContent='Percorso caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'—';$('nextDetail').textContent='Avvia il GPS o la simulazione';$('nextDistance').textContent='—';$('demoBtn').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent=fallback?'Shape assente · svolte disabilitate':'Svolte indicative dalla shape';if(fallback)toast('ATTENZIONE: tracciato mancante; collegamento semplificato tra fermate, non valido per la guida');}
+function selectTrip(){stopNavigation();const trip=tripsInDirection().find(t=>t.trip_id===$('tripSelect').value);if(!trip)return;const stops=(feed.timesByTrip.get(trip.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));let points=feed.shapesById.get(trip.shape_id)||[];let fallback=false;if(points.length<2){points=stops.map(s=>({lat:s.stop.lat,lng:s.stop.lng}));fallback=true}if(points.length<2){toast('La corsa non ha una geometria valida');return}const dists=shapeMetrics(points),offsets=stopOffsets(stops,points,dists);current={trip,stops,points,dists,offsets,fallback};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastProgress=0;lastAlong=0;turns=fallback?[]:computeTurns(points,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#2869ed',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);fitWebBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length+' fermate';$('navStatus').textContent='Percorso caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'—';$('nextDetail').textContent='Avvia il GPS o la simulazione';$('nextDistance').textContent='—';$('demoBtn').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent=fallback?'Shape assente · svolte disabilitate':'Svolte indicative dalla shape';if(fallback)toast('ATTENZIONE: tracciato mancante; collegamento semplificato tra fermate, non valido per la guida');}
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderStops(){if(!current)return;if(!current.stops.length){$('stopList').innerHTML='<p class="empty">GPX Academy: importa e associa una corsa GTFS per vedere le fermate.</p>';return}const frag=document.createDocumentFragment();current.stops.forEach((s,i)=>{const el=document.createElement('div');el.className='stop-row '+(i<nextStopIdx?'done':i===nextStopIdx?'current':'');el.innerHTML=`<div class="stop-num">${i+1}</div><div><strong>${escapeHTML(s.stop.stop_name)}</strong><small>${escapeHTML(s.arrival||'')} · ${escapeHTML(s.stop.stop_id)}</small></div>`;frag.append(el)});$('stopList').replaceChildren(frag);
  // Keep the current stop easy to find without changing the map camera.
@@ -1099,7 +1112,8 @@ function stopNavigation(){
  $('stopNav').disabled=true;$('startNav').disabled=!current;$('demoBtn').disabled=!current;
  $('gpsStatus').textContent='GPS inattivo';
 }
-async function startGPS(){
+async function startGPS(simulated=false){
+ const demo=simulated===true;
  if(!current?.academy){toast('Seleziona un GPX ufficiale');return}
  const selection=current;
  $('startNav').disabled=true;
@@ -1122,10 +1136,10 @@ async function startGPS(){
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
   enterNavigationView();
   nativeActive=true;
-  const ok=nativePost({type:'start',route,voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
+  const ok=nativePost({type:'start',route,demo,voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
   if(!ok){nativeActive=false;leaveNavigationView();toast('Impossibile avviare il GPS nativo');return}
   $('gpsStatus').textContent='GPS nativo in avvio…';
-  setVoiceStatus('Voce italiana nativa · tieni LiveContainer in primo piano');
+  setVoiceStatus(demo?'SIMULAZIONE · posizione virtuale':'Voce italiana nativa · mantieni l’app in primo piano');
   $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
   return;
  }
@@ -1145,7 +1159,7 @@ async function startGPS(){
  },{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
  $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
 }
-function startDemo(){if(!current)return;stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
+async function startDemo(){if(!current)return;if(nativeMode){await startGPS(true);return}stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 // Native GTFS transfer: URLSession downloads the ZIP, then sends base64 chunks
 // over WKScriptMessageHandler. No fetch/XHR to a WebKit custom URL scheme.
 let nativeGtfsPending=null;
@@ -1175,7 +1189,7 @@ window.lineaPilotGTFSReceive=(id,type,payload)=>{
  }
 };
 async function downloadGTFSBlob(forceDownload=false){
- if(!nativeMode){
+ if(!window.webkit?.messageHandlers?.lineaPilot){
   const res=await fetch(FEED);
   if(!res.ok)throw Error('HTTP '+res.status);
   return await res.blob();
@@ -1283,6 +1297,7 @@ async function initializeGTFS(forceDownload=false){
 $('retryFeed').addEventListener('click',()=>initializeGTFS(true));
 if(!nativeMode&&'serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(console.warn);
 loadAcademy();
+syncNativeRoutePreview();
 initializeGTFS();
 
 

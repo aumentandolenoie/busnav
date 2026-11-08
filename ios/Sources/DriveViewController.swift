@@ -24,8 +24,11 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
     var onVoiceToggle: ((Bool) -> Void)?
     var onRepeat: (() -> Void)?
     private var voice = true
+    private let simulated: Bool
+    private let demoMarker = MKPointAnnotation()
 
-    init(route: NativeRoute, voiceEnabled: Bool) {
+    init(route: NativeRoute, voiceEnabled: Bool, simulated: Bool = false) {
+        self.simulated = simulated
         self.route = route
         self.voice = voiceEnabled
         self.geometry = GPXTracker(points: route.points)!
@@ -39,7 +42,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         view.backgroundColor = .systemBackground
         map.frame = view.bounds; map.autoresizingMask = [.flexibleWidth,.flexibleHeight]
         map.delegate = self
-        map.showsUserLocation = true
+        map.showsUserLocation = !simulated
         map.showsCompass = false
         map.showsTraffic = true
         map.pointOfInterestFilter = .excludingAll
@@ -158,7 +161,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         guard let topPanel, let bottomPanel else { return }
         map.layoutMargins = UIEdgeInsets(top:topPanel.frame.maxY+8,left:16,bottom:view.bounds.maxY-bottomPanel.frame.minY+8,right:16)
     }
-    func location(_ location: CLLocation) { fix = location; updateCamera() }
+    func location(_ location: CLLocation) { fix = location; if simulated { demoMarker.coordinate = location.coordinate; demoMarker.title = "Posizione simulata"; if !map.annotations.contains(where: { $0 === demoMarker }) { map.addAnnotation(demoMarker) } }; updateCamera() }
     func message(_ message: String) { status.text = message }
     func update(along:Double,deviation:Double,stop:Int,reliable:Bool) {
         progress = along; self.reliable = reliable
@@ -210,6 +213,6 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
     }
     func mapView(_ mapView:MKMapView,viewFor annotation:MKAnnotation) -> MKAnnotationView? {
         guard !(annotation is MKUserLocation) else { return nil }
-        let pin = MKMarkerAnnotationView(annotation:annotation,reuseIdentifier:"stop"); pin.markerTintColor = .systemBlue; pin.glyphImage = UIImage(systemName:"bus.fill"); pin.canShowCallout = true; pin.displayPriority = .defaultLow; return pin
+        let pin = MKMarkerAnnotationView(annotation:annotation,reuseIdentifier:"stop"); pin.markerTintColor = .systemBlue; pin.glyphImage = UIImage(systemName:annotation === demoMarker ? "location.fill" : "bus.fill"); pin.canShowCallout = true; pin.displayPriority = .defaultLow; return pin
     }
 }

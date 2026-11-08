@@ -5,6 +5,7 @@ import AVFoundation
 
 final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
     private var webView: WKWebView!
+    let routePreview = RoutePreviewView()
     private let navigation = NativeNavigation()
     private var drive: DriveViewController?
     private var lastLocation: CLLocation?
@@ -28,10 +29,16 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
         webView.isOpaque = false
         webView.backgroundColor = UIColor(red: 0.04, green: 0.07, blue: 0.13, alpha: 1)
         view.backgroundColor = .systemBackground
+        routePreview.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(routePreview)
         view.addSubview(webView)
         NSLayoutConstraint.activate([
+            routePreview.bottomAnchor.constraint(equalTo:view.safeAreaLayoutGuide.bottomAnchor),
+            routePreview.leadingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.leadingAnchor),
+            routePreview.trailingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.trailingAnchor),
+            routePreview.heightAnchor.constraint(equalTo:view.safeAreaLayoutGuide.heightAnchor,multiplier:0.38),
             webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            webView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            webView.bottomAnchor.constraint(equalTo: routePreview.topAnchor,constant:-8),
             webView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
         ])
@@ -66,6 +73,9 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
         guard message.name == "lineaPilot", let body = message.body as? [String: Any],
               let type = body["type"] as? String else { return }
         switch type {
+        case "previewRoute":
+            routePreview.show(body["route"] as? [String:Any])
+            deliver(event:"previewReady",data:[:])
         case "start":
             guard let raw = body["route"] as? [String: Any],
                   let data = try? JSONSerialization.data(withJSONObject: raw),
@@ -78,7 +88,8 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             navigation.configureVoice(identifier: body["voiceId"] as? String, rate: body["rate"] as? Double)
             let voice = body["voice"] as? Bool ?? true
             let turnVoice = body["turnVoice"] as? Bool ?? true
-            let screen = DriveViewController(route: route, voiceEnabled: voice)
+            let simulated = body["demo"] as? Bool ?? false
+            let screen = DriveViewController(route: route, voiceEnabled: voice, simulated:simulated)
             screen.onEnd = { [weak self] in
                 self?.navigation.stop(); self?.drive = nil
                 UIApplication.shared.isIdleTimerDisabled = false
@@ -89,7 +100,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             drive = screen
             UIApplication.shared.isIdleTimerDisabled = true
             present(screen, animated: true) { [weak self] in
-                self?.navigation.start(route: route, voiceEnabled: voice, turnsEnabled: turnVoice)
+                self?.navigation.start(route: route, voiceEnabled: voice, turnsEnabled: turnVoice, simulated:simulated)
             }
         case "stop":
             navigation.stop()

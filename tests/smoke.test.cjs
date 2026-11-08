@@ -249,7 +249,7 @@ test('Core Location does not request unsupported background mode in LiveContaine
  assert.match(swift,/!Self\.isHostedByLiveContainer && modes\.contains\("location"\)/);
  assert.match(swift,/manager\.allowsBackgroundLocationUpdates = backgroundAllowed/);
  assert.doesNotMatch(swift,/manager\.allowsBackgroundLocationUpdates = true/);
- assert.match(swift,/guard active, !locationUpdatesStarted else \{ return \}/);
+ assert.match(swift,/guard active, !isSimulating, !locationUpdatesStarted else \{ return \}/);
  assert.match(swift,/GPS attivo in primo piano.*LiveContainer/);
 });
 
@@ -475,4 +475,17 @@ test('iOS and Home Screen icons have opaque PNG assets at declared sizes',()=>{
  const catalog=JSON.parse(fs.readFileSync(dir+'Contents.json'));
  for(const icon of catalog.images){const size=Number(icon.size.split('x')[0])*Number(icon.scale[0]);assert.deepEqual(pngSize(dir+icon.filename),[size,size])}
  assert.match(fs.readFileSync('ios/project.yml','utf8'), /ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon/);
+});
+
+test('installed apps use native route preview and native simulation without changing GPX',()=>{
+ assert.match(js,/LineaPilotAndroid\?\.postMessage/);
+ assert.match(js,/type:'previewRoute'/);
+ assert.match(sourceOf('syncNativeRoutePreview'),/current\.points\.map/);
+ assert.match(sourceOf('startDemo'),/await startGPS\(true\)/);
+ assert.match(js,/if\(!window\.webkit\?\.messageHandlers\?\.lineaPilot\)/);
+ const ios=fs.readFileSync('ios/Sources/RoutePreviewView.swift','utf8');
+ assert.match(ios,/MKMapView/);assert.match(ios,/MKPolyline/);
+ const android=fs.readFileSync('android/app/src/main/java/app/lineapilot/android/NativeMap.java','utf8');
+ assert.match(android,/org\.maplibre\.android/);assert.match(android,/setPrefetchZoomDelta\(0\)/);
+ assert.match(fs.readFileSync('android/app/src/main/java/app/lineapilot/android/NavigationSession.java','utf8'),/route\.covered\(along,t\.at\)/);
 });

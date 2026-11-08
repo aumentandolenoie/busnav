@@ -26,3 +26,5 @@ assert {name: sum(r['category'] == name for r in routes) for name in ('Extraurba
 print('Android Academy GPX: 787 percorsi originali.')
 PY
 
+
+bash scripts/bundle-web-libraries.sh "$DEST"

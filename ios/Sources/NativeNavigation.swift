@@ -69,6 +69,8 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         if let rate, rate.isFinite { voiceRate = Float(min(1.25, max(0.75, rate))) }
     }
 
+    private var isSimulating = false
+    private var demoTimer: Timer?
     private let manager = CLLocationManager()
     private var locationUpdatesStarted = false
 
@@ -119,8 +121,9 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         manager.pausesLocationUpdatesAutomatically = false
     }
 
-    func start(route: NativeRoute, voiceEnabled: Bool, turnsEnabled: Bool) {
+    func start(route: NativeRoute, voiceEnabled: Bool, turnsEnabled: Bool, simulated: Bool = false) {
         stop()
+        isSimulating = simulated
         self.route = route
         self.voiceEnabled = voiceEnabled
         self.turnsEnabled = turnsEnabled
@@ -152,6 +155,19 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
                 self.staleWarning = true
             }
         }
+        if simulated {
+            var progress = 0.0
+            demoTimer = Timer.scheduledTimer(withTimeInterval:1,repeats:true) { [weak self] timer in
+                guard let self, self.active, let tracker = self.tracker else { timer.invalidate(); return }
+                let point = tracker.coordinate(at:progress)
+                let location = CLLocation(coordinate:CLLocationCoordinate2D(latitude:point[0],longitude:point[1]),altitude:0,horizontalAccuracy:5,verticalAccuracy:5,course:0,speed:14,timestamp:Date())
+                self.locationManager(self.manager,didUpdateLocations:[location])
+                self.onStatus?("SIMULAZIONE · posizione virtuale")
+                progress += 14
+                if progress > tracker.distances.last! + 50 { timer.invalidate(); self.onStatus?("Simulazione completata"); self.stop() }
+            }
+            return
+        }
         switch manager.authorizationStatus {
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
@@ -166,6 +182,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     }
 
     func stop() {
+        demoTimer?.invalidate(); demoTimer = nil; isSimulating = false
         active = false
         watchdog?.invalidate(); watchdog = nil
         matched = false
@@ -184,7 +201,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     }
 
     private func startLocationUpdates() {
-        guard active, !locationUpdatesStarted else { return }
+        guard active, !isSimulating, !locationUpdatesStarted else { return }
         // Only a standalone installation whose executing app declares the location
         // background mode can request continuous updates. In LiveContainer, the
         // process belongs to the host and enabling this flag crashes Core Location.
@@ -205,6 +222,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard !isSimulating else { return }
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
             startLocationUpdates()

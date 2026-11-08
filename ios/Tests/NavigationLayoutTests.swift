@@ -1,5 +1,6 @@
 import XCTest
 import UIKit
+import MapKit
 @testable import LineaPilot
 
 @MainActor final class NavigationLayoutTests: XCTestCase {
@@ -47,6 +48,20 @@ import UIKit
                 drive.willMove(toParent:nil); drive.view.removeFromSuperview(); drive.removeFromParent()
             }
         }
+    }
+    func testPreparationUsesMapKitAndPreservesGpx() {
+        let preview = RoutePreviewView(frame:CGRect(x:0,y:0,width:375,height:280))
+        let points = [[45.0,11.0],[45.0,11.01],[45.01,11.01]]
+        preview.show(["points":points,"stops":["Fermata"],"stopCoordinates":[[45.0,11.005]]])
+        preview.layoutIfNeeded()
+        XCTAssertTrue(preview.map is MKMapView)
+        let line = preview.map.overlays.first as! MKPolyline
+        XCTAssertEqual(line.pointCount,points.count)
+        var actual = Array(repeating:CLLocationCoordinate2D(),count:points.count)
+        line.getCoordinates(&actual,range:NSRange(location:0,length:points.count))
+        for i in points.indices { XCTAssertEqual(actual[i].latitude,points[i][0],accuracy:0.000001); XCTAssertEqual(actual[i].longitude,points[i][1],accuracy:0.000001) }
+        let fit = descendants(preview).first { $0.accessibilityIdentifier == "previewFitRoute" }!
+        XCTAssertGreaterThanOrEqual(fit.bounds.width,44); XCTAssertGreaterThanOrEqual(fit.bounds.height,44)
     }
     private func descendants(_ view: UIView) -> [UIView] {
         view.subviews.flatMap { [$0] + descendants($0) }
