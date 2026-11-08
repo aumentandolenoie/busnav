@@ -11,7 +11,7 @@ function nativePost(data){
  catch(e){console.warn('Native bridge:',e);return false}
 }
 window.lineaPilotNativeReceive=(type,data)=>{
- if(type==='previewReady'){document.body.classList.add('native-preview');return}
+ if(type==='previewReady'){document.body.classList.add('native-preview');const notice=$('toast');if(notice&&notice.parentElement!==document.body)document.body.appendChild(notice);return}
  if(type==='ended'){nativeActive=false;stopNavigation();return}
  if(type==='error'){nativeActive=false;stopNavigation();toast(data?.message||'Navigazione nativa non disponibile');return}
  if(type==='voices'){applyVoiceOptions(data?.voices||[],window.LineaPilotAndroid?'android':'ios');return}

@@ -196,3 +196,5 @@ body.native-preview main{display:block}
 body.native-preview .sidebar{border-right:0}
 body.native-preview .sidebar-scroll{overflow:visible}
 body.native-preview .sidebar{min-height:0}
+
+body.native-preview>.toast{position:fixed;z-index:2000;top:12px;left:12px;right:12px;max-width:none;pointer-events:none}
