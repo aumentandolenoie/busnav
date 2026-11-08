@@ -20,9 +20,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           test -d build/layout-browser || exit 0
-          TAG="layout-audit-${GITHUB_SHA:0:12}"
+          TAG="ios-preview-${GITHUB_SHA:0:12}"
+          gh release view "$TAG" >/dev/null 2>&1 || TAG="layout-audit-${GITHUB_SHA:0:12}"
           zip -qr layout-screenshots.zip build/layout-browser
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "$GITHUB_SHA" --title "Verifica layout iPhone · $TAG" --notes "Screenshot e risultati dei controlli su safe area, sovrapposizioni e dimensioni dei pulsanti. Non contiene una IPA."
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target main --title "Verifica layout iPhone · $TAG" --notes "Screenshot e risultati dei controlli su safe area, sovrapposizioni e dimensioni dei pulsanti. Non contiene una IPA."
           gh release upload "$TAG" layout-screenshots.zip --clobber
       - name: Preserve representative browser layout previews
         if: success()

@@ -25,7 +25,7 @@ La verifica dell’IPA controlla che il plist dichiari AppIcon, che i PNG richie
 - Test JavaScript: verifica delle dimensioni PNG, assenza di trasparenza e corrispondenza delle dichiarazioni AppIcon/manifest.
 - Build IPA: verifica aggiuntiva sulle risorse effettivamente compilate e impacchettate.
 
-Gli screenshot verificati sono in `reports/layout-previews`; gli archivi completi vengono salvati nelle release `layout-audit-*` per evitare il limite dello spazio artifact Actions. Questi test non sostituiscono una prova sul dispositivo con la specifica versione di LiveContainer.
+Gli screenshot verificati sono in `reports/layout-previews`; gli archivi completi vengono salvati nelle release IPA o `layout-audit-*` per evitare il limite dello spazio artifact Actions. Questi test non sostituiscono una prova sul dispositivo con la specifica versione di LiveContainer.
 
 Riferimenti Apple:
 - https://developer.apple.com/design/human-interface-guidelines/buttons
