@@ -30,7 +30,7 @@ for(const row of rows)for(const proposal of row.proposals){
  for(const stop of proposal.stops)usedStops[stop.id]={name:stop.name,lat:stop.lat,lng:stop.lng};
  proposal.stopIds=proposal.stops.map(s=>s.id);proposal.offsetsM=proposal.stops.map(s=>s.alongM);delete proposal.stops;
 }
-const report={stops:usedStops,generatedAt:new Date().toISOString(),source:'Busitalia Veneto GTFS (BusOne mirror)',sourceURL:'https://proxy.busone.app/biv/gtfs.zip',feedSHA256:crypto.createHash('sha256').update(raw).digest('hex'),gpxSHA256:crypto.createHash('sha256').update(gpx).digest('hex'),
+const report={sourceMetadata:data._source||{retrievedAt:'2026-11-08',snapshot:true},stops:usedStops,generatedAt:new Date().toISOString(),source:'Busitalia Veneto GTFS (BusOne mirror)',sourceURL:'https://proxy.busone.app/biv/gtfs.zip',feedSHA256:crypto.createHash('sha256').update(raw).digest('hex'),gpxSHA256:crypto.createHash('sha256').update(gpx).digest('hex'),
  summary:{routes:rows.length,fullSequence:rows.filter(x=>x.status==='full-sequence').length,reviewRequired:rows.filter(x=>x.status==='review-required').length,missing:rows.filter(x=>x.status==='missing').length},routes:rows};
 fs.mkdirSync(require('path').dirname(output),{recursive:true});fs.writeFileSync(output,JSON.stringify(report)+'\n');
 if(!fs.readFileSync('official-routes.json').equals(gpx))throw Error('Official GPX changed');

@@ -164,7 +164,8 @@ function validRoadGuidance(data,chosen,dists){
  if(!data||data.version!==1||data.source!=='valhalla-osm'||data.language!=='it-IT'||
   String(data.academyId)!==String(chosen.id)||data.fingerprint!==academyFingerprint(chosen.points)||
   data.validation?.passed!==true||!Array.isArray(data.turns)||(!data.turns.length&&!(data.noManeuvers===true&&data.coverage?.ranges?.length)))return false;
- const total=dists.at(-1)||0;
+ const total=dists.at(-1)||0,sourceTotal=data.coverage?.totalM||data.officialLengthM;
+ if(!Number.isFinite(sourceTotal)||sourceTotal<=0)return false;
  if(!Number.isFinite(data.officialLengthM)||!Number.isFinite(data.validation.maxDeviationM)||
   !Number.isFinite(data.validation.p95DeviationM)||
   Math.abs(data.officialLengthM-total)>Math.max(80,total*.025))return false;
@@ -174,22 +175,32 @@ function validRoadGuidance(data,chosen,dists){
   if(typeof c.complete!=='boolean'||!Number.isFinite(c.percent)||c.percent<0||c.percent>100||!Array.isArray(c.ranges)||!c.ranges.length)return false;
   let end=-1,covered=0;
   for(const r of c.ranges){
-   if(!Array.isArray(r)||r.length!==2||!r.every(Number.isFinite)||r[0]<0||r[1]<=r[0]||r[0]<end||r[1]>total+50)return false;
+   if(!Array.isArray(r)||r.length!==2||!r.every(Number.isFinite)||r[0]<0||r[1]<=r[0]||r[0]<end||r[1]>sourceTotal+1)return false;
    covered+=r[1]-r[0];end=r[1];
   }
-  if(Math.abs(c.percent-covered/total*100)>1)return false;
-  if(c.complete&&(c.ranges.length!==1||c.ranges[0][0]>1||Math.abs(c.ranges[0][1]-total)>Math.max(20,total*.005)))return false;
+  if(Math.abs(c.percent-covered/sourceTotal*100)>1)return false;
+  if(c.complete&&(c.ranges.length!==1||c.ranges[0][0]>1||Math.abs(c.ranges[0][1]-sourceTotal)>1))return false;
  }
 
  let previous=-1;
  for(const t of data.turns){
-  if(!Number.isFinite(t.at)||t.at<0||t.at>total||t.at<=previous||
+  if(!Number.isFinite(t.at)||t.at<0||t.at>sourceTotal+1||t.at<=previous||
    !['turn','roundabout'].includes(t.kind)||!['sinistra','destra','rotatoria'].includes(t.side)||
    typeof t.text!=='string'||!t.text.trim()||t.text.length>160)return false;
   if(data.coverage&&!data.coverage.ranges.some(r=>t.at>=r[0]&&t.at<=r[1]))return false;
   previous=t.at;
  }
  return true;
+}
+function normalizeRoadGuidance(data,total){
+ // Exporters can use a local planar metric. GPS and stop offsets use the
+ // canonical haversine metric, so normalize ALL maneuver/range offsets once.
+ const sourceTotal=data.coverage?.totalM||data.officialLengthM,scale=total/sourceTotal;
+ const at=m=>Math.min(total,Math.max(0,m*scale));
+ const source=data.coverage||{complete:true,percent:100,ranges:[[0,sourceTotal]],gaps:[]};
+ const coverage={...source,totalM:total,coveredM:(source.coveredM??sourceTotal)*scale,
+  ranges:source.complete?[[0,total]]:source.ranges.map(r=>r.map(at)),gaps:(source.gaps||[]).map(r=>r.map(at))};
+ return {turns:data.turns.map(t=>({...t,at:at(t.at),verifiedRoad:true})),coverage};
 }
 async function loadRoadGuidance(chosen,dists){
  const serial=++roadGuidanceLoadId;
@@ -214,9 +225,10 @@ async function loadRoadGuidance(chosen,dists){
   // apply road instructions to another route or a subsequent selection.
   if(serial!==roadGuidanceLoadId||!current?.academy||
      String(current.academy.id)!==id||!validRoadGuidance(data,chosen,dists))return;
-  turns=data.turns.map(x=>({...x,verifiedRoad:true}));
+  const normalized=normalizeRoadGuidance(data,dists.at(-1));
+  turns=normalized.turns;
   current.guidanceDate=data.generatedAt||'';
-  current.guidanceCoverage=data.coverage||{complete:true,percent:100,ranges:[[0,dists.at(-1)]]};
+  current.guidanceCoverage=normalized.coverage;
   refreshReadySummary();
   $('turnHint').textContent='Manovre stradali in italiano, verificate sul GPX Academy';
   if(nativeActive){

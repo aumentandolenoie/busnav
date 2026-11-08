@@ -64,3 +64,15 @@ test('partial road guidance never claims full coverage or accepts a maneuver in 
  assert.equal(api.validRoadGuidance({...data,coverage:{...data.coverage,percent:100}},chosen,[0,total]),false);
  assert.equal(api.validRoadGuidance({...data,turns:[],noManeuvers:true,coverage:{complete:true,percent:100,ranges:[[0,total]]}},chosen,[0,total]),true);
 });
+
+test('road offsets and coverage are normalized to the same distance model as GPS/stops',()=>{
+ const api=new Function(['academyFingerprint','validRoadGuidance','normalizeRoadGuidance'].map(appFunction).join('\n')+';return {academyFingerprint,validRoadGuidance,normalizeRoadGuidance}')();
+ const points=[[45,11],[45,12]],chosen={id:'long',points},total=80000,sourceTotal=80090;
+ const data={version:1,source:'valhalla-osm',language:'it-IT',academyId:'long',fingerprint:api.academyFingerprint(points),officialLengthM:sourceTotal,
+  validation:{passed:true,maxDeviationM:5,p95DeviationM:3},turns:[{at:40045,kind:'turn',side:'destra',text:'Svolta a destra'}],
+  coverage:{complete:true,totalM:sourceTotal,coveredM:sourceTotal,percent:100,ranges:[[0,sourceTotal]],gaps:[]}};
+ assert.equal(api.validRoadGuidance(data,chosen,[0,total]),true);
+ const normalized=api.normalizeRoadGuidance(data,total);
+ assert.equal(normalized.turns[0].at,40000);assert.equal(normalized.coverage.ranges[0][1],total);
+ assert.equal(normalized.coverage.coveredM,total);
+});

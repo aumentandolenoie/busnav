@@ -8,7 +8,7 @@ Il controllo esegue lo stesso algoritmo dell'app su tutti i 787 GPX, usando il G
 - **review-required**: sottosequenza, variante deviata, concatenazione o abbinamento geometrico di una linea il cui nome non coincide con la cartella Academy. L'interfaccia indica le esclusioni e richiede la verifica esplicita del conducente. La copertura percentuale misura il tratto tra la prima e l'ultima fermata, non la completezza di tutte le fermate in servizio.
 - **missing**: non esiste una sequenza validabile nelle fonti disponibili. `stop-unresolved.json` elenca i casi e le fermate fisiche vicine, solo come riferimento: la loro vicinanza non prova che siano servite.
 
-Risultato dell'audit salvato: **603 sequenze complete, 177 percorsi con proposte da verificare, 7 non abbinati**. La build ripete il controllo sul feed corrente e allega il CSV aggiornato alla release.
+Risultato dell'audit salvato: **603 sequenze complete, 177 percorsi con proposte da verificare, 7 non abbinati**. La build ripete il controllo sulla snapshot datata 8 novembre 2026 e allega il CSV alla release. Il download diretto dal server nel runner GitHub ha ricevuto HTTP 403; non è stato aggirato. La snapshot conserva tutte le 1.178 sequenze distinte, trattenendo una corsa originale per ogni combinazione identica di linea e fermate ordinate; non è un orario operativo completo.
 
 ## Linea 15 Padova → Aeroporto Marco Polo
 
@@ -46,10 +46,12 @@ Documentazione del motore: https://valhalla.github.io/valhalla/api/map-matching/
 ## Ripetere i controlli
 
 ```bash
-python3 scripts/download_gtfs_for_audit.py build/audit-feed.json
+python3 scripts/download_gtfs_for_audit.py build/audit-feed.json --snapshot tests/fixtures/busitalia-patterns-2026-11-08.zip
 node scripts/audit_stops.cjs build/audit-feed.json reports/stop-coverage.json
 node --test tests/*.test.cjs
 python3 -m unittest discover -s tests -p 'test_road_guidance.py' -v
 ```
 
 Sono ancora necessari dati di servizio o una verifica operativa per completare i casi parziali/non abbinati. Non è corretto sostituire questa verifica con fermate vicine, con una lista invertita o con manovre derivate solo dalla curvatura del GPX.
+
+Per ripetere la verifica con un nuovo feed online si può omettere `--snapshot`; la provenienza e la data vengono registrate nel JSON. L'app continua a caricare il feed dalla propria connessione e non usa la fixture di test come orario operativo. Le distanze esportate dal motore stradale vengono normalizzate alla stessa metrica haversine usata da GPS e fermate, evitando disallineamenti e falsi rifiuti dei percorsi lunghi.

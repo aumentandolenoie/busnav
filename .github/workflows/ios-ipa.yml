@@ -56,9 +56,9 @@ jobs:
         run: |
           gh release download "ios-preview-${GITHUB_SHA:0:12}" --pattern navigation-data.zip
           unzip -oq navigation-data.zip
-      - name: Audit stops on every official GPX using the current feed
+      - name: Audit every official GPX against the dated Busitalia pattern snapshot
         run: |
-          python3 scripts/download_gtfs_for_audit.py build/audit-feed.json
+          python3 scripts/download_gtfs_for_audit.py build/audit-feed.json --snapshot tests/fixtures/busitalia-patterns-2026-11-08.zip
           node scripts/audit_stops.cjs build/audit-feed.json reports/stop-coverage.json
       - name: Regression tests
         run: |
