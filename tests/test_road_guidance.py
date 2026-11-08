@@ -139,6 +139,13 @@ class AcademyRoadTests(unittest.TestCase):
         self.assertEqual(coverage['gaps'],[[400,450]])
         self.assertEqual(coverage['coveredM'],450)
 
+    def test_short_window_rejects_shortcut_hidden_by_global_tolerance(self):
+        route={'id':'short','points':[[45,11],[45,11.0007],[45.0005,11.0007]]}
+        response={'trip':{'language':'it-IT','legs':[{'shape':encode_polyline6([route['points'][0],route['points'][-1]]),'maneuvers':[]}]}}
+        # The global 90m floor would accept this corner cut on a 110m trace.
+        module.convert(route,response,allow_empty=True)
+        with self.assertRaises(ValueError):module.convert(route,response,allow_empty=True,strict_local=True)
+
     def test_trace_uses_bus_costing_and_italian(self):
         request = module.trace_request(self.points)
         self.assertEqual(request["costing"], "bus")

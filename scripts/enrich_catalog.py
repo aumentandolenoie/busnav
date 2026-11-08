@@ -15,11 +15,11 @@ def main():
     args = parser.parse_args()
     source = ROOT / 'official-routes.json'
     original = source.read_bytes()
-    catalog = json.loads(original)
+    catalog = road.load_catalog()
     out = ROOT / 'road-guidance'
     out.mkdir(exist_ok=True)
     report = {'validatorSHA256': hashlib.sha256((ROOT/'scripts/enrich_road_guidance.py').read_bytes()).hexdigest(), 'generatedAt': datetime.now(timezone.utc).isoformat(),
-              'gpxSHA256': hashlib.sha256(original).hexdigest(), 'routes': []}
+              'gpxSHA256': road.catalog_digest(), 'routes': []}
     for index, route in enumerate(catalog):
         target = out / (str(route['id'])+'.json')
         target.unlink(missing_ok=True)

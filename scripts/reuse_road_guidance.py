@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Reuse a recent, immutable-GPX-compatible release bundle for native-only fixes."""
+import enrich_road_guidance as road
 import hashlib
 import io
 import json
@@ -15,10 +16,10 @@ def main():
     token = os.environ['GH_TOKEN']
     repo = os.environ['GITHUB_REPOSITORY']
     root = Path(__file__).resolve().parent.parent
-    catalog = json.loads((root/'official-routes.json').read_bytes())
+    catalog = road.load_catalog()
     legacy_validator = 'b3aa6a071569f084b2cf6e0e569af409619f22d1341f5aceb75b956e662072f2'
     validator = hashlib.sha256((root/'scripts/enrich_road_guidance.py').read_bytes()).hexdigest()
-    digest = hashlib.sha256((root/'official-routes.json').read_bytes()).hexdigest()
+    digest = road.catalog_digest()
     class SafeRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, request, response, code, message, headers, newurl):
             redirected = super().redirect_request(request,response,code,message,headers,newurl)

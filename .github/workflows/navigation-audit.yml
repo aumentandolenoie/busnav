@@ -1,7 +1,7 @@
 name: Audit GPX voice coverage
 on:
   push:
-    branches: [navigation/coverage-audit]
+    branches: [navigation/academy-evidence-audit]
     paths: ['scripts/enrich_road_guidance.py', 'scripts/enrich_catalog.py', '.github/workflows/navigation-audit.yml']
 permissions:
   contents: write

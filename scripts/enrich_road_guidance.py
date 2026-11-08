@@ -27,6 +27,20 @@ MANEUVER_TYPES = {
 }
 
 
+def load_catalog():
+    original=(ROOT/'official-routes.json').read_bytes()
+    supplement_path=ROOT/'academy-supplemental-routes.json'
+    extra=supplement_path.read_bytes() if supplement_path.exists() else b'[]'
+    return json.loads(original)+json.loads(extra)
+
+
+def catalog_digest():
+    import hashlib
+    original=(ROOT/'official-routes.json').read_bytes()
+    supplement_path=ROOT/'academy-supplemental-routes.json'
+    if not supplement_path.exists():return hashlib.sha256(original).hexdigest()
+    return hashlib.sha256(original+b'\0'+supplement_path.read_bytes()).hexdigest()
+
 def fingerprint(points):
     """Same FNV32 fingerprint as the browser, using ALL official GPX points."""
     h = 2166136261
@@ -171,7 +185,7 @@ def ordered_projection(points, official, distances):
         previous=max(previous,hit[1]); result.append(hit)
     return result
 
-def convert(route, response, allow_empty=False):
+def convert(route, response, allow_empty=False, strict_local=False):
     official = [(float(a), float(b)) for a,b in route["points"]]
     if len(official) < 2:
         raise ValueError("Missing official GPX")
@@ -187,19 +201,23 @@ def convert(route, response, allow_empty=False):
         raise ValueError("Empty matched shape")
     official_dist = cumulative(official)
     matched_dist = cumulative(matched)
-    if abs(official_dist[-1] - matched_dist[-1]) > max(90, official_dist[-1] * MAX_LENGTH_DEVIATION):
+    length_tolerance=max(8 if strict_local else 90, official_dist[-1]*MAX_LENGTH_DEVIATION)
+    point_tolerance=min(35, max(8,official_dist[-1]*.15)) if strict_local else MAX_POINT_DISTANCE_M
+    p95_tolerance=min(20,max(5,official_dist[-1]*.1)) if strict_local else MAX_DISTANCE_M
+    endpoint_tolerance=min(20,max(3,official_dist[-1]*.07)) if strict_local else 65
+    if abs(official_dist[-1] - matched_dist[-1]) > length_tolerance:
         raise ValueError(f"Road shape length differs from obligatory Academy GPX: official={official_dist[-1]:.1f}m matched={matched_dist[-1]:.1f}m")
     # Verify direction and continuity, not merely a high GPS proximity score.
     projected = ordered_projection(matched, official, official_dist)
     dense_matched = sampled(matched)
     dense_errors = [x[0] for x in ordered_projection(dense_matched, official, official_dist)]
     reverse_errors = [x[0] for x in ordered_projection(sampled(official), matched, matched_dist)]
-    if max(dense_errors + reverse_errors) > MAX_POINT_DISTANCE_M:
+    if max(dense_errors + reverse_errors) > point_tolerance:
         raise ValueError(f"Road trace skips or leaves an obligatory GPX segment: forward={max(dense_errors):.1f}m reverse={max(reverse_errors):.1f}m")
     errors = sorted(x[0] for x in projected)
-    if errors[-1] > MAX_POINT_DISTANCE_M or errors[int((len(errors)-1)*0.95)] > MAX_DISTANCE_M:
+    if errors[-1] > point_tolerance or errors[int((len(errors)-1)*0.95)] > p95_tolerance:
         raise ValueError("Road geometry deviates from obligatory Academy GPX")
-    if projected[0][1] > 65 or official_dist[-1] - projected[-1][1] > 65:
+    if projected[0][1] > endpoint_tolerance or official_dist[-1] - projected[-1][1] > endpoint_tolerance:
         raise ValueError("Matched trace does not cover Academy endpoints")
     # Account for route intersections: match progression MUST NOT run backwards.
     previous = -1
@@ -217,7 +235,7 @@ def convert(route, response, allow_empty=False):
             continue
         deviation, at = projected[index]
         instruction = str(maneuver.get("instruction", "")).strip()
-        if deviation > 30 or at < 60 or at > official_dist[-1] - 40:
+        if deviation > min(30,point_tolerance) or at < (15 if strict_local else 60) or at > official_dist[-1] - (10 if strict_local else 40):
             continue
         if not instruction or len(instruction) > 160:
             continue
@@ -258,7 +276,7 @@ def main():
     args = parser.parse_args()
     if not args.endpoint and not args.response_file:
         parser.error("--endpoint or --response-file is required")
-    catalog = json.loads((ROOT / "official-routes.json").read_text(encoding="utf8"))
+    catalog = load_catalog()
     route = next((x for x in catalog if str(x["id"]) == args.route_id), None)
     if not route:
         parser.error("Unknown Academy GPX ID: " + args.route_id)
@@ -307,9 +325,9 @@ def annotate_route(route,endpoint):
     """
     points=route['points']; distances=cumulative(points); total=distances[-1]
     attempts=[]
-    def attempt(part,label,precise):
+    def attempt(part,label,precise,strict_local=False):
         try:
-            data=convert(part,get_response(endpoint,part['points'],precise=precise),allow_empty=True)
+            data=convert(part,get_response(endpoint,part['points'],precise=precise),allow_empty=True,strict_local=strict_local)
             attempts.append({'strategy':label,'accepted':True,'turns':len(data['turns'])})
             return data
         except Exception as error:
@@ -325,14 +343,16 @@ def annotate_route(route,endpoint):
     def window(start,end,depth=0):
         if end-start<1: return
         part={**route,'points':points[start:end+1]}
-        data=attempt(part,f'window-{start}-{end}-precise',True)
-        if not data: data=attempt(part,f'window-{start}-{end}-default',False)
+        strict_local=distances[end]-distances[start]<800
+        data=attempt(part,f'window-{start}-{end}-precise'+('-strict' if strict_local else ''),True,strict_local)
+        if not data: data=attempt(part,f'window-{start}-{end}-default'+('-strict' if strict_local else ''),False,strict_local)
         if data:
+            data['coreMargins']=[15 if strict_local and start>0 else 0,10 if strict_local and end<len(points)-1 else 0]
             accepted.append((start,end,data));return
-        if depth>=2 or distances[end]-distances[start]<800:return
+        if depth>=6 or distances[end]-distances[start]<180 or len(attempts)>180:return
         middle=(distances[start]+distances[end])/2
-        left=next((i for i in range(start+1,end) if distances[i]>=middle+120),end-1)
-        right=next((i for i in range(start+1,end) if distances[i]>=middle-120),start+1)
+        left=next((i for i in range(start+1,end) if distances[i]>=middle+min(60,(distances[end]-distances[start])*.15)),end-1)
+        right=next((i for i in range(start+1,end) if distances[i]>=middle-min(60,(distances[end]-distances[start])*.15)),start+1)
         if left>=end or right<=start:return
         window(start,left,depth+1);window(right,end,depth+1)
     start=0
@@ -344,11 +364,12 @@ def annotate_route(route,endpoint):
         following=next((i for i in range(start+1,end+1) if distances[i]>=distances[end]-350),end)
         start=max(start+1,following)
     if not accepted:return None,attempts
-    coverage=coverage_for([[distances[a],distances[b]] for a,b,_ in accepted],total)
+    coverage=coverage_for([[distances[a]+d['coreMargins'][0],distances[b]-d['coreMargins'][1]] for a,b,d in accepted],total)
     maneuvers=[]
     for start,end,data in accepted:
         for turn in data['turns']:
             candidate={**turn,'at':turn['at']+distances[start]}
+            if not any(a<=candidate['at']<=b for a,b in coverage['ranges']):continue
             if not any(abs(candidate['at']-t['at'])<8 and candidate['text'].strip().lower()==t['text'].strip().lower() for t in maneuvers):
                 maneuvers.append(candidate)
     maneuvers.sort(key=lambda t:t['at'])
