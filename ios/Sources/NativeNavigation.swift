@@ -91,7 +91,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         NotificationCenter.default.addObserver(self, selector: #selector(audioInterrupted(_:)), name: AVAudioSession.interruptionNotification, object: nil)
         manager.activityType = .automotiveNavigation
         manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
-        manager.distanceFilter = 3
+        manager.distanceFilter = kCLDistanceFilterNone
         manager.pausesLocationUpdatesAutomatically = false
     }
 
@@ -209,6 +209,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
               location.timestamp.timeIntervalSinceNow > -8,
               location.timestamp.timeIntervalSinceNow < 2 else {
             matched = false
+            synthesizer.stopSpeaking(at: .immediate); speakingStop = false
             onProgress?(along, 0, stopIndex, false)
             onStatus?(manager.accuracyAuthorization == .reducedAccuracy ? "Attiva Posizione precisa per LiveContainer nelle impostazioni iOS" : "GPS poco preciso · annunci sospesi")
             return
