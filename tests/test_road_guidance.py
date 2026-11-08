@@ -1,6 +1,7 @@
 """Checks for Academy GPX immutable road enrichment. No external Valhalla needed."""
 import importlib.util
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 script = Path(__file__).resolve().parents[1] / "scripts" / "enrich_road_guidance.py"
@@ -107,6 +108,36 @@ class AcademyRoadTests(unittest.TestCase):
             "type":15,"begin_shape_index":2,"instruction":"Svolta a sinistra"})
         output=module.convert(self.route,self.response)
         self.assertEqual(len(output["turns"]),2)
+
+    def test_partial_voice_coverage_keeps_failed_intervals_explicit(self):
+        route={"id":"partial","points":[[45,11+i*.001] for i in range(81)]}
+        original=[p[:] for p in route['points']]
+        def response(endpoint,points,precise=False):
+            if len(points)>35 or any(p[1]>11.02 for p in points):
+                raise ValueError('No road match for this interval')
+            return {'trip':{'language':'it-IT','legs':[{'shape':encode_polyline6(points),'maneuvers':[]}]}}
+        with patch.object(module,'get_response',side_effect=response):
+            data,attempts=module.annotate_route(route,'http://localhost:8002')
+        self.assertIsNotNone(data)
+        self.assertFalse(data['coverage']['complete'])
+        self.assertGreater(data['coverage']['coveredM'],0)
+        self.assertLess(data['coverage']['percent'],100)
+        self.assertTrue(data['coverage']['gaps'])
+        self.assertTrue(any(not a['accepted'] for a in attempts))
+        self.assertEqual(route['points'],original)
+
+    def test_no_matching_window_never_claims_voice_coverage(self):
+        route={'id':'missing','points':[[45,11],[45,11.04]]}
+        with patch.object(module,'get_response',side_effect=ValueError('unmatched')):
+            data,attempts=module.annotate_route(route,'http://localhost:8002')
+        self.assertIsNone(data)
+        self.assertTrue(all(not a['accepted'] for a in attempts))
+
+    def test_coverage_union_never_fills_a_real_gap(self):
+        coverage=module.coverage_for([[0,200],[180,400],[450,500]],500)
+        self.assertFalse(coverage['complete'])
+        self.assertEqual(coverage['gaps'],[[400,450]])
+        self.assertEqual(coverage['coveredM'],450)
 
     def test_trace_uses_bus_costing_and_italian(self):
         request = module.trace_request(self.points)

@@ -1,0 +1,33 @@
+name: Audit GPX voice coverage
+on:
+  push:
+    branches: [navigation/coverage-audit]
+    paths: ['scripts/enrich_road_guidance.py', 'scripts/enrich_catalog.py', '.github/workflows/navigation-audit.yml']
+permissions:
+  contents: write
+jobs:
+  guidance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install scipy
+      - run: python3 -m unittest discover -s tests -p 'test_road_guidance.py' -v
+      - run: bash scripts/build-road-guidance.sh
+      - name: Save exact coverage, failed intervals and evaluated strategies
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="ios-preview-${GITHUB_SHA:0:12}"
+          zip -qr navigation-data.zip road-guidance
+          gh release create "$TAG" navigation-data.zip road-guidance/coverage.json --prerelease --target "$GITHUB_SHA" --title "Audit dati navigazione · $TAG" --notes "Solo dati e diagnostica. Nessuna IPA in questa release. coverage.json distingue copertura completa, parziale e assente; ogni intervallo approvato usa gli stessi controlli geometrici sul GPX ufficiale."
+          mkdir -p reports
+          cp road-guidance/coverage.json reports/voice-coverage.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/voice-coverage.json
+          git commit -m 'Save complete voice coverage diagnostics and evaluated strategies'
+          git push
+      - name: Debug engine failures
+        if: failure()
+        run: docker logs --tail 150 busnav-valhalla || true

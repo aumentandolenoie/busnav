@@ -104,26 +104,29 @@ def downsample(points, limit=MAX_INPUT_POINTS):
     raise ValueError("Trace exceeds supported point limit; never discard obligatory GPX bends")
 
 
-def trace_request(points):
-    return {
+def trace_request(points, precise=False):
+    result = {
         "shape": [{"lat": lat, "lon": lng} for lat, lng in downsample(points)],
         "shape_match": "map_snap",
         "costing": "bus",
         "directions_options": {"language": "it-IT", "units": "kilometers", "directions_type": "instructions"},
     }
+    if precise:
+        result["trace_options"] = {"gps_accuracy": 5, "search_radius": 35, "interpolation_distance": 1, "turn_penalty_factor": 0}
+    return result
 
 
-def get_response(endpoint, points):
+def get_response(endpoint, points, precise=False):
     if not endpoint.startswith(("https://", "http://localhost:", "http://127.0.0.1:")):
         raise ValueError("Use HTTPS or a localhost Valhalla instance")
     uri = endpoint.rstrip("/")
     if not uri.endswith("/trace_route"):
         uri += "/trace_route"
     req = urllib.request.Request(
-        uri, json.dumps(trace_request(points)).encode("utf8"),
+        uri, json.dumps(trace_request(points,precise)).encode("utf8"),
         {"Content-Type": "application/json", "X-Client-Id": "lineapilot-academy-validation"},
         method="POST")
-    with urllib.request.urlopen(req, timeout=90) as reply:
+    with urllib.request.urlopen(req, timeout=30) as reply:
         return json.load(reply)
 
 
@@ -168,7 +171,7 @@ def ordered_projection(points, official, distances):
         previous=max(previous,hit[1]); result.append(hit)
     return result
 
-def convert(route, response):
+def convert(route, response, allow_empty=False):
     official = [(float(a), float(b)) for a,b in route["points"]]
     if len(official) < 2:
         raise ValueError("Missing official GPX")
@@ -185,14 +188,14 @@ def convert(route, response):
     official_dist = cumulative(official)
     matched_dist = cumulative(matched)
     if abs(official_dist[-1] - matched_dist[-1]) > max(90, official_dist[-1] * MAX_LENGTH_DEVIATION):
-        raise ValueError("Road shape length differs from obligatory Academy GPX")
+        raise ValueError(f"Road shape length differs from obligatory Academy GPX: official={official_dist[-1]:.1f}m matched={matched_dist[-1]:.1f}m")
     # Verify direction and continuity, not merely a high GPS proximity score.
     projected = ordered_projection(matched, official, official_dist)
     dense_matched = sampled(matched)
     dense_errors = [x[0] for x in ordered_projection(dense_matched, official, official_dist)]
     reverse_errors = [x[0] for x in ordered_projection(sampled(official), matched, matched_dist)]
     if max(dense_errors + reverse_errors) > MAX_POINT_DISTANCE_M:
-        raise ValueError("Road trace skips or leaves an obligatory GPX segment")
+        raise ValueError(f"Road trace skips or leaves an obligatory GPX segment: forward={max(dense_errors):.1f}m reverse={max(reverse_errors):.1f}m")
     errors = sorted(x[0] for x in projected)
     if errors[-1] > MAX_POINT_DISTANCE_M or errors[int((len(errors)-1)*0.95)] > MAX_DISTANCE_M:
         raise ValueError("Road geometry deviates from obligatory Academy GPX")
@@ -231,7 +234,7 @@ def convert(route, response):
             kind = "turn"
             side = "sinistra" if MANEUVER_TYPES[typ] == "left" else "destra"
         maneuvers.append({"at": int(round(at)), "kind": kind, "side": side, "text": instruction})
-    if not maneuvers:
+    if not maneuvers and not allow_empty:
         raise ValueError("Valhalla found no road maneuvers: keep geometric fallback")
     return {
         "version": 1, "source": "valhalla-osm", "language": "it-IT",
@@ -242,7 +245,7 @@ def convert(route, response):
             "passed": True, "maxDeviationM": round(errors[-1], 1),
             "p95DeviationM": round(errors[int((len(errors)-1)*0.95)], 1),
             "matchedLengthM": int(round(matched_dist[-1]))},
-        "turns": maneuvers,
+        "turns": maneuvers, "noManeuvers": not bool(maneuvers),
     }
 
 
@@ -270,6 +273,98 @@ def main():
     print("The official GPX was NEVER modified.")
 
 
+
+
+
+def merged_ranges(ranges, total):
+    merged=[]
+    for start,end in sorted(ranges):
+        start=max(0.0,start); end=min(total,end)
+        if end<=start: continue
+        if merged and start<=merged[-1][1]+0.01:
+            merged[-1][1]=max(merged[-1][1],end)
+        else: merged.append([start,end])
+    return merged
+
+
+def coverage_for(ranges,total):
+    ranges=merged_ranges(ranges,total)
+    gaps=[]; previous=0.0
+    for start,end in ranges:
+        if start>previous+0.01: gaps.append([previous,start])
+        previous=end
+    if previous<total-0.01: gaps.append([previous,total])
+    covered=sum(b-a for a,b in ranges)
+    return {"complete":not gaps,"coveredM":round(covered,1),"totalM":round(total,1),
+            "percent":round(covered/max(1,total)*100,2),"ranges":ranges,"gaps":gaps}
+
+
+def annotate_route(route,endpoint):
+    """Try whole-trace matching, precision tuning, then overlapping GPX windows.
+
+    Every accepted window passes the SAME strict bidirectional geometry checks.
+    Failed intervals remain gaps: no invented instructions or replacement route.
+    """
+    points=route['points']; distances=cumulative(points); total=distances[-1]
+    attempts=[]
+    def attempt(part,label,precise):
+        try:
+            data=convert(part,get_response(endpoint,part['points'],precise=precise),allow_empty=True)
+            attempts.append({'strategy':label,'accepted':True,'turns':len(data['turns'])})
+            return data
+        except Exception as error:
+            attempts.append({'strategy':label,'accepted':False,'reason':str(error)[:350]})
+            return None
+    for precise,label in [(False,'whole-default'),(True,'whole-precise')]:
+        data=attempt(route,label,precise)
+        if data:
+            data['coverage']=coverage_for([[0,total]],total)
+            data['solution']=label
+            return data,attempts
+    accepted=[]
+    def window(start,end,depth=0):
+        if end-start<1: return
+        part={**route,'points':points[start:end+1]}
+        data=attempt(part,f'window-{start}-{end}-precise',True)
+        if not data: data=attempt(part,f'window-{start}-{end}-default',False)
+        if data:
+            accepted.append((start,end,data));return
+        if depth>=2 or distances[end]-distances[start]<800:return
+        middle=(distances[start]+distances[end])/2
+        left=next((i for i in range(start+1,end) if distances[i]>=middle+120),end-1)
+        right=next((i for i in range(start+1,end) if distances[i]>=middle-120),start+1)
+        if left>=end or right<=start:return
+        window(start,left,depth+1);window(right,end,depth+1)
+    start=0
+    while start<len(points)-1:
+        end=next((i for i in range(start+1,len(points)) if distances[i]-distances[start]>=2500),len(points)-1)
+        if total-distances[end]<350:end=len(points)-1
+        window(start,end)
+        if end==len(points)-1:break
+        following=next((i for i in range(start+1,end+1) if distances[i]>=distances[end]-350),end)
+        start=max(start+1,following)
+    if not accepted:return None,attempts
+    coverage=coverage_for([[distances[a],distances[b]] for a,b,_ in accepted],total)
+    maneuvers=[]
+    for start,end,data in accepted:
+        for turn in data['turns']:
+            candidate={**turn,'at':turn['at']+distances[start]}
+            if not any(abs(candidate['at']-t['at'])<8 and candidate['text'].strip().lower()==t['text'].strip().lower() for t in maneuvers):
+                maneuvers.append(candidate)
+    maneuvers.sort(key=lambda t:t['at'])
+    # Collocated, conflicting instructions cannot both be shown.
+    unique=[]
+    for turn in maneuvers:
+        if unique and abs(turn['at']-unique[-1]['at'])<1:continue
+        unique.append(turn)
+    data={
+        'version':1,'source':'valhalla-osm','language':'it-IT','academyId':str(route['id']),
+        'fingerprint':fingerprint(points),'officialLengthM':round(total),
+        'validation':{'passed':True,'maxDeviationM':max(d['validation']['maxDeviationM'] for _,_,d in accepted),
+                      'p95DeviationM':max(d['validation']['p95DeviationM'] for _,_,d in accepted)},
+        'turns':unique,'noManeuvers':not bool(unique),'coverage':coverage,'solution':'validated-windows',
+    }
+    return data,attempts
+
 if __name__ == "__main__":
     main()
-

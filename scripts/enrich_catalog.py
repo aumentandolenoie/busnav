@@ -23,19 +23,24 @@ def main():
     for index, route in enumerate(catalog):
         target = out / (str(route['id'])+'.json')
         target.unlink(missing_ok=True)
-        try:
-            data = road.convert(route, road.get_response(args.endpoint,route['points']))
+        data,attempts=road.annotate_route(route,args.endpoint)
+        row={'id':route['id'],'name':route['name'],'category':route['category'],'line':route['line'],'attempts':attempts}
+        if data:
             data['generatedAt'] = report['generatedAt']
             target.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':'))+'\n')
-            report['routes'].append({'id':route['id'],'status':'validated','turns':len(data['turns'])})
-            print(f"{index+1}/{len(catalog)} {route['id']}: OK {len(data['turns'])} manovre",flush=True)
-        except Exception as error:
-            report['routes'].append({'id':route['id'],'status':'unavailable','reason':str(error)[:300]})
-            print(f"{index+1}/{len(catalog)} {route['id']}: escluso: {error}",flush=True)
+            complete=data['coverage']['complete']
+            row.update(status='validated' if complete else 'partial',turns=len(data['turns']),coverage=data['coverage'],solution=data['solution'])
+            print(f"{index+1}/{len(catalog)} {route['id']}: {'OK' if complete else 'PARTIAL'} {len(data['turns'])} manovre {data['coverage']['percent']}%",flush=True)
+        else:
+            row.update(status='unavailable',reason=attempts[-1]['reason'] if attempts else 'No valid trace')
+            print(f"{index+1}/{len(catalog)} {route['id']}: escluso: {row['reason']}",flush=True)
+        report['routes'].append(row)
     report['validated'] = sum(r['status']=='validated' for r in report['routes'])
+    report['partial'] = sum(r['status']=='partial' for r in report['routes'])
+    report['unavailable'] = sum(r['status']=='unavailable' for r in report['routes'])
     (out/'coverage.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
     assert source.read_bytes() == original, 'Official GPX changed!'
-    print(f"Coverage: {report['validated']}/{len(catalog)}. GPX SHA256: {report['gpxSHA256']}",flush=True)
+    print(f"Coverage: {report['validated']} full + {report['partial']} partial /{len(catalog)}. GPX SHA256: {report['gpxSHA256']}",flush=True)
     if not report['validated']:
         raise SystemExit('No validated directions; refusing to publish a navigator without road guidance')
 
