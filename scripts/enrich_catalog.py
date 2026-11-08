@@ -27,6 +27,7 @@ def main():
         data,attempts=road.annotate_route(route,args.endpoint)
         row={'id':route['id'],'name':route['name'],'category':route['category'],'line':route['line'],'attempts':attempts}
         if data:
+            data=road.refine_roundabouts(route,data,args.endpoint)
             data['generatedAt'] = report['generatedAt']
             target.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':'))+'\n')
             complete=data['coverage']['complete']
@@ -42,6 +43,16 @@ def main():
     (out/'coverage.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
     audit={'before':json.loads((ROOT/'build/road-guidance-before.json').read_text()) if (ROOT/'build/road-guidance-before.json').exists() else None,
            'after':summarize(json.loads(p.read_text()) for p in out.glob('*.json') if p.name!='coverage.json')}
+    baseline_path=ROOT/'reports/roundabout-recovery-input.json'
+    if baseline_path.exists():
+        baseline=json.loads(baseline_path.read_text());comparisons=[]
+        for old in baseline['maneuvers']:
+            current=json.loads((out/(str(old['id'])+'.json')).read_text())
+            turns=[t for t in current['turns'] if t['kind']=='roundabout' and abs(t['at']-old['at'])<3]
+            if len(turns)!=1:status='missing-or-ambiguous'
+            else:status='unresolved' if 'GPX ufficiale' in turns[0]['text'] else 'recovered'
+            comparisons.append({**old,'status':status,'text':turns[0]['text'] if len(turns)==1 else None})
+        audit['baselineRecovery']={'initial':baseline['count'],'recovered':sum(c['status']=='recovered' for c in comparisons),'unresolved':sum(c['status']!='recovered' for c in comparisons),'maneuvers':comparisons}
     (ROOT/'reports/road-guidance-audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2)+'\n')
     print('Roundabout audit:',json.dumps({k:v for k,v in audit['after'].items() if k!='samples'}),flush=True)
     assert source.read_bytes() == original, 'Official GPX changed!'

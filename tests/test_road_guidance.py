@@ -39,6 +39,7 @@ class AcademyRoadTests(unittest.TestCase):
                 "maneuvers": [
                     {"type": 1, "begin_shape_index": 0, "instruction": "Parti"},
                     {"type": 10, "begin_shape_index": 1, "instruction": "Svolta a destra in Via Roma"},
+                    {"type": 27, "begin_shape_index": 2, "end_shape_index":2,"instruction":"Esci dalla rotonda"},
                     {"type": 4, "begin_shape_index": 2, "instruction": "Sei arrivato"}
                 ]
             }]}
@@ -152,6 +153,63 @@ class AcademyRoadTests(unittest.TestCase):
         self.response['_drivingSideValidated']=True
         output=module.convert(self.route,self.response)
         self.assertFalse(output['roundaboutAudit'][0]['numberVerified'])
+
+    def recovery_case(self,index):
+        import json
+        data=json.loads((Path(__file__).parent/'fixtures/roundabout-recovery-reference.json').read_text())['cases'][index]
+        route={'id':data['row']['id'],'points':data['points']}
+        target=data['row']['at']-data['startM']
+        guidance={'turns':[{'at':target,'kind':'roundabout','side':'rotatoria','text':'Alla rotonda, segui il percorso GPX ufficiale'}]}
+        return data,route,guidance
+
+    def test_recovers_tiny_circle_with_equal_entry_exit_projection_and_verified_arms(self):
+        import copy
+        case,route,data=self.recovery_case(2);original=copy.deepcopy(route['points'])
+        module._RECOVERY_CACHE.clear()
+        def request(endpoint,points,precise=False):return case['response'] if precise else case['defaultResponse']
+        with patch.object(module,'get_response',side_effect=request) as api:
+            result=module.refine_roundabouts(route,data,'http://localhost:8002')
+        self.assertEqual(api.call_count,2)
+        self.assertEqual(result['turns'][0]['text'],'Alla rotonda, prendi la prima uscita')
+        self.assertTrue(result['roundaboutRecovery'][0]['recovered'])
+        self.assertEqual(result['roundaboutRecovery'][0]['methods'],['verified-arms','verified-arms'])
+        self.assertEqual(route['points'],original)
+
+    def test_conflicting_real_local_exit_counts_remain_unnumbered(self):
+        case,route,data=self.recovery_case(1);module._RECOVERY_CACHE.clear()
+        with patch.object(module,'get_response',side_effect=lambda endpoint,points,precise=False:case['response'] if precise else case['defaultResponse']):
+            result=module.refine_roundabouts(route,data,'http://localhost:8002')
+        self.assertIn('GPX ufficiale',result['turns'][0]['text'])
+        self.assertEqual(result['roundaboutRecovery'][0]['reason'],'different-local-exit-counts')
+
+    def test_truncated_circle_is_never_numbered(self):
+        import copy
+        case,route,data=self.recovery_case(2);response=copy.deepcopy(case['response'])
+        leg=response['trip']['legs'][0];leg['maneuvers']=[m for m in leg['maneuvers'] if m['type']!=27]
+        candidate,reason=module.local_roundabout_candidate(route,response,data['turns'][0]['at'])
+        self.assertIsNone(candidate);self.assertEqual(reason,'incomplete-circle')
+
+    def test_arm_recovery_rejects_real_discordant_gpx_geometry(self):
+        case,route,data=self.recovery_case(3)
+        candidate,reason=module.local_roundabout_candidate(route,case['response'],data['turns'][0]['at'])
+        self.assertIsNone(candidate)
+
+    def test_arm_recovery_requires_fifty_five_metres_of_context(self):
+        import copy
+        case,route,data=self.recovery_case(2);leg=case['response']['trip']['legs'][0]
+        m=copy.deepcopy(next(m for m in leg['maneuvers'] if m['type']==26));shape=module.decode_polyline(leg['shape'])
+        cut=max(0,m['begin_shape_index']-1);shape=shape[cut:m['end_shape_index']+2]
+        m['begin_shape_index']-=cut;m['end_shape_index']-=cut
+        d=module.cumulative(route['points']);projected=module.ordered_projection(shape,route['points'],d)
+        ok,reason=module.roundabout_arm_geometry(m,shape,projected,route['points'],d)
+        self.assertFalse(ok);self.assertEqual(reason,'insufficient-arm-context')
+
+    def test_primary_numbering_requires_an_actual_exit_maneuver(self):
+        m=self.response['trip']['legs'][0]['maneuvers'][1];m.update(type=26,end_shape_index=2,roundabout_exit_count=2)
+        self.response['_drivingSideValidated']=True
+        self.response['trip']['legs'][0]['maneuvers']=[m for m in self.response['trip']['legs'][0]['maneuvers'] if m['type']!=27]
+        out=module.convert(self.route,self.response)
+        self.assertFalse(out['roundaboutAudit'][0]['numberVerified'])
 
     def test_never_simplifies_gpx_to_meet_api_point_limit(self):
         with self.assertRaises(ValueError):

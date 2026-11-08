@@ -1,0 +1,673 @@
+{
+  "source": "https://valhalla1.openstreetmap.de",
+  "checkedAt": "2026-11-08",
+  "attribution": "© OpenStreetMap contributors; Valhalla reference service",
+  "cases": [
+    {
+      "row": {
+        "id": 0,
+        "name": "523 | Bojon - S. Angelo - Celeseo - Vigonovo - Padova",
+        "at": 1538,
+        "reportedExit": 2
+      },
+      "points": [
+        [
+          45.337768,
+          12.066671
+        ],
+        [
+          45.337698,
+          12.066294
+        ],
+        [
+          45.33762,
+          12.06588
+        ],
+        [
+          45.3376,
+          12.06562
+        ],
+        [
+          45.337615,
+          12.065531
+        ],
+        [
+          45.337677,
+          12.065151
+        ],
+        [
+          45.33771,
+          12.06495
+        ],
+        [
+          45.33775,
+          12.064775
+        ],
+        [
+          45.337836,
+          12.064404
+        ],
+        [
+          45.337922,
+          12.064033
+        ],
+        [
+          45.33795,
+          12.06391
+        ],
+        [
+          45.33795,
+          12.06375
+        ],
+        [
+          45.3379,
+          12.063678
+        ],
+        [
+          45.33777,
+          12.06349
+        ],
+        [
+          45.33773,
+          12.06341
+        ],
+        [
+          45.33773,
+          12.063382
+        ],
+        [
+          45.33773,
+          12.06326
+        ],
+        [
+          45.33775,
+          12.06306
+        ],
+        [
+          45.337771,
+          12.063
+        ],
+        [
+          45.33784,
+          12.06281
+        ],
+        [
+          45.337916,
+          12.06267
+        ],
+        [
+          45.338085,
+          12.062362
+        ],
+        [
+          45.33825,
+          12.06206
+        ],
+        [
+          45.338389,
+          12.061714
+        ],
+        [
+          45.338525,
+          12.061376
+        ],
+        [
+          45.3386,
+          12.06119
+        ],
+        [
+          45.338718,
+          12.061137
+        ]
+      ],
+      "startM": 1314.1553715932084,
+      "response": {
+        "trip": {
+          "language": "it-IT",
+          "legs": [
+            {
+              "shape": "ajenuAuun_VZlCzDl[hAxLBXNvCBxGMrEeAjOqA|MwA`LaBpLa@pCuA|Js@~Es@|B]dBeApGi@`Co@lBu@zBQPOVK\\Kj@Ep@@p@Jn@Rd@d@h@XJ\\DZNTNj@h@bBbBjA|AhAtBt@`CXnAN~@PrAHdBAvBInBQhCg@pFi@xAWj@w@dBkWln@wCpIwCzJyEjRgB`HeBjE_ExA",
+              "maneuvers": [
+                {
+                  "type": 1,
+                  "instruction": "Guida verso ovest su Via Villa.",
+                  "begin_shape_index": 0,
+                  "end_shape_index": 20
+                },
+                {
+                  "type": 26,
+                  "instruction": "Entra nella rotonda e prendi la 2a uscita per Via Villa.",
+                  "begin_shape_index": 20,
+                  "end_shape_index": 31,
+                  "roundabout_exit_count": 2
+                },
+                {
+                  "type": 27,
+                  "instruction": "Esci dalla rotatoria verso Via Villa.",
+                  "begin_shape_index": 31,
+                  "end_shape_index": 36
+                },
+                {
+                  "type": 23,
+                  "instruction": "Mantieni la destra per rimanere su Via Villa.",
+                  "begin_shape_index": 36,
+                  "end_shape_index": 56
+                },
+                {
+                  "type": 4,
+                  "instruction": "Sei arrivato a destinazione.",
+                  "begin_shape_index": 56,
+                  "end_shape_index": 56
+                }
+              ]
+            }
+          ]
+        },
+        "_drivingSideValidated": true
+      }
+    },
+    {
+      "row": {
+        "id": 0,
+        "name": "523 | Bojon - S. Angelo - Celeseo - Vigonovo - Padova",
+        "at": 20027,
+        "reportedExit": 1
+      },
+      "points": [
+        [
+          45.399004,
+          11.957863
+        ],
+        [
+          45.399124,
+          11.9571
+        ],
+        [
+          45.399183,
+          11.956719
+        ],
+        [
+          45.39923,
+          11.95642
+        ],
+        [
+          45.399245,
+          11.956337
+        ],
+        [
+          45.39932,
+          11.95592
+        ],
+        [
+          45.399393,
+          11.955585
+        ],
+        [
+          45.399474,
+          11.955211
+        ],
+        [
+          45.3995,
+          11.95509
+        ],
+        [
+          45.39952,
+          11.95496
+        ],
+        [
+          45.399514,
+          11.954829
+        ],
+        [
+          45.39951,
+          11.95475
+        ],
+        [
+          45.39954,
+          11.95472
+        ],
+        [
+          45.39955,
+          11.95467
+        ],
+        [
+          45.39952,
+          11.95461
+        ],
+        [
+          45.39957,
+          11.95452
+        ],
+        [
+          45.3996,
+          11.95439
+        ],
+        [
+          45.399698,
+          11.95374
+        ],
+        [
+          45.399756,
+          11.953358
+        ],
+        [
+          45.399814,
+          11.952976
+        ],
+        [
+          45.399872,
+          11.952594
+        ],
+        [
+          45.39997,
+          11.95195
+        ],
+        [
+          45.400001,
+          11.951835
+        ],
+        [
+          45.4001,
+          11.951471
+        ]
+      ],
+      "startM": 19772.532150608302,
+      "response": {
+        "trip": {
+          "language": "it-IT",
+          "legs": [
+            {
+              "shape": "i}|quAsezxU}Dre@gBpToA`OgAbMeAdLy@vHq@zFqBdOuEh\\k@nE[dDIdBQrAc@lCM~BEtCIp@Br@Ll@Vf@XTZL[rAy@zBy@~AQpBwK`sAe@nFq@hIaErd@eAfKyAjKmB`Ku@tD",
+              "maneuvers": [
+                {
+                  "type": 1,
+                  "instruction": "Guida verso ovest su Via Vigonovese.",
+                  "begin_shape_index": 0,
+                  "end_shape_index": 16
+                },
+                {
+                  "type": 26,
+                  "instruction": "Entra nella rotonda e prendi la 2a uscita per Via Vigonovese.",
+                  "begin_shape_index": 16,
+                  "end_shape_index": 22,
+                  "roundabout_exit_count": 2
+                },
+                {
+                  "type": 27,
+                  "instruction": "Esci dalla rotatoria verso Via Vigonovese.",
+                  "begin_shape_index": 22,
+                  "end_shape_index": 34
+                },
+                {
+                  "type": 4,
+                  "instruction": "Sei arrivato a destinazione.",
+                  "begin_shape_index": 34,
+                  "end_shape_index": 34
+                }
+              ]
+            }
+          ]
+        },
+        "_drivingSideValidated": true
+      },
+      "defaultResponse": {
+        "trip": {
+          "language": "it-IT",
+          "legs": [
+            {
+              "shape": "i}|quAsezxU}Dre@gBpToA`OgAbMeAdLy@vHq@zFqBdOuEh\\k@nE[dDIdBQrAc@lCM~BEtCIp@_@hDWdDFlCQpBwK`sAe@nFq@hIaErd@eAfKyAjKmB`Ku@tD",
+              "maneuvers": [
+                {
+                  "type": 1,
+                  "instruction": "Guida verso ovest su Via Vigonovese.",
+                  "begin_shape_index": 0,
+                  "end_shape_index": 16
+                },
+                {
+                  "type": 26,
+                  "instruction": "Entra nella rotonda e prendi la 1a uscita per Via Vigonovese.",
+                  "begin_shape_index": 16,
+                  "end_shape_index": 17,
+                  "roundabout_exit_count": 1
+                },
+                {
+                  "type": 27,
+                  "instruction": "Esci dalla rotatoria verso Via Vigonovese.",
+                  "begin_shape_index": 17,
+                  "end_shape_index": 29
+                },
+                {
+                  "type": 4,
+                  "instruction": "Sei arrivato a destinazione.",
+                  "begin_shape_index": 29,
+                  "end_shape_index": 29
+                }
+              ]
+            }
+          ]
+        },
+        "_drivingSideValidated": true
+      }
+    },
+    {
+      "row": {
+        "id": 2,
+        "name": "868 | Padova - Vigonovo - Celeseo - S. Angelo - Bojon",
+        "at": 24605.44803006672,
+        "reportedExit": 1
+      },
+      "points": [
+        [
+          45.333314,
+          12.046073
+        ],
+        [
+          45.33319,
+          12.0463
+        ],
+        [
+          45.333154,
+          12.046383
+        ],
+        [
+          45.332871,
+          12.047037
+        ],
+        [
+          45.332729,
+          12.047365
+        ],
+        [
+          45.332588,
+          12.047692
+        ],
+        [
+          45.332446,
+          12.048019
+        ],
+        [
+          45.33242,
+          12.04808
+        ],
+        [
+          45.332299,
+          12.048342
+        ],
+        [
+          45.33224,
+          12.04847
+        ],
+        [
+          45.332141,
+          12.048652
+        ],
+        [
+          45.33212,
+          12.04869
+        ],
+        [
+          45.332,
+          12.04875
+        ],
+        [
+          45.331632,
+          12.048617
+        ],
+        [
+          45.33137,
+          12.048523
+        ],
+        [
+          45.331108,
+          12.048428
+        ],
+        [
+          45.330846,
+          12.048334
+        ],
+        [
+          45.33078,
+          12.04831
+        ],
+        [
+          45.330584,
+          12.048241
+        ],
+        [
+          45.330059,
+          12.048055
+        ],
+        [
+          45.329797,
+          12.047962
+        ]
+      ],
+      "startM": 24365.312086887472,
+      "response": {
+        "trip": {
+          "language": "it-IT",
+          "legs": [
+            {
+              "shape": "gs|muAunf~UhFiMlFkOn@{BhHeTfTio@xE{NjAwDdG{QtBsD|BoG\\iBl@{@vAUjBa@~CUrErAnKjCfMfDpCp@zIzBxMfDz@T`ZrH|D~@fQfE~PhE",
+              "maneuvers": [
+                {
+                  "type": 1,
+                  "instruction": "Guida verso sud-est su Via Veneto/SP14.",
+                  "begin_shape_index": 0,
+                  "end_shape_index": 11
+                },
+                {
+                  "type": 26,
+                  "instruction": "Entra nella rotonda e prendi la 1a uscita per Via Roma/SP11.",
+                  "begin_shape_index": 11,
+                  "end_shape_index": 12,
+                  "roundabout_exit_count": 1
+                },
+                {
+                  "type": 27,
+                  "instruction": "Esci dalla rotatoria verso Via Roma/SP11.",
+                  "begin_shape_index": 12,
+                  "end_shape_index": 26
+                },
+                {
+                  "type": 4,
+                  "instruction": "Sei arrivato a destinazione.",
+                  "begin_shape_index": 26,
+                  "end_shape_index": 26
+                }
+              ]
+            }
+          ]
+        },
+        "_drivingSideValidated": true
+      },
+      "defaultResponse": {
+        "trip": {
+          "language": "it-IT",
+          "legs": [
+            {
+              "shape": "gs|muAunf~UhFiMlFkOn@{BhHeTfTio@xE{NjAwDdG{QtBsD|BoG\\iBl@{@vAUjBa@~CUrErAnKjCfMfDpCp@zIzBxMfDz@T`ZrH|D~@fQfE~PhE",
+              "maneuvers": [
+                {
+                  "type": 1,
+                  "instruction": "Guida verso sud-est su Via Veneto/SP14.",
+                  "begin_shape_index": 0,
+                  "end_shape_index": 11
+                },
+                {
+                  "type": 26,
+                  "instruction": "Entra nella rotonda e prendi la 1a uscita per Via Roma/SP11.",
+                  "begin_shape_index": 11,
+                  "end_shape_index": 12,
+                  "roundabout_exit_count": 1
+                },
+                {
+                  "type": 27,
+                  "instruction": "Esci dalla rotatoria verso Via Roma/SP11.",
+                  "begin_shape_index": 12,
+                  "end_shape_index": 26
+                },
+                {
+                  "type": 4,
+                  "instruction": "Sei arrivato a destinazione.",
+                  "begin_shape_index": 26,
+                  "end_shape_index": 26
+                }
+              ]
+            }
+          ]
+        },
+        "_drivingSideValidated": true
+      }
+    },
+    {
+      "row": {
+        "id": 8,
+        "name": "362 | Stra - Ist. Cornaro - Padova.gpx",
+        "at": 15098,
+        "reportedExit": 3
+      },
+      "points": [
+        [
+          45.399841,
+          11.887591
+        ],
+        [
+          45.399905,
+          11.887638
+        ],
+        [
+          45.399987,
+          11.887696
+        ],
+        [
+          45.400005,
+          11.887708
+        ],
+        [
+          45.400077,
+          11.887729
+        ],
+        [
+          45.401323,
+          11.888708
+        ],
+        [
+          45.40143,
+          11.888807
+        ],
+        [
+          45.401574,
+          11.889006
+        ],
+        [
+          45.401633,
+          11.888942
+        ],
+        [
+          45.40178,
+          11.889032
+        ],
+        [
+          45.401927,
+          11.889029
+        ],
+        [
+          45.401962,
+          11.889137
+        ],
+        [
+          45.402013,
+          11.889257
+        ],
+        [
+          45.402459,
+          11.888936
+        ],
+        [
+          45.402524,
+          11.888852
+        ],
+        [
+          45.402625,
+          11.888807
+        ],
+        [
+          45.402655,
+          11.888796
+        ],
+        [
+          45.402683,
+          11.888786
+        ],
+        [
+          45.402862,
+          11.888675
+        ],
+        [
+          45.402902,
+          11.888647
+        ],
+        [
+          45.402938,
+          11.888629
+        ],
+        [
+          45.403156,
+          11.888492
+        ],
+        [
+          45.40328,
+          11.888411
+        ],
+        [
+          45.403334,
+          11.888304
+        ],
+        [
+          45.404088,
+          11.887814
+        ]
+      ],
+      "startM": 14874.015193622452,
+      "response": {
+        "trip": {
+          "language": "it-IT",
+          "legs": [
+            {
+              "shape": "qp~quAw~ptUSMmCiB}CoBcCaBkAu@uJaEuWoQsPkL}EiDuNgLuEeEmE{FqAqC}@mBgB}Ch@cAZoAHaA@UAyAOcACQa@kAo@{@u@i@}@S_A@{@V}@x@o@nA]~AEfBBh@Hz@mAn@iCdBog@v[eHhEkEhCaMrHyLlHkJdFub@fV",
+              "maneuvers": [
+                {
+                  "type": 1,
+                  "instruction": "Guida verso nord-est su Via Gattamelata.",
+                  "begin_shape_index": 0,
+                  "end_shape_index": 15
+                },
+                {
+                  "type": 26,
+                  "instruction": "Entra nella rotonda e prendi la 3a uscita per Via Nicolò Giustiniani.",
+                  "begin_shape_index": 15,
+                  "end_shape_index": 34,
+                  "roundabout_exit_count": 3
+                },
+                {
+                  "type": 27,
+                  "instruction": "Esci dalla rotatoria verso Via Nicolò Giustiniani.",
+                  "begin_shape_index": 34,
+                  "end_shape_index": 43
+                },
+                {
+                  "type": 4,
+                  "instruction": "Sei arrivato a destinazione.",
+                  "begin_shape_index": 43,
+                  "end_shape_index": 43
+                }
+              ]
+            }
+          ]
+        },
+        "_drivingSideValidated": true
+      }
+    }
+  ]
+}

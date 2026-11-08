@@ -279,10 +279,10 @@ def convert(route, response, allow_empty=False, strict_local=False):
             exit_count = maneuver.get("roundabout_exit_count")
             trustworthy = (type(exit_count) is int and 1 <= exit_count <= 20
                 and response.get("_drivingSideValidated") is True
+                and paired_roundabout_exit(maneuver,leg)
                 and roundabout_geometry(maneuver,matched,projected,official,official_dist))
             roundabout_audit.append({"at":round(at),"reportedExit":exit_count,"numberVerified":trustworthy})
-            ordinal = {1:"prima",2:"seconda",3:"terza",4:"quarta",5:"quinta",6:"sesta",7:"settima",8:"ottava",9:"nona",10:"decima"}
-            instruction = (f"Alla rotonda, prendi la {ordinal.get(exit_count,str(exit_count)+'ª')} uscita" if trustworthy
+            instruction = (roundabout_text(exit_count) if trustworthy
                 else "Alla rotonda, segui il percorso GPX ufficiale")
             kind = "roundabout"
             side = "rotatoria"
@@ -323,6 +323,7 @@ def main():
         parser.error("Academy ID contains unsupported filename characters")
     response = json.loads(args.response_file.read_text(encoding="utf8")) if args.response_file else get_response(args.endpoint, route["points"])
     guidance = convert(route, response)
+    if args.endpoint:guidance=refine_roundabouts(route,guidance,args.endpoint)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     output = args.output_dir / (str(route["id"]) + ".json")
     output.write_text(json.dumps(guidance, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf8")
@@ -427,6 +428,129 @@ def annotate_route(route,endpoint):
         'roundaboutAudit':[{**r,'at':r['at']+distances[a]} for a,_,d in accepted for r in d.get('roundaboutAudit',[])],
     }
     return data,attempts
+
+def coordinate_at(points, distances, at):
+    import bisect
+    at=max(0.0,min(distances[-1],at))
+    i=min(len(points)-2,max(0,bisect.bisect_right(distances,at)-1))
+    length=distances[i+1]-distances[i]
+    t=(at-distances[i])/length if length else 0
+    return (points[i][0]+(points[i+1][0]-points[i][0])*t,points[i][1]+(points[i+1][1]-points[i][1])*t)
+
+
+def clip_line(points, distances, start, end):
+    start=max(0.0,start);end=min(distances[-1],end)
+    if end<=start:return []
+    return [coordinate_at(points,distances,start)]+[p for p,d in zip(points,distances) if start<d<end]+[coordinate_at(points,distances,end)]
+
+
+def paired_roundabout_exit(maneuver, leg):
+    end=maneuver.get('end_shape_index')
+    return type(end) is int and any(m.get('type')==27 and m.get('begin_shape_index')==end for m in leg.get('maneuvers',[]))
+
+
+def roundabout_text(number):
+    words={1:'prima',2:'seconda',3:'terza',4:'quarta',5:'quinta',6:'sesta',7:'settima',8:'ottava',9:'nona',10:'decima',11:'undicesima',12:'dodicesima',13:'tredicesima',14:'quattordicesima',15:'quindicesima',16:'sedicesima',17:'diciassettesima',18:'diciottesima',19:'diciannovesima',20:'ventesima'}
+    return f"Alla rotonda, prendi la {words[number]} uscita"
+
+
+def heading_delta(a,b,c,d):
+    def heading(p,q):return math.atan2((q[1]-p[1])*math.cos(math.radians((p[0]+q[0])/2)),q[0]-p[0])
+    return abs((math.degrees(heading(a,b)-heading(c,d))+180)%360-180)
+
+
+def roundabout_arm_geometry(maneuver,matched,projected,official,official_dist):
+    """Recover sparse small circles ONLY with tightly verified approach/departure.
+
+    This is used only after two independent local map matches agree on the exit.
+    The 12m primary check stays intact. Here both 40m arms must match within 7m
+    and 12 degrees; the central circle remains bounded by 20m in both directions.
+    """
+    start,end=maneuver.get('begin_shape_index'),maneuver.get('end_shape_index')
+    if type(start) is not int or type(end) is not int or not 0<=start<end<len(matched):return False,'incomplete-circle'
+    md=cumulative(matched);entry,exit=md[start],md[end]
+    if entry<55 or md[-1]-exit<55:return False,'insufficient-arm-context'
+    if exit-entry>300:return False,'large-circle-needs-strict-geometry'
+    begin_at,end_at=projected[start][1],projected[end][1]
+    if end_at<begin_at-3 or end_at-begin_at>1200:return False,'ambiguous-progression'
+    local=clip_line(official,official_dist,min(begin_at,end_at)-120,max(begin_at,end_at)+120)
+    if len(local)<2:return False,'missing-gpx-context'
+    ld=cumulative(local);arm_projections=[]
+    for a,b in [(entry-55,entry-15),(exit+15,exit+55)]:
+        arm=sampled(clip_line(matched,md,a,b),5)
+        projections=ordered_projection(arm,local,ld)
+        if max(p[0] for p in projections)>7:return False,'arm-deviation'
+        first,last=projections[0][1],projections[-1][1]
+        if not 30<=last-first<=50:return False,'arm-progression'
+        if heading_delta(arm[0],arm[-1],coordinate_at(local,ld,first),coordinate_at(local,ld,last))>12:return False,'arm-heading'
+        arm_projections.append(projections)
+    a=arm_projections[0][-1][1];b=arm_projections[1][0][1]
+    if b<=a+5:return False,'ambiguous-circle-progression'
+    core=clip_line(matched,md,entry-15,exit+15)
+    official_core=clip_line(local,ld,a,b)
+    forward=[p[0] for p in ordered_projection(sampled(core,3),local,ld)]
+    reverse=[p[0] for p in ordered_projection(sampled(official_core,3),core,cumulative(core))]
+    if max(forward+reverse)>20:return False,'circle-deviation'
+    return True,'verified-arms'
+
+
+def local_roundabout_candidate(part,response,target):
+    # Reuse all original bidirectional trace and direction/endpoint checks.
+    try:convert(part,response,allow_empty=True,strict_local=True)
+    except (ValueError,KeyError,IndexError):return None,'local-trace-rejected'
+    if response.get('_drivingSideValidated') is not True:return None,'driving-side-unverified'
+    official=part['points'];dist=cumulative(official)
+    leg=response['trip']['legs'][0];matched=decode_polyline(leg['shape'])
+    projected=ordered_projection(matched,official,dist)
+    hits=[]
+    for m in leg.get('maneuvers',[]):
+        index=m.get('begin_shape_index')
+        if m.get('type')==26 and type(index) is int and 0<=index<len(matched) and abs(projected[index][1]-target)<=25:hits.append(m)
+    if len(hits)!=1:return None,'ambiguous-local-roundabouts'
+    m=hits[0];number=m.get('roundabout_exit_count')
+    if type(number) is not int or not 1<=number<=20:return None,'missing-exit-number'
+    if not paired_roundabout_exit(m,leg):return None,'incomplete-circle'
+    md=cumulative(matched);start,end=m['begin_shape_index'],m.get('end_shape_index',-1)
+    if not 0<=start<end<len(matched) or md[start]<55 or md[-1]-md[end]<55:return None,'insufficient-arm-context'
+    if roundabout_geometry(m,matched,projected,official,dist):method='strict-local-geometry'
+    else:
+        ok,method=roundabout_arm_geometry(m,matched,projected,official,dist)
+        if not ok:return None,method
+    return {'exit':number,'at':projected[start][1],'entry':matched[start],'departure':matched[end],'method':method},None
+
+
+_RECOVERY_CACHE={}
+def refine_roundabouts(route,data,endpoint):
+    """Resolve unnumbered circles with full-context default AND precise traces."""
+    import bisect
+    points=route['points'];dist=cumulative(points);audit=[]
+    for turn in data['turns']:
+        if turn['kind']!='roundabout' or 'GPX ufficiale' not in turn['text']:continue
+        start=max(0,bisect.bisect_left(dist,turn['at']-260)-1)
+        end=min(len(points)-1,bisect.bisect_right(dist,turn['at']+320))
+        part={**route,'points':points[start:end+1]};candidates=[];reason=None
+        for precise in (False,True):
+            key=(tuple(tuple(p) for p in part['points']),precise)
+            try:
+                if key not in _RECOVERY_CACHE:
+                    if len(_RECOVERY_CACHE)>1500:_RECOVERY_CACHE.clear()
+                    _RECOVERY_CACHE[key]=get_response(endpoint,part['points'],precise=precise)
+                candidate,reason=local_roundabout_candidate(part,_RECOVERY_CACHE[key],turn['at']-dist[start])
+            except Exception as error:candidate=None;reason='local-api-error: '+str(error)[:100]
+            if candidate is None:break
+            candidates.append(candidate)
+        recovered=False
+        if len(candidates)==2:
+            a,b=candidates
+            if a['exit']!=b['exit']:reason='different-local-exit-counts'
+            elif distance(a['entry'],b['entry'])>5 or distance(a['departure'],b['departure'])>5:reason='different-local-entry-or-exit'
+            else:
+                turn['text']=roundabout_text(a['exit']);recovered=True;reason=None
+                data.setdefault('roundaboutAudit',[]).append({'at':turn['at'],'reportedExit':a['exit'],'numberVerified':True,'solution':'dual-local-match','methods':[a['method'],b['method']]})
+        audit.append({'at':turn['at'],'recovered':recovered,'exit':candidates[0]['exit'] if recovered else None,'reason':reason,'methods':[c['method'] for c in candidates]})
+    data['roundaboutRecovery']=audit
+    return data
+
 
 if __name__ == "__main__":
     main()
