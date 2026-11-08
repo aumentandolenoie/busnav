@@ -28,7 +28,7 @@ import UIKit
                 let safe = drive.view.safeAreaLayoutGuide.layoutFrame
                 XCTAssertGreaterThanOrEqual(safe.minY,62)
                 let ids = ["endNavigation","toggleVoice","recenter","repeatCue","compass"]
-                let buttons = descendants(drive.view).compactMap { $0 as? UIButton }.filter { ids.contains($0.accessibilityIdentifier ?? "") }
+                let buttons = descendants(drive.view).compactMap { $0 as? UIControl }.filter { ids.contains($0.accessibilityIdentifier ?? "") }
                 XCTAssertEqual(buttons.count,5)
                 let frames = buttons.map { $0.convert($0.bounds,to:drive.view) }
                 for (i,frame) in frames.enumerated() {

@@ -106,7 +106,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate {
         for recognizer in map.gestureRecognizers ?? [] { recognizer.addTarget(self,action:#selector(mapGesture(_:))) }
     }
 
-    private func touchTarget(_ button: UIButton) {
+    private func touchTarget(_ button: UIView) {
         button.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             button.widthAnchor.constraint(greaterThanOrEqualToConstant:44),
