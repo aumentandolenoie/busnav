@@ -123,6 +123,7 @@ def trace_request(points, precise=False):
         "shape": [{"lat": lat, "lon": lng} for lat, lng in downsample(points)],
         "shape_match": "map_snap",
         "costing": "bus",
+        "roundabout_exits": True,
         "directions_options": {"language": "it-IT", "units": "kilometers", "directions_type": "instructions"},
     }
     if precise:
@@ -141,7 +142,19 @@ def get_response(endpoint, points, precise=False):
         {"Content-Type": "application/json", "X-Client-Id": "lineapilot-academy-validation"},
         method="POST")
     with urllib.request.urlopen(req, timeout=30) as reply:
-        return json.load(reply)
+        result = json.load(reply)
+    # Roundabout counting depends on driving-side flags, independently of shape.
+    attributes = trace_request(points, precise)
+    attributes["filters"] = {"action":"include","attributes":["edge.drive_on_right","edge.roundabout"]}
+    attr_req = urllib.request.Request(uri.rsplit("/",1)[0]+"/trace_attributes",json.dumps(attributes).encode("utf8"),
+        {"Content-Type":"application/json","X-Client-Id":"lineapilot-academy-validation"},method="POST")
+    with urllib.request.urlopen(attr_req,timeout=30) as reply:
+        attrs = json.load(reply)
+    edges = attrs.get("edges",[])
+    if not edges or any(edge.get("drive_on_right") is not True for edge in edges):
+        raise ValueError("Driving-side graph validation failed: Italian trace must drive on right")
+    result["_drivingSideValidated"] = True
+    return result
 
 
 def sampled(points, spacing=25):
@@ -185,6 +198,26 @@ def ordered_projection(points, official, distances):
         previous=max(previous,hit[1]); result.append(hit)
     return result
 
+def roundabout_geometry(maneuver, matched, projected, official, official_dist):
+    start, end = maneuver.get("begin_shape_index"), maneuver.get("end_shape_index")
+    if type(start) is not int or type(end) is not int or not 0 <= start < end < len(matched):
+        return False
+    begin_at, end_at = projected[start][1], projected[end][1]
+    if end_at <= begin_at or end_at-begin_at > 1200:
+        return False
+    # Include the departure arm: adjacent exits can lie within the global 85m
+    # tolerance yet require a different exit number. Limit local error to 12m.
+    lo, hi = max(0,start-1), min(len(matched)-1,end+1)
+    ring = matched[lo:hi+1]
+    ring_dist = cumulative(ring)
+    official_part = [p for p,d in zip(official,official_dist) if projected[lo][1] <= d <= projected[hi][1]]
+    if len(official_part)<2:
+        return False
+    a = [x[0] for x in ordered_projection(sampled(ring,5),official,official_dist)]
+    b = [x[0] for x in ordered_projection(sampled(official_part,5),ring,ring_dist)]
+    return max(a+b) <= 12
+
+
 def convert(route, response, allow_empty=False, strict_local=False):
     official = [(float(a), float(b)) for a,b in route["points"]]
     if len(official) < 2:
@@ -226,6 +259,7 @@ def convert(route, response, allow_empty=False, strict_local=False):
             raise ValueError("Valhalla reversed or shortcut an official Academy segment")
         previous = max(previous, at)
     maneuvers = []
+    roundabout_audit = []
     for maneuver in leg.get("maneuvers", []):
         typ = maneuver.get("type")
         if typ not in MANEUVER_TYPES:
@@ -241,11 +275,15 @@ def convert(route, response, allow_empty=False, strict_local=False):
             continue
         if maneuvers and at <= maneuvers[-1]["at"]:
             continue
-        if typ in (26, 27):
+        if typ == 26:
             exit_count = maneuver.get("roundabout_exit_count")
-            if not isinstance(exit_count, int) or exit_count < 1:
-                continue
-            instruction = f"Alla rotonda, prendi la {exit_count}ª uscita"
+            trustworthy = (type(exit_count) is int and 1 <= exit_count <= 20
+                and response.get("_drivingSideValidated") is True
+                and roundabout_geometry(maneuver,matched,projected,official,official_dist))
+            roundabout_audit.append({"at":round(at),"reportedExit":exit_count,"numberVerified":trustworthy})
+            ordinal = {1:"prima",2:"seconda",3:"terza",4:"quarta",5:"quinta",6:"sesta",7:"settima",8:"ottava",9:"nona",10:"decima"}
+            instruction = (f"Alla rotonda, prendi la {ordinal.get(exit_count,str(exit_count)+'ª')} uscita" if trustworthy
+                else "Alla rotonda, segui il percorso GPX ufficiale")
             kind = "roundabout"
             side = "rotatoria"
         else:
@@ -264,6 +302,7 @@ def convert(route, response, allow_empty=False, strict_local=False):
             "p95DeviationM": round(errors[int((len(errors)-1)*0.95)], 1),
             "matchedLengthM": int(round(matched_dist[-1]))},
         "turns": maneuvers, "noManeuvers": not bool(maneuvers),
+        "roundaboutAudit": roundabout_audit, "drivingSideValidated":response.get("_drivingSideValidated") is True,
     }
 
 
@@ -384,8 +423,11 @@ def annotate_route(route,endpoint):
         'validation':{'passed':True,'maxDeviationM':max(d['validation']['maxDeviationM'] for _,_,d in accepted),
                       'p95DeviationM':max(d['validation']['p95DeviationM'] for _,_,d in accepted)},
         'turns':unique,'noManeuvers':not bool(unique),'coverage':coverage,'solution':'validated-windows',
+        'drivingSideValidated':all(d.get('drivingSideValidated') for _,_,d in accepted),
+        'roundaboutAudit':[{**r,'at':r['at']+distances[a]} for a,_,d in accepted for r in d.get('roundaboutAudit',[])],
     }
     return data,attempts
 
 if __name__ == "__main__":
     main()
+

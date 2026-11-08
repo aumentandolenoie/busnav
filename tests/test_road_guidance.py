@@ -88,13 +88,55 @@ class AcademyRoadTests(unittest.TestCase):
 
     def test_roundabout_exit_comes_from_road_network(self):
         maneuver = self.response["trip"]["legs"][0]["maneuvers"][1]
-        maneuver.update(type=26, roundabout_exit_count=3)
+        maneuver.update(type=26, end_shape_index=2, roundabout_exit_count=3)
+        self.response["_drivingSideValidated"] = True
         output = module.convert(self.route, self.response)
-        self.assertEqual(output["turns"][0]["text"], "Alla rotonda, prendi la 3ª uscita")
+        self.assertEqual(output["turns"][0]["text"], "Alla rotonda, prendi la terza uscita")
         self.assertEqual(output["turns"][0]["kind"], "roundabout")
         del maneuver["roundabout_exit_count"]
-        with self.assertRaises(ValueError):
-            module.convert(self.route, self.response)
+        output = module.convert(self.route, self.response)
+        self.assertEqual(output['turns'][0]['text'],"Alla rotonda, segui il percorso GPX ufficiale")
+        self.assertFalse(output['roundaboutAudit'][0]['numberVerified'])
+
+    def test_roundabouts_have_distinct_first_second_third_fourth_exits(self):
+        maneuver = self.response['trip']['legs'][0]['maneuvers'][1]
+        maneuver.update(type=26,end_shape_index=2)
+        self.response['_drivingSideValidated']=True
+        for number,word in [(1,'prima'),(2,'seconda'),(3,'terza'),(4,'quarta')]:
+            maneuver['roundabout_exit_count']=number
+            output=module.convert(self.route,self.response)
+            self.assertEqual(output['turns'][0]['text'],f'Alla rotonda, prendi la {word} uscita')
+            self.assertTrue(output['roundaboutAudit'][0]['numberVerified'])
+
+    def test_roundabout_number_requires_actual_right_hand_graph_validation(self):
+        maneuver=self.response['trip']['legs'][0]['maneuvers'][1]
+        maneuver.update(type=26,end_shape_index=2,roundabout_exit_count=2)
+        for value in [False,None]:
+            self.response['_drivingSideValidated']=value
+            output=module.convert(self.route,self.response)
+            self.assertNotIn('seconda',output['turns'][0]['text'])
+            self.assertFalse(output['roundaboutAudit'][0]['numberVerified'])
+
+    def test_roundabout_number_requires_complete_roundabout_shape(self):
+        maneuver=self.response['trip']['legs'][0]['maneuvers'][1]
+        maneuver.update(type=26,roundabout_exit_count=2)
+        self.response['_drivingSideValidated']=True
+        output=module.convert(self.route,self.response)
+        self.assertNotIn('seconda',output['turns'][0]['text'])
+        self.assertFalse(output['roundaboutAudit'][0]['numberVerified'])
+
+    def test_roundabout_adjacent_wrong_exit_fails_local_geometry(self):
+        official=[[45,11],[45,11.001],[45.0004,11.001],[45.0004,11.002]]
+        wrong=[[45,11],[45,11.001],[45.0001,11.001],[45.0001,11.002]]
+        d=module.cumulative(official); projected=module.ordered_projection(wrong,official,d)
+        self.assertFalse(module.roundabout_geometry({'begin_shape_index':1,'end_shape_index':2},wrong,projected,official,d))
+
+    def test_roundabout_boolean_count_is_never_a_number(self):
+        maneuver=self.response['trip']['legs'][0]['maneuvers'][1]
+        maneuver.update(type=26,end_shape_index=2,roundabout_exit_count=True)
+        self.response['_drivingSideValidated']=True
+        output=module.convert(self.route,self.response)
+        self.assertFalse(output['roundaboutAudit'][0]['numberVerified'])
 
     def test_never_simplifies_gpx_to_meet_api_point_limit(self):
         with self.assertRaises(ValueError):
@@ -165,4 +207,5 @@ class AcademyRoadTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 

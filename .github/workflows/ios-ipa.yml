@@ -31,6 +31,18 @@ jobs:
       - name: Build current OSM graph and annotate immutable official GPX
         if: steps.reuse.outputs.reused != 'true'
         run: bash scripts/build-road-guidance.sh
+      - name: Preserve road accuracy and roundabout audit
+        if: success()
+        run: |
+          test -s reports/road-guidance-audit.json || exit 0
+          cp build/road-admin-audit.json reports/road-admin-audit.json
+          cp build/road-graph-audit.json reports/road-graph-audit.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/road-guidance-audit.json reports/road-admin-audit.json reports/road-graph-audit.json
+          git diff --cached --quiet || git commit -m 'Record verified road graph and roundabout instruction audit'
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
       - name: Publish navigation data and exact coverage report
         env:
           GH_TOKEN: ${{ github.token }}
@@ -108,3 +120,4 @@ jobs:
           done
           echo 'Unable to publish audit after concurrent updates.'
           exit 1
+

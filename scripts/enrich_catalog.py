@@ -6,6 +6,7 @@ import json
 import pathlib
 from datetime import datetime, timezone
 import enrich_road_guidance as road
+from guidance_audit import summarize
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -39,6 +40,10 @@ def main():
     report['partial'] = sum(r['status']=='partial' for r in report['routes'])
     report['unavailable'] = sum(r['status']=='unavailable' for r in report['routes'])
     (out/'coverage.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+    audit={'before':json.loads((ROOT/'build/road-guidance-before.json').read_text()) if (ROOT/'build/road-guidance-before.json').exists() else None,
+           'after':summarize(json.loads(p.read_text()) for p in out.glob('*.json') if p.name!='coverage.json')}
+    (ROOT/'reports/road-guidance-audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2)+'\n')
+    print('Roundabout audit:',json.dumps({k:v for k,v in audit['after'].items() if k!='samples'}),flush=True)
     assert source.read_bytes() == original, 'Official GPX changed!'
     print(f"Coverage: {report['validated']} full + {report['partial']} partial /{len(catalog)}. GPX SHA256: {report['gpxSHA256']}",flush=True)
     if not report['validated']:
@@ -46,3 +51,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
