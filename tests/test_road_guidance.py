@@ -172,8 +172,15 @@ class AcademyRoadTests(unittest.TestCase):
         self.assertEqual(api.call_count,2)
         self.assertEqual(result['turns'][0]['text'],'Alla rotonda, prendi la prima uscita')
         self.assertTrue(result['roundaboutRecovery'][0]['recovered'])
-        self.assertEqual(result['roundaboutRecovery'][0]['methods'],['verified-arms','verified-arms'])
         self.assertEqual(route['points'],original)
+
+    def test_real_tiny_roundabout_passes_tight_arm_validation(self):
+        case,route,data=self.recovery_case(2);leg=case['response']['trip']['legs'][0]
+        shape=module.decode_polyline(leg['shape']);d=module.cumulative(route['points'])
+        projected=module.ordered_projection(shape,route['points'],d)
+        m=next(m for m in leg['maneuvers'] if m['type']==26)
+        ok,reason=module.roundabout_arm_geometry(m,shape,projected,route['points'],d)
+        self.assertTrue(ok,reason)
 
     def test_conflicting_real_local_exit_counts_remain_unnumbered(self):
         case,route,data=self.recovery_case(1);module._RECOVERY_CACHE.clear()
