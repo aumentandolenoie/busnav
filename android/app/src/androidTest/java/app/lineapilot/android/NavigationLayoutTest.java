@@ -21,12 +21,24 @@ import static org.junit.Assert.*;
                 }catch(Exception e){throw new AssertionError(e);}
             });
             androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+            java.util.concurrent.atomic.AtomicBoolean mapReady=new java.util.concurrent.atomic.AtomicBoolean();
+            for(int attempt=0;attempt<100&&!mapReady.get();attempt++){
+                scenario.onActivity(a->mapReady.set(a.session!=null&&a.session.screen.nativeMap.map!=null&&a.session.screen.nativeMap.map.getStyle()!=null&&a.session.screen.nativeMap.map.getStyle().getSource("gpx")!=null));
+                if(!mapReady.get())Thread.sleep(100);
+            }
+            assertTrue("Native map style failed to initialize",mapReady.get());
+            scenario.onActivity(a->a.session.screen.progress(0,0,true,0));
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             scenario.onActivity(a->{
-                assertNotNull(a.session);DriverView screen=a.session.screen;screen.progress(0,0,true,0);
+                assertNotNull(a.session);DriverView screen=a.session.screen;
                 List<View> controls=new ArrayList<>();collect(screen,controls);assertEquals(5,controls.size());
                 Rect bounds=new Rect();assertTrue(screen.getGlobalVisibleRect(bounds));List<Rect> rectangles=new ArrayList<>();float d=a.getResources().getDisplayMetrics().density;
                 for(View control:controls){Rect r=new Rect();assertTrue(control.getGlobalVisibleRect(r));assertTrue(control.getWidth()>=48*d-1);assertTrue(control.getHeight()>=48*d-1);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(r));for(Rect other:rectangles)assertFalse("Overlapping controls",Rect.intersects(r,other));rectangles.add(r);}
                 assertTrue(a.session.screen.nativeMap.mapView instanceof org.maplibre.android.maps.MapView);
+            });
+            android.graphics.Bitmap screenshot=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
+            scenario.onActivity(a->{
+                try(java.io.FileOutputStream output=new java.io.FileOutputStream(new java.io.File(a.getFilesDir(),"native-navigation.png"))){assertTrue(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,output));}catch(Exception e){throw new AssertionError(e);}
                 a.endNavigation();assertNull(a.session);
             });
         }

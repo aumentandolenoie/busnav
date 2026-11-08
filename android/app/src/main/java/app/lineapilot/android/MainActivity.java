@@ -58,6 +58,8 @@ public final class MainActivity extends Activity {
         root.setOnApplyWindowInsetsListener((v,insets)->{
             if(Build.VERSION.SDK_INT>=30){android.graphics.Insets i=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout()|WindowInsets.Type.ime());v.setPadding(i.left,i.top,i.right,i.bottom);}
             else v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());
+            if(Build.VERSION.SDK_INT>=30&&v.getWindowInsetsController()!=null)v.getWindowInsetsController().setSystemBarsAppearance(WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+            else if(Build.VERSION.SDK_INT<30)v.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
             v.post(this::layoutPreparation);return insets;
         });
         if(Build.VERSION.SDK_INT>=30&&getWindow().getInsetsController()!=null)getWindow().getInsetsController().setSystemBarsAppearance(WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
@@ -65,7 +67,7 @@ public final class MainActivity extends Activity {
         web = new WebView(this);root.addView(web,new FrameLayout.LayoutParams(-1,-1));
         preview=new FrameLayout(this);previewMap=new NativeMap(this,savedInstanceState,layoutTest);preview.addView(previewMap,new FrameLayout.LayoutParams(-1,-1));
         TextView caption=new TextView(this);caption.setText("Anteprima · GPX ufficiale");caption.setTextSize(12);caption.setTextColor(Color.DKGRAY);caption.setPadding(dp(8),dp(6),dp(8),dp(6));caption.setBackgroundColor(0xeeffffff);FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.START);cp.setMargins(dp(12),dp(8),dp(64),0);preview.addView(caption,cp);
-        Button fit=new Button(this);fit.setText("⤢");fit.setTextColor(Color.rgb(0,122,255));fit.setContentDescription("Mostra tutto il percorso");fit.setTag("preview-fit");fit.setPadding(0,0,0,0);fit.setMinWidth(dp(48));GradientDrawable bg=new GradientDrawable();bg.setColor(Color.WHITE);bg.setCornerRadius(dp(12));fit.setBackground(bg);fit.setOnClickListener(v->previewMap.fitRoute());FrameLayout.LayoutParams fp=new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.TOP|Gravity.END);fp.setMargins(0,dp(8),dp(12),0);preview.addView(fit,fp);
+        ImageButton fit=new ImageButton(this);fit.setImageDrawable(new NavigationIcon("fit",Color.rgb(0,122,255)));fit.setScaleType(ImageView.ScaleType.FIT_CENTER);fit.setContentDescription("Mostra tutto il percorso");fit.setTag("preview-fit");fit.setPadding(dp(12),dp(12),dp(12),dp(12));fit.setMinimumWidth(dp(48));GradientDrawable bg=new GradientDrawable();bg.setColor(Color.WHITE);bg.setCornerRadius(dp(12));fit.setBackground(bg);fit.setOnClickListener(v->previewMap.fitRoute());FrameLayout.LayoutParams fp=new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.TOP|Gravity.END);fp.setMargins(0,dp(8),dp(12),0);preview.addView(fit,fp);
         root.addView(preview,new FrameLayout.LayoutParams(-1,dp(240),Gravity.BOTTOM));root.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->layoutPreparation());
         audio=(AudioManager)getSystemService(AUDIO_SERVICE);
         focus=new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()).setOnAudioFocusChangeListener(change->{if(change==AudioManager.AUDIOFOCUS_LOSS||change==AudioManager.AUDIOFOCUS_LOSS_TRANSIENT)stopNativeSpeech();}).build();
@@ -177,6 +179,7 @@ public final class MainActivity extends Activity {
     void startNavigation(JSONObject body){
         try{
             NativeRoute route=new NativeRoute(body.getJSONObject("route"));endNavigation(false);
+            ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.clearFocus();
             configureVoice(body);previewMap.pause();preview.setVisibility(View.INVISIBLE);web.setVisibility(View.INVISIBLE);
             session=new NavigationSession(this,route,body.optBoolean("voice",true),body.optBoolean("turnVoice",true),body.optBoolean("demo",false));
             root.addView(session.screen,new FrameLayout.LayoutParams(-1,-1));getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);session.screen.nativeMap.start();session.resume();

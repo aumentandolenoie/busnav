@@ -88,6 +88,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             navigation.configureVoice(identifier: body["voiceId"] as? String, rate: body["rate"] as? Double)
             let voice = body["voice"] as? Bool ?? true
             let turnVoice = body["turnVoice"] as? Bool ?? true
+            webView.endEditing(true)
             let simulated = body["demo"] as? Bool ?? false
             let screen = DriveViewController(route: route, voiceEnabled: voice, simulated:simulated)
             screen.onEnd = { [weak self] in

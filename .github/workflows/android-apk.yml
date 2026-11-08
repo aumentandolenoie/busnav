@@ -109,8 +109,10 @@ jobs:
             adb shell wm size 720x1280
             adb shell wm density 320
             gradle -p android --no-daemon connectedDebugAndroidTest
+            adb exec-out run-as app.lineapilot.android cat files/native-navigation.png > build/android-native-navigation.png
             adb shell settings put system font_scale 1.5
             gradle -p android --no-daemon connectedDebugAndroidTest --rerun-tasks
+            adb exec-out run-as app.lineapilot.android cat files/native-navigation.png > build/android-native-large-text.png
 
       - name: Pubblica APK come prerelease
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -119,8 +121,19 @@ jobs:
         run: |
           TAG="android-preview-$(git rev-parse --short=12 HEAD)"
           cp android/app/build/outputs/apk/debug/app-debug.apk LineaPilot-debug.apk
-          gh release create "$TAG" LineaPilot-debug.apk build/android-stop-coverage.csv \
+          gh release create "$TAG" LineaPilot-debug.apk build/android-stop-coverage.csv build/android-native-navigation.png build/android-native-large-text.png \
             --title "LineaPilot Android APK - $TAG" \
             --notes "APK con anteprima e navigazione native MapLibre/OSM, GPS e voce Android nativi, GPX ufficiali immutati e copertura vocale identica alla build iOS. Test nativi e controlli di layout su emulatore Android eseguiti. Se non è configurata una chiave Android stabile, serve disinstallare la precedente build per installare la nuova. Installazione sempre manuale. GPX Academy obbligatori e immutati." \
             --prerelease --target "$GITHUB_SHA"
 
+      - name: Preserve native Android layout previews
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p reports/layout-previews
+          cp build/android-native-navigation.png build/android-native-large-text.png reports/layout-previews/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/layout-previews/android-native-navigation.png reports/layout-previews/android-native-large-text.png
+          git diff --cached --quiet || git commit -m 'Save verified native Android layout previews'
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
