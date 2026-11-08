@@ -98,6 +98,21 @@ class AcademyRoadTests(unittest.TestCase):
         self.assertEqual(output['turns'][0]['text'],"Alla rotonda, segui il percorso GPX ufficiale")
         self.assertFalse(output['roundaboutAudit'][0]['numberVerified'])
 
+    def test_real_6b_roundabouts_preserve_reference_first_second_and_third_exits(self):
+        import json
+        fixture=json.loads((Path(__file__).parent/'fixtures/roundabout-6b-reference.json').read_text())
+        route=next(r for r in module.load_catalog() if str(r['id'])==fixture['academyId'])
+        distances=module.cumulative(route['points'])
+        for case in fixture['cases']:
+            official=[p for p,d in zip(route['points'],distances) if case['startM']<=d<=case['endM']]
+            self.assertEqual(case['points'],official,'Reference must use unmodified Academy GPX')
+            data=module.convert({**route,'points':official},case['response'],allow_empty=True,strict_local=case['endM']-case['startM']<800)
+            self.assertEqual([r['reportedExit'] for r in data['roundaboutAudit']],case['expectedExits'])
+            self.assertTrue(all(r['numberVerified'] for r in data['roundaboutAudit']))
+            words={1:'prima',2:'seconda',3:'terza'}
+            self.assertEqual([t['text'] for t in data['turns'] if t['kind']=='roundabout'],
+                [f"Alla rotonda, prendi la {words[n]} uscita" for n in case['expectedExits']])
+
     def test_roundabouts_have_distinct_first_second_third_fourth_exits(self):
         maneuver = self.response['trip']['legs'][0]['maneuvers'][1]
         maneuver.update(type=26,end_shape_index=2)

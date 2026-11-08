@@ -1,0 +1,489 @@
+{
+  "source": "https://valhalla1.openstreetmap.de",
+  "checkedAt": "2026-11-08",
+  "attribution": "© OpenStreetMap contributors; Valhalla reference service",
+  "academyId": "614",
+  "name": "6B | Via Boccaccio - Lagrange via Sorio",
+  "cases": [
+    {
+      "startM": 1980,
+      "endM": 2530,
+      "points": [
+        [
+          45.3949,
+          11.90075
+        ],
+        [
+          45.395018,
+          11.900611
+        ],
+        [
+          45.39507,
+          11.90055
+        ],
+        [
+          45.395241,
+          11.900396
+        ],
+        [
+          45.39537,
+          11.90028
+        ],
+        [
+          45.395478,
+          11.900214
+        ],
+        [
+          45.39565,
+          11.90011
+        ],
+        [
+          45.39573,
+          11.900078
+        ],
+        [
+          45.395989,
+          11.899974
+        ],
+        [
+          45.3961,
+          11.89993
+        ],
+        [
+          45.396252,
+          11.899894
+        ],
+        [
+          45.39627,
+          11.89989
+        ],
+        [
+          45.396522,
+          11.899881
+        ],
+        [
+          45.39656,
+          11.89988
+        ],
+        [
+          45.39696,
+          11.89981
+        ],
+        [
+          45.39699,
+          11.89989
+        ],
+        [
+          45.39702,
+          11.89991
+        ],
+        [
+          45.39707,
+          11.89991
+        ],
+        [
+          45.39712,
+          11.89987
+        ],
+        [
+          45.39714,
+          11.8998
+        ],
+        [
+          45.39714,
+          11.89974
+        ],
+        [
+          45.39701,
+          11.89933
+        ],
+        [
+          45.39701,
+          11.899299
+        ],
+        [
+          45.397005,
+          11.898915
+        ],
+        [
+          45.397001,
+          11.898531
+        ],
+        [
+          45.397,
+          11.89848
+        ],
+        [
+          45.39701,
+          11.898148
+        ],
+        [
+          45.39702,
+          11.89784
+        ],
+        [
+          45.397027,
+          11.897764
+        ],
+        [
+          45.397101,
+          11.897004
+        ],
+        [
+          45.39713,
+          11.89671
+        ],
+        [
+          45.39714,
+          11.89662
+        ]
+      ],
+      "expectedExits": [
+        3
+      ],
+      "response": {
+        "trip": {
+          "language": "it-IT",
+          "legs": [
+            {
+              "shape": "_}tquAcujuU??mIrKqK~JmCnBmIxFoGzCoQ|FmHrBqFt@eCXkDBkE?{DEeHZeFh@sDn@oAZW_Bi@cAu@o@}@Sm@Bk@Pg@^a@j@Yt@WfBFnBd@bBvBpKp@lFdBdD?VB`DHlQ?z@F|KAdIIvPShNO~EsCvq@q@rLw@pL?B",
+              "maneuvers": [
+                {
+                  "type": 1,
+                  "instruction": "Guida verso nord-ovest su Via Egidio Forcellini.",
+                  "begin_shape_index": 0,
+                  "end_shape_index": 17
+                },
+                {
+                  "type": 26,
+                  "instruction": "Entra nella rotonda e prendi la 3a uscita per Via Egidio Forcellini.",
+                  "begin_shape_index": 17,
+                  "end_shape_index": 29,
+                  "roundabout_exit_count": 3
+                },
+                {
+                  "type": 27,
+                  "instruction": "Esci dalla rotatoria verso Via Egidio Forcellini.",
+                  "begin_shape_index": 29,
+                  "end_shape_index": 45
+                },
+                {
+                  "type": 4,
+                  "instruction": "Sei arrivato a destinazione.",
+                  "begin_shape_index": 45,
+                  "end_shape_index": 45
+                }
+              ]
+            }
+          ]
+        },
+        "_drivingSideValidated": true
+      }
+    },
+    {
+      "startM": 3030,
+      "endM": 4000,
+      "points": [
+        [
+          45.39942,
+          11.891263
+        ],
+        [
+          45.39956,
+          11.89116
+        ],
+        [
+          45.399653,
+          11.891071
+        ],
+        [
+          45.3998,
+          11.89093
+        ],
+        [
+          45.399878,
+          11.890859
+        ],
+        [
+          45.400104,
+          11.89065
+        ],
+        [
+          45.40033,
+          11.890441
+        ],
+        [
+          45.400556,
+          11.890233
+        ],
+        [
+          45.401009,
+          11.889816
+        ],
+        [
+          45.40108,
+          11.88975
+        ],
+        [
+          45.401237,
+          11.88961
+        ],
+        [
+          45.401465,
+          11.889407
+        ],
+        [
+          45.40154,
+          11.88934
+        ],
+        [
+          45.40162,
+          11.8893
+        ],
+        [
+          45.40165,
+          11.88938
+        ],
+        [
+          45.401677,
+          11.889407
+        ],
+        [
+          45.4017,
+          11.88943
+        ],
+        [
+          45.40176,
+          11.88944
+        ],
+        [
+          45.40179,
+          11.88943
+        ],
+        [
+          45.40184,
+          11.88936
+        ],
+        [
+          45.40186,
+          11.88926
+        ],
+        [
+          45.40186,
+          11.88921
+        ],
+        [
+          45.402076,
+          11.889056
+        ],
+        [
+          45.402317,
+          11.888885
+        ],
+        [
+          45.402559,
+          11.888713
+        ],
+        [
+          45.40276,
+          11.88857
+        ],
+        [
+          45.402801,
+          11.888543
+        ],
+        [
+          45.403045,
+          11.888381
+        ],
+        [
+          45.403289,
+          11.888219
+        ],
+        [
+          45.403533,
+          11.888057
+        ],
+        [
+          45.403778,
+          11.887894
+        ],
+        [
+          45.40392,
+          11.8878
+        ],
+        [
+          45.404025,
+          11.88774
+        ],
+        [
+          45.40406,
+          11.88772
+        ],
+        [
+          45.40416,
+          11.88763
+        ],
+        [
+          45.40417,
+          11.88766
+        ],
+        [
+          45.4042,
+          11.88768
+        ],
+        [
+          45.40423,
+          11.88768
+        ],
+        [
+          45.40425,
+          11.88768
+        ],
+        [
+          45.40428,
+          11.88766
+        ],
+        [
+          45.4043,
+          11.88763
+        ],
+        [
+          45.40431,
+          11.8876
+        ],
+        [
+          45.40432,
+          11.88756
+        ],
+        [
+          45.40432,
+          11.88753
+        ],
+        [
+          45.4043,
+          11.88748
+        ],
+        [
+          45.40434,
+          11.88745
+        ],
+        [
+          45.404387,
+          11.887411
+        ],
+        [
+          45.4044,
+          11.8874
+        ],
+        [
+          45.40453,
+          11.88729
+        ],
+        [
+          45.40462,
+          11.887217
+        ],
+        [
+          45.40469,
+          11.88716
+        ],
+        [
+          45.40503,
+          11.88693
+        ],
+        [
+          45.405104,
+          11.88688
+        ],
+        [
+          45.40528,
+          11.88676
+        ],
+        [
+          45.40535,
+          11.88671
+        ],
+        [
+          45.40545,
+          11.88665
+        ],
+        [
+          45.405596,
+          11.886566
+        ],
+        [
+          45.405846,
+          11.886422
+        ],
+        [
+          45.40597,
+          11.88635
+        ],
+        [
+          45.406096,
+          11.88628
+        ],
+        [
+          45.406598,
+          11.886
+        ]
+      ],
+      "expectedExits": [
+        2,
+        1
+      ],
+      "response": {
+        "trip": {
+          "language": "it-IT",
+          "legs": [
+            {
+              "shape": "}v}quAscxtUy@d@aFpCie@va@JvAqBN_ZhUu@bEi@n@oVtTiRlPiHzFeAl@mA`@OcACQa@kAo@{@u@i@}@S_A@{@V}@x@o@nA]~AEfBBh@Hz@mAn@iCdBog@v[eHhEkEhCaMrHyLlHkJdFub@fVeE`Dg@s@YQUOu@Ks@Jq@`@e@p@[`AKhA?R@v@XtAkAbAyB~AaGxE}HbGgTlMyNvImC|A{DvBu_@tQef@zT",
+              "maneuvers": [
+                {
+                  "type": 1,
+                  "instruction": "Guida verso nord-ovest su Via Antonio Simeone Sografi.",
+                  "begin_shape_index": 0,
+                  "end_shape_index": 13
+                },
+                {
+                  "type": 26,
+                  "instruction": "Entra nella rotonda e prendi la 2a uscita per Via Nicolò Giustiniani.",
+                  "begin_shape_index": 13,
+                  "end_shape_index": 27,
+                  "roundabout_exit_count": 2
+                },
+                {
+                  "type": 27,
+                  "instruction": "Esci dalla rotatoria verso Via Nicolò Giustiniani.",
+                  "begin_shape_index": 27,
+                  "end_shape_index": 37
+                },
+                {
+                  "type": 26,
+                  "instruction": "Entra nella rotonda e prendi la 1a uscita per Via Gabriele Falloppio.",
+                  "begin_shape_index": 37,
+                  "end_shape_index": 49,
+                  "roundabout_exit_count": 1
+                },
+                {
+                  "type": 27,
+                  "instruction": "Esci dalla rotatoria verso Via Gabriele Falloppio.",
+                  "begin_shape_index": 49,
+                  "end_shape_index": 59
+                },
+                {
+                  "type": 4,
+                  "instruction": "Sei arrivato a destinazione.",
+                  "begin_shape_index": 59,
+                  "end_shape_index": 59
+                }
+              ]
+            }
+          ]
+        },
+        "_drivingSideValidated": true
+      }
+    }
+  ]
+}
