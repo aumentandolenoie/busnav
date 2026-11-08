@@ -88,9 +88,23 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add reports/stop-coverage.json reports/stop-coverage.csv
-          if ! git diff --cached --quiet; then
-            git commit -m 'Update stop coverage audit for all 789 immutable GPX'
-            git pull --rebase --autostash origin main
-            git push origin HEAD:main
-          fi
+          # Publish from a clean, isolated worktree; Xcode rewrites Info.plist.
+          # Concurrent preview/report commits must not conflict on generated dates.
+          REPORT_PUBLISH_DIR=$(mktemp -d)
+          git fetch origin main
+          git worktree add --detach "$REPORT_PUBLISH_DIR" origin/main
+          for attempt in 1 2 3; do
+            git fetch origin main
+            if ! git diff --quiet "$GITHUB_SHA" origin/main -- app.js route-stops.js official-routes.json academy-supplemental-routes.json academy-evidence.json scripts/audit_stops.cjs; then
+              echo 'New matching source already on main; keep this audit in its release.'
+              exit 0
+            fi
+            git -C "$REPORT_PUBLISH_DIR" reset --hard origin/main
+            cp reports/stop-coverage.json reports/stop-coverage.csv "$REPORT_PUBLISH_DIR/reports/"
+            git -C "$REPORT_PUBLISH_DIR" add reports/stop-coverage.json reports/stop-coverage.csv
+            git -C "$REPORT_PUBLISH_DIR" diff --cached --quiet && exit 0
+            git -C "$REPORT_PUBLISH_DIR" commit -m 'Update stop coverage audit for all 789 immutable GPX'
+            if git -C "$REPORT_PUBLISH_DIR" push origin HEAD:main; then exit 0; fi
+          done
+          echo 'Unable to publish audit after concurrent updates.'
+          exit 1
