@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import urllib.request
+import urllib.parse
 import zipfile
 from datetime import datetime, timezone
 
@@ -18,9 +19,16 @@ def main():
     legacy_validator = 'b3aa6a071569f084b2cf6e0e569af409619f22d1341f5aceb75b956e662072f2'
     validator = hashlib.sha256((root/'scripts/enrich_road_guidance.py').read_bytes()).hexdigest()
     digest = hashlib.sha256((root/'official-routes.json').read_bytes()).hexdigest()
+    class SafeRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, request, response, code, message, headers, newurl):
+            redirected = super().redirect_request(request,response,code,message,headers,newurl)
+            if redirected and urllib.parse.urlparse(newurl).netloc != urllib.parse.urlparse(request.full_url).netloc:
+                redirected.remove_header('Authorization')
+            return redirected
+    opener = urllib.request.build_opener(SafeRedirect())
     def request(url, binary=False):
         req = urllib.request.Request(url, headers={'Authorization':'Bearer '+token,'Accept':'application/octet-stream' if binary else 'application/vnd.github+json'})
-        with urllib.request.urlopen(req,timeout=60) as response:
+        with opener.open(req,timeout=60) as response:
             return response.read() if binary else json.load(response)
     try:
         releases = request(f'https://api.github.com/repos/{repo}/releases?per_page=40')
