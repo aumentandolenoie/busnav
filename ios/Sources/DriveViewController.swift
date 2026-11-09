@@ -138,7 +138,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
             compass.bottomAnchor.constraint(equalTo:bottomPanel.topAnchor,constant:-9)
         ]
         let columnWidth = topPanel.widthAnchor.constraint(equalTo:safe.widthAnchor,multiplier:0.38)
-        columnWidth.priority = .defaultHigh
+        columnWidth.priority = UILayoutPriority(999)
         landscapeConstraints = [
             columnWidth,
             topPanel.widthAnchor.constraint(greaterThanOrEqualToConstant:210),
