@@ -1,0 +1,31 @@
+name: Compare public Overture speed data
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/overture-speed-pilot.yml', '.github/tools/overture-speed-pilot.py']
+permissions:
+  contents: write
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download public locality extracts
+        run: |
+          python3 -m pip install overturemaps
+          mkdir -p build
+          timeout 8m overturemaps download -r 2026-10-21.0 --bbox=11.64,45.55,11.75,45.68 -f geojson --type=segment -o build/overture-carmignano.geojson
+          timeout 8m overturemaps download -r 2026-10-21.0 --bbox=12.05,45.30,12.20,45.43 -f geojson --type=segment -o build/overture-piove.geojson
+          timeout 8m overturemaps download -r 2026-10-21.0 --bbox=11.82,45.36,11.94,45.49 -f geojson --type=segment -o build/overture-padova.geojson
+      - name: Compare with the GPX locally
+        run: python3 .github/tools/overture-speed-pilot.py
+      - name: Preserve the pilot report
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/overture-speed-pilot.md
+          git diff --cached --quiet || git commit -m 'Record Overture comparison on four GPX'
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
