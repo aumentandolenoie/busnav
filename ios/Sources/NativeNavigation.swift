@@ -18,10 +18,14 @@ struct NativeRoute: Decodable {
         let text: String
     }
 
+    func upcomingStop(from progress: Double, startingAt index: Int) -> Int? {
+        offsets.indices.dropFirst(index).first { offsets[$0] >= progress }
+    }
+
     func continuation(after index: Int, from progress: Double, stopIndex: Int) -> Continuation? {
         let first = turns[index]
-        let stopAt = offsets.indices.contains(stopIndex) && offsets[stopIndex] >= progress
-            ? offsets[stopIndex] : .infinity
+        let stop = upcomingStop(from: progress, startingAt: stopIndex)
+        let stopAt = stop.map { offsets[$0] } ?? .infinity
         guard first.at >= progress, stopAt > first.at else { return nil }
         let nextIndex = index + 1
         let next = turns.indices.contains(nextIndex) ? turns[nextIndex] : nil
@@ -29,8 +33,8 @@ struct NativeRoute: Decodable {
         let secondAt = min(stopAt, nextAt)
         let gap = secondAt - first.at
         guard gap >= 5, gap <= 80, supportsGuidance(at: progress, maneuver: secondAt) else { return nil }
-        if stopAt < nextAt {
-            return Continuation(index: stopIndex, isStop: true, text: "prossima fermata: \(stops[stopIndex])")
+        if let stop, stopAt < nextAt {
+            return Continuation(index: stop, isStop: true, text: "prossima fermata: \(stops[stop])")
         }
         guard nextAt < stopAt, next?.verifiedRoad == true, let text = next?.text, !text.isEmpty else { return nil }
         return Continuation(index: nextIndex, isStop: false, text: text)
@@ -354,7 +358,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             let secondaryStage = continuation.isStop ? stopStages[continuation.index] : turnStages[continuation.index]
             if (secondaryStage ?? 0) == 0 {
                 stopFollowsChain = continuation.isStop
-                let chainLead = continuation.isStop ? max(lead, stopLead - (remaining - distance)) : lead
+                let chainLead = continuation.isStop ? max(lead, stopLead - (route.offsets[continuation.index] - turn.at)) : lead
                 if distance <= chainLead {
                     let message = route.voiceMessage(text, distance: distance > near ? distance : nil, continuation: continuation)
                     if speak(message, stopPriority: continuation.isStop) {
@@ -395,14 +399,15 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
 
     func repeatInstruction() {
         guard voiceEnabled, matched, let route else { return }
-        let remaining = stopIndex < route.stops.count ? route.offsets[stopIndex] - along : .infinity
+        let stop = route.upcomingStop(from: along, startingAt: stopIndex)
+        let stopAt = stop.map { route.offsets[$0] } ?? .infinity
         if turnsEnabled, let index = nextVoiceTurn(in: route, maxDistance: .infinity), let text = route.turns[index].text,
-           remaining < 0 || route.turns[index].at - along < remaining {
+           route.turns[index].at < stopAt {
             let distance = route.turns[index].at - along
             let continuation = route.continuation(after: index, from: along, stopIndex: stopIndex)
             speak(route.voiceMessage(text, distance: distance > 20 ? distance : nil, continuation: continuation), stopPriority: true)
-        } else if stopIndex < route.stops.count {
-            speak("Prossima fermata: \(route.stops[stopIndex])", stopPriority: true)
+        } else if let stop {
+            speak("Prossima fermata: \(route.stops[stop])", stopPriority: true)
         } else { speak("Segui il percorso ufficiale.", stopPriority: true) }
     }
 

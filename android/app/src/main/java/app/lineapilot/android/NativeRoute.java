@@ -35,10 +35,15 @@ final class NativeRoute {
         }
     }
 
+    int upcomingStop(double progress, int index) {
+        while (index < offsets.length && offsets[index] < progress) index++;
+        return index;
+    }
+
     Continuation continuation(int index, double progress, int stopIndex) {
         Turn first = turns.get(index);
-        double stopAt = stopIndex < offsets.length && offsets[stopIndex] >= progress
-                ? offsets[stopIndex] : Double.POSITIVE_INFINITY;
+        int stop = upcomingStop(progress, stopIndex);
+        double stopAt = stop < offsets.length ? offsets[stop] : Double.POSITIVE_INFINITY;
         if (first.at < progress || stopAt <= first.at) return null;
         int nextIndex = index + 1;
         Turn next = nextIndex < turns.size() ? turns.get(nextIndex) : null;
@@ -46,7 +51,7 @@ final class NativeRoute {
         double secondAt = Math.min(stopAt, nextAt);
         double gap = secondAt - first.at;
         if (gap < 5 || gap > 80 || !covered(progress, secondAt)) return null;
-        if (stopAt < nextAt) return new Continuation(stopIndex, true, "prossima fermata: " + stops[stopIndex]);
+        if (stopAt < nextAt) return new Continuation(stop, true, "prossima fermata: " + stops[stop]);
         if (next == null || nextAt >= stopAt) return null;
         return new Continuation(nextIndex, false, next.text);
     }

@@ -67,7 +67,7 @@ final class NavigationSession implements LocationListener {
                 Map<Integer, Integer> stages = continuation.isStop ? stopStages : turnStages;
                 if (stages.getOrDefault(continuation.index, 0) == 0) {
                     stopFollowsChain = continuation.isStop;
-                    double chainLead = continuation.isStop ? Math.max(lead, stopLead - (remaining - distance)) : lead;
+                    double chainLead = continuation.isStop ? Math.max(lead, stopLead - (route.offsets[continuation.index] - turn.at)) : lead;
                     if (distance <= chainLead && owner.speakNavigation(
                             NativeRoute.voiceMessage(turn.text, distance > near ? distance : null, continuation),
                             continuation.isStop)) {
@@ -106,14 +106,15 @@ final class NavigationSession implements LocationListener {
     void repeat() {
         if (!voice || !matched) return;
         int index = turnVoice ? nextVoiceTurn(Double.POSITIVE_INFINITY) : -1;
-        double remaining = stopIndex < route.stops.length ? route.offsets[stopIndex] - along : Double.POSITIVE_INFINITY;
-        if (index >= 0 && (remaining < 0 || route.turns.get(index).at - along < remaining)) {
+        int stop = route.upcomingStop(along, stopIndex);
+        double stopAt = stop < route.stops.length ? route.offsets[stop] : Double.POSITIVE_INFINITY;
+        if (index >= 0 && route.turns.get(index).at < stopAt) {
             NativeRoute.Turn turn = route.turns.get(index);
             double distance = turn.at - along;
             owner.speakNavigation(NativeRoute.voiceMessage(turn.text, distance > 20 ? distance : null,
                     route.continuation(index, along, stopIndex)), true);
-        } else if (stopIndex < route.stops.length) {
-            owner.speakNavigation("Prossima fermata: " + route.stops[stopIndex], true);
+        } else if (stop < route.stops.length) {
+            owner.speakNavigation("Prossima fermata: " + route.stops[stop], true);
         } else {
             owner.speakNavigation("Segui il percorso ufficiale.", true);
         }
