@@ -48,7 +48,7 @@ final class NativeRoute {
                 cameras.add(new Camera(at, kind));
             }
         }
-        cameras.sort(Comparator.comparingDouble(c -> c.at));
+        cameras.sort(Comparator.comparingDouble(camera -> camera.at));
         turns.sort(Comparator.comparingDouble(t->t.at));
     }
     static double[][] coordinates(JSONArray a)throws JSONException{if(a==null)return new double[0][2];double[][] out=new double[a.length()][2];for(int i=0;i<a.length();i++){JSONArray p=a.getJSONArray(i);if(p.length()!=2)throw new IllegalArgumentException("Coppia di coordinate non valida");out[i][0]=p.getDouble(0);out[i][1]=p.getDouble(1);}return out;}
