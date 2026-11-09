@@ -30,6 +30,7 @@ for attempt in $(seq 1 150); do
 done
 if [ "$ready" != true ]; then docker logs --tail 150 busnav-valhalla; exit 1; fi
 python3 scripts/check-road-graph.py --endpoint http://127.0.0.1:8002
+if [[ "${1:-}" == "--graph-only" ]]; then exit 0; fi
 python3 -m pip install osmium
 pbf=$(find build/valhalla -maxdepth 2 -name 'nord-est-latest.osm.pbf' -print -quit)
 test -n "$pbf"

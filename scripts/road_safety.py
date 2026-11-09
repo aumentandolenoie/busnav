@@ -82,7 +82,7 @@ def index_catalog(data):
     return data["limits"], by_way
 
 
-def annotate(catalog, attributes, matched, projected, official, distances):
+def annotate(catalog, attributes, matched, projected, official, distances, inspected=None):
     """Return safety annotations only where matched edges tightly follow the GPX."""
     import enrich_road_guidance as road
 
@@ -113,6 +113,8 @@ def annotate(catalog, attributes, matched, projected, official, distances):
         if any(road.project(p, core, core_dist)[0] > 12 for p in road.sampled(shape, 8)):
             continue
         ranges.append((begin, finish))
+        if inspected is not None:
+            inspected.append((begin, finish, way))
         if str(way) in limits:
             segments.append([begin, finish, limits[str(way)]])
         trusted[way].append((begin, finish, shape, shape_dist))

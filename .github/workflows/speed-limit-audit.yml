@@ -1,0 +1,54 @@
+name: Audit mapped speed limit gaps
+on:
+  workflow_dispatch:
+  push:
+    branches: [audit/speed-limit-coverage]
+    paths: ['.github/workflows/speed-limit-audit.yml', 'scripts/audit-speed-limits.py']
+permissions:
+  contents: write
+env:
+  GH_TOKEN: ${{ github.token }}
+jobs:
+  published:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Measure the currently distributed archive
+        run: |
+          gh release download ios-preview-aeacc9af4443 --pattern navigation-data.zip
+          unzip -oq navigation-data.zip
+          python3 scripts/audit-speed-limits.py
+      - name: Preserve the coverage baseline
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/speed-limit-coverage.*
+          git commit -m 'Measure the published speed limit coverage'
+          git push origin "HEAD:$GITHUB_REF_NAME"
+  diagnose:
+    needs: published
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the currently distributed archive
+        run: |
+          gh release download ios-preview-aeacc9af4443 --pattern navigation-data.zip
+          unzip -oq navigation-data.zip
+          python3 -m pip install scipy osmium
+      - name: Reconstruct the road graph locally
+        run: bash scripts/build-road-guidance.sh --graph-only
+      - name: Classify gaps using source tags on verified roads
+        run: |
+          pbf=$(find build/valhalla -maxdepth 2 -name 'nord-est-latest.osm.pbf' -print -quit)
+          test -n "$pbf"
+          python3 scripts/audit-speed-limits.py --pbf "$pbf"
+      - name: Publish the analysis in the audit branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/speed-limit-coverage.*
+          git commit -m 'Classify the speed limit gaps against mapped way tags'
+          git pull --rebase --autostash origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
