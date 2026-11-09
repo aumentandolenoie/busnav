@@ -32,7 +32,7 @@ jobs:
         if: steps.reuse.outputs.reused != 'true'
         run: bash scripts/build-road-guidance.sh
       - name: Preserve road accuracy and roundabout audit
-        if: success()
+        if: success() && steps.reuse.outputs.reused != 'true'
         run: |
           test -s reports/road-guidance-audit.json || exit 0
           cp build/road-admin-audit.json reports/road-admin-audit.json
@@ -52,7 +52,7 @@ jobs:
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "$GITHUB_SHA" --title "LineaPilot · $TAG" --notes "Build in preparazione. GPX Academy intatti. Vedi coverage.json per le istruzioni stradali disponibili."
           gh release upload "$TAG" navigation-data.zip road-guidance/coverage.json --clobber
       - name: Valhalla diagnostic logs
-        if: failure()
+        if: failure() && steps.reuse.outputs.reused != 'true'
         run: docker logs --tail 150 busnav-valhalla || true
   build-ios:
     needs: road-data
