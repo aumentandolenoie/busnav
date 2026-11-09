@@ -20,6 +20,13 @@ Finestre non riprodotte o prive di attributi allineabili: 27.
 | Strada o geometria non confermata sul GPX | 609.4 |
 | Fonti sovrapposte discordanti | 0.5 |
 
+## Esito dei 14 percorsi senza limiti
+
+- **11 percorsi** (35, 36, 238, 240, 252, 256, 422, 423, 424, 474, 688) hanno restituito una geometria per gli attributi stradali diversa da quella della manovra. L'esportatore richiede geometrie identiche per usare quegli attributi. Il risultato non permette di stabilire la presenza dei limiti sulla strada percorsa.
+- **3 percorsi** (407, 488, 489) hanno strade abbinate senza limiti numerici nella fonte. Sul GPX 489 restano anche circa 4 metri senza un abbinamento verificato.
+
+Su tutti i percorsi, il confronto ha individuato 27 finestre con geometrie diverse. I 98,9 km con valori numerici accompagnati da metadati o formati esclusi sono candidati da verificare prima della pubblicazione.
+
 ## Percorsi senza limiti
 
 | GPX | Percorso | km | Causa prevalente |
