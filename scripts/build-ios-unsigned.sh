@@ -30,6 +30,9 @@ with zipfile.ZipFile(p) as z:
     assert z.testzip() is None
     info=plistlib.loads(z.read('Payload/LineaPilot.app/Info.plist'))
     assert info['CFBundleExecutable']=='LineaPilot'
+    assert {'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight'}.issubset(
+        info['UISupportedInterfaceOrientations']
+    )
     assert z.getinfo('Payload/LineaPilot.app/LineaPilot').file_size>0
     assert z.getinfo('Payload/LineaPilot.app/Web/official-routes.json').file_size>1000000
     primary=info['CFBundleIcons']['CFBundlePrimaryIcon']

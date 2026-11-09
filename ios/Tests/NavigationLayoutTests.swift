@@ -59,6 +59,8 @@ import MapKit
                 let attachment = XCTAttachment(image:image); attachment.name = "Navigation-\(Int(size.width))-\(category.rawValue)"; attachment.lifetime = .keepAlways; add(attachment)
                 drive.update(along:250,deviation:0,stop:0,reliable:true)
                 XCTAssertTrue(sign.isHidden)
+                drive.update(along:0,deviation:50,stop:0,reliable:true)
+                XCTAssertTrue(sign.isHidden)
                 drive.update(along:0,deviation:0,stop:0,reliable:false)
                 XCTAssertTrue(sign.isHidden)
                 window.isHidden = true
