@@ -1,0 +1,790 @@
+id,percorso,totale_m,published,unmapped,non_numeric,conditional,directional,numeric_metadata,numeric_unpublished,unverified,conflict,autovelox,controllo_rosso
+0,523 | Bojon - S. Angelo - Celeseo - Vigonovo - Padova,30560,9873,20625,0,0,0,0,0,63,0,0,0
+1,597 | Piove Di Sacco - S. Angelo - Celeseo - Vigonovo - Padova,28244,12727,15467,0,0,0,0,0,50,0,0,0
+2,868 | Padova - Vigonovo - Celeseo - S. Angelo - Bojon,30081,8657,21295,0,0,0,0,30,99,0,0,0
+3,868 | Padova - Vigonovo - Celeseo - S. Angelo - Bojon,30081,8657,21295,0,0,0,0,30,99,0,0,0
+4,915 | Padova - Vigonovo - Celeseo - S. Angelo - Piove Di Sacco,27441,11247,16055,0,0,0,0,20,119,0,0,0
+5,362 | Strà - Ist. Cornaro - Padova,17604,8092,9356,0,0,119,0,0,37,0,0,0
+6,589 | Strà - Noventa P. - Padova,14691,5388,9149,0,0,119,0,0,34,0,0,0
+7,750 | Padova - Noventa P. - Strà,14469,4134,10176,0,0,121,0,0,35,3,0,0
+8,362 | Stra - Ist. Cornaro - Padova.gpx,17039,7991,8342,0,0,121,0,0,586,0,0,0
+9,589 Da Strà - Nov. Padovana - Padova,14072,5631,8310,0,0,121,0,0,9,0,0,0
+10,750 Padova - Noventa Padovana - Strà,13879,4590,8846,0,0,119,0,0,324,0,0,0
+11,906 Stra - Noventa P. - Ponte Di Brenta - Padova.gpx,12718,5731,6584,0,0,233,0,0,170,0,0,0
+12,926 | Padova - Ponte Di Brenta - Noventa P. - Stra.gpx,12956,5795,6599,0,0,235,0,0,326,0,0,0
+13,926 Padova - Ponte Di Brenta - Noventa P. - Stra (via Venezia).gpx,11229,5354,5531,0,0,235,0,0,109,0,0,0
+14,1026 Vigonza Peraga Padova,11436,6096,4981,0,0,132,0,0,228,0,0,0
+15,1063 Pasova Peraga Vigonza,11798,6526,5069,0,0,132,0,0,71,0,0,0
+16,408 Padova a Mirano,29820,13272,13933,0,0,132,0,28,2454,0,0,0
+17,515 Mirano Padova,30095,14938,14932,0,0,132,0,0,93,0,0,0
+18,225 | Padova - Piazzola - Carmignano,34218,4745,29361,0,0,0,0,0,111,0,0,0
+19,281 Padova-PiazzolaIst.-Carmignano,34598,3801,30206,0,0,0,0,0,591,0,0,0
+20,289Padova-PiazzolaIst.-Carmignano-CittadellaP.taTreviso,45017,8423,33791,0,0,0,485,119,2198,0,0,0
+21,485 | Terminal Cittadella - Carmignano - Vaccarino - Padova,47484,15361,31221,0,0,0,800,0,103,0,1,0
+22,496 Cittadella - Carmignano - Villafranca - Padova,50034,15615,31058,0,0,0,563,275,2523,0,1,0
+23,529Term.Cittadella-Carmignano-Padova,46009,9927,29574,0,0,0,800,465,5243,0,1,0
+24,622 Piazzola Padova,19526,3872,13183,0,0,0,0,0,2471,0,0,0
+25,622PiazzolaSBPadova(prov.daPDvillafranca),20630,4892,13668,0,0,0,0,0,2070,0,0,0
+26,656PadovaVillafrancaPiazzola,19007,7573,10816,0,0,0,133,0,485,0,0,0
+27,572 | Trebaseleghe - Borgoricco - Padova,32928,6572,26255,0,0,0,0,0,101,0,0,0
+28,776 | Padova - Borgoricco - Trebaseleghe,35311,6417,28826,0,0,0,0,0,68,0,0,0
+29,777 PadovaS.MicheleBorgoriccoTrebaselighe,39588,10973,28353,0,0,0,0,0,262,0,0,0
+30,510 | Villaguattera - Rubano - Padova,15867,6765,8535,0,0,0,276,0,275,17,0,1
+31,843 | Padova - Rubano - Villaguattera,15762,6996,8469,0,0,0,271,0,25,0,0,1
+32,1026 | Cavarzere - Padova,42041,30313,11634,0,0,0,0,0,94,0,0,0
+33,111 | Cavarzere - Agna - Bagnoli,28841,8924,19853,0,0,0,0,0,65,0,0,0
+34,23 | Pegolotte Chiesa - Rottanova - Agna,16428,8928,7388,0,0,0,0,0,112,0,0,0
+35,238 | Padova - Piove Di Sacco - Candiana - Cavarzere,54642,0,0,0,0,0,0,0,54642,0,0,0
+36,239 | Padova - Cavarzere,41952,0,0,0,0,0,0,0,41952,0,0,0
+37,663 | Bagnoli - Pontelongo - Piove Istituti,49822,31748,17730,0,0,179,0,0,166,0,0,0
+38,665 | Rottanova - Corezzola - Piove Di Sacco,29445,16485,12575,0,0,0,0,0,385,0,0,0
+39,667 | Agna - Rottanova - Candiana - Piove Di Sacco,42613,31759,10540,0,0,179,0,0,136,0,0,0
+40,687 | Cavarzere - Piove Di Sacco Ist. - Piove Di Sacco,24897,17081,7736,0,0,0,0,0,80,0,0,0
+41,703 | Padova - Piove Di Sacco - Candiana - Rottanova,54946,42974,11565,0,0,179,0,0,228,0,0,0
+42,705 | Piove Di Sacco - Correzzola - Rottanova,29055,16195,12492,0,0,0,0,0,368,0,0,0
+43,706 | Piove Di Sacco - Rottanova,23106,17383,5685,0,0,0,0,0,38,0,0,0
+44,999 Cantarana a Rottanova,14339,4964,9375,0,0,0,0,0,0,0,0,0
+45,999CavarzereRottanovaDiretto,7415,1204,6211,0,0,0,0,0,0,0,0,0
+46,999 | Agna - Pegolotte Chiesa,7557,574,6948,0,0,0,0,0,35,0,0,0
+47,999 | Bagnoli - Pegolotte Chiesa,14276,602,13643,0,0,0,0,0,30,0,0,0
+48,999 | Rottanova - Cavarzere,7961,3410,4551,0,0,0,0,0,0,0,0,0
+49,670 | Cantarana - Piove Di Sacco (No Pontelongo),19544,10627,8529,0,0,0,0,0,388,0,0,0
+50,219 | Padova - Piove Di Sacco - Cantarana,40187,25570,14087,0,0,0,0,0,530,0,0,0
+51,220 | Piove Di Sacco - Cantarana,21050,11442,9239,0,0,0,0,0,368,0,0,0
+52,580 | Cantarana - Pontelogno - Padova,39396,25578,13386,0,0,0,0,0,432,0,0,0
+53,580 | Cantarana - Pontelongo - Padova (No Pontelongo Centro),38313,24512,13377,0,0,0,0,0,425,0,0,0
+54,670 | Cantarana - Piove Di Sacco (No Pontelongo),19544,10627,8529,0,0,0,0,0,388,0,0,0
+55,670 | Cantarana - Piove Di Sacco,20642,11682,8543,0,0,0,0,0,418,0,0,0
+56,670 | Cantarana - Piove Di Sacco,20642,11682,8543,0,0,0,0,0,418,0,0,0
+57,999 | Cantarana - Correzzola,7338,3304,3902,0,0,0,0,0,133,0,0,0
+58,1078 | Brugine - Campagnola - Piove Di Sacco,8147,7879,158,0,0,33,0,0,78,0,0,0
+59,25 | Padova - Agripolis,11405,6341,4966,0,0,0,0,0,98,0,0,0
+60,519 | Piove Di Sacco - Brugine - Agripolis - Padova,27542,21694,5719,0,0,33,0,0,96,0,0,0
+61,519 | Piove Istituti - Brugine - Agripolis - Padova,28935,22048,6767,0,0,33,0,0,86,0,0,0
+62,641 | Agripolis - Padova,11129,6378,4728,0,0,0,0,0,23,0,0,0
+63,671 | Padova - Agripolis - Brugine - Piove Di Sacco via Istituti,30031,22933,6865,0,0,34,0,0,199,0,0,0
+64,671 | Padova - Agripolis - Brugine - Piove Di Sacco,28041,21937,5877,0,0,33,0,0,193,0,0,0
+65,687 | Brugine V. Vivaldi - Campagnola - Piove Ist.,8847,8445,295,0,0,33,0,0,74,0,0,0
+66,869 | Piove Di Sacco - Campagnola - Brugine,7982,7671,243,0,0,33,0,0,35,0,0,0
+67,999 | Brugine - Piove Di Sacco,5698,4558,962,0,0,89,0,0,88,0,0,0
+68,999 | Piove Di Sacco - Brugine V. Vivaldi,5358,4227,1038,0,0,91,0,0,2,0,0,0
+69,Piove Di Sacco - Campagnola - Brugine - Legnaro,15611,15252,286,0,0,33,0,0,39,0,0,0
+70,1026 | Brenta D’Abbà - Padova,35655,24888,10530,0,0,0,172,0,66,0,0,0
+71,201 | Padova - Ca’ Bianca,46788,31208,15152,0,0,0,170,0,257,0,0,0
+72,286 | Padova - Vallonga - Ca’ Bianca,47226,31387,15413,0,0,0,170,0,257,0,0,0
+73,540 Ca' Bianca  Padova,46520,31273,14864,0,0,0,173,0,210,0,0,0
+74,541 | Ca’ Bianca - Vallonga - Padova,46953,31461,15235,0,0,0,172,0,84,0,0,0
+75,664 | Ca’ Bianca - Vallonga - Piove Di Sacco [dev. ponte],28960,22811,5921,0,0,0,172,0,56,0,0,0
+76,664 | Ca’ Bianca - Vallonga - Piove Di Sacco [dev. ponte],28960,22811,5921,0,0,0,172,0,56,0,0,0
+77,664 | Correzzola - Codevigo - Piove Di Sacco,21753,11061,10469,0,0,0,173,0,51,0,0,0
+78,999 | Ca’ Bianca - Civè DIRETTA,6185,5554,631,0,0,0,0,0,0,0,0,0
+79,999 | Civè - Ca’ Bianca DIRETTA,6185,5552,631,0,0,0,0,0,2,0,0,0
+80,999 | Cantarana - Brenta D’Abbà,4424,2482,1888,0,0,0,0,0,54,0,0,0
+81,999 | Cà Bianca - Cantarana,10676,9444,1232,0,0,0,0,0,0,0,0,0
+82,999 | Ca’ Bianca - Sottomarina,11859,5293,6562,0,0,0,0,0,4,0,0,0
+83,1026 | Sottomarina - Padova,49973,36648,13186,0,0,87,0,0,52,0,0,0
+84,1054 | Padova - Sottomarina,50420,36774,13330,0,0,87,0,0,229,0,0,0
+85,1078 | Legnaro - Piove Di Sacco,7737,7375,298,0,0,0,0,0,64,0,0,0
+86,Giro in bici da corsa,3944,1578,2222,0,0,0,0,0,144,0,0,0
+87,"362 Padova - Ist.Gramsci (diretta) tr. via Manzoni, crescini, fanzago",5262,2220,2590,0,0,0,0,0,451,0,0,1
+88,362 | Padova - Ist. Gramsci/Cornaro,4027,1730,2265,0,0,0,0,0,32,0,0,0
+89,672 | Padova - Piove Di Sacco,19110,14038,4812,0,0,0,0,0,259,0,0,0
+90,911 | Piove Di Sacco - Padova,18733,13906,4782,0,0,0,0,0,45,0,0,0
+91,999 | Legnaro - Piove Di Sacco [DIRETTA],7737,7373,296,0,0,0,0,0,67,0,0,0
+92,"999 | Padova - Ist. Gramsci/Cornaro (via Manzoni, via Crescini, via Fanzago)",4560,2370,2162,0,0,0,0,0,28,0,0,0
+93,999 | Piove Di Sacco - Legnaro DIRETTA,7527,7234,291,0,0,0,0,0,2,0,0,0
+94,999 | Ist. Gramsci/Cornaro - Padova,10802,7649,2986,0,0,0,101,0,66,0,0,0
+95,Dev. partite a Chioggia A/R,2670,274,2396,0,0,0,0,0,0,0,0,0
+96,Piove Di Sacco - Legnaro,7527,7234,291,0,0,0,0,0,2,0,0,0
+97,1045 | Montegrotto IV Novembre - Torreglia - Arquà P. - Este,25682,6788,18891,0,0,0,0,0,2,0,0,0
+98,1049 | Este - Arquà P. - Galzignano - Montegrotto (via Galzignano Case Nuove),29388,9880,19503,0,0,0,0,0,4,0,0,0
+99,1049 | Monselice - Arquà P. - Galzignano - Torreglia - Montegrotto,24776,8631,16143,0,0,0,0,0,1,0,0,0
+100,335 | Padova - Arquà P. - Este (No Galzignano Case Nuove),42531,16487,25758,0,0,0,0,0,286,0,0,0
+101,335 Da Padova a Este via Arquà Petrarca,42182,16264,24660,0,0,0,0,0,1259,0,0,0
+102,335 | Bar Gaffo - Torreglia - Este,26336,7403,18930,0,0,0,0,0,2,0,0,0
+103,335 Da Padova a Este via Arquà Petrarca,42182,16264,24660,0,0,0,0,0,1259,0,0,0
+104,371 | Monselice - Ist. Cattaneo,1070,164,906,0,0,0,0,0,0,0,0,0
+105,418 | Montegrotto - Galzignano - Monselice,25119,8637,16458,0,0,0,0,0,24,0,0,0
+106,506 | Este - Arquà P. - Padova (No Galzignano Case Nuove),41533,16324,25198,0,0,0,0,0,11,0,0,1
+107,506 | Este - Arquà P. - Padova (No Galzignano Case Nuove),41455,16320,25041,0,0,0,0,0,95,0,0,1
+108,506 | Este - Arquà Petrarca - Padova.gpx,42530,17265,25094,0,0,0,0,0,172,0,0,1
+109,994 | Ist. Cattaneo - Monselice,1138,176,961,0,0,0,0,0,0,0,0,0
+110,994 | Ist. Cattaneo - Monselice,1138,176,961,0,0,0,0,0,0,0,0,0
+111,999 | Ist. Cattaneo - Monselice [DIRETTA],1093,176,917,0,0,0,0,0,0,0,0,0
+112,999 | Monselice - Ist. Cattaneo DIRETTA,1070,164,906,0,0,0,0,0,0,0,0,0
+113,999 | Montegrotto - Due Carrare DIRETTA,8784,4580,4199,0,0,0,0,0,5,0,0,0
+114,999 | Este - Montegrotto,21424,12475,8127,0,0,0,816,0,6,0,0,0
+115,1092 | Monselice - Pernumia - Vanzo - Tribano,12153,1067,10644,0,0,442,0,0,1,0,0,0
+116,445 | Pozzonovo - Pernumia - Monselice,18065,3502,14122,0,0,442,0,0,0,0,0,0
+117,626 | Pozzonovo - Padova,35521,18886,15815,0,0,442,287,0,92,0,0,1
+118,627 | Pozzonovo - Padova via Riviere,35555,19046,15525,0,0,443,287,0,237,17,0,0
+119,683 | Padova - Pozzonovo,36198,18875,16559,0,0,442,287,0,36,0,0,0
+120,688 | Monselice - Pozzonovo (via Rovigana),18695,3467,14783,0,0,442,0,0,3,0,0,0
+121,688 | Monselice - Pozzonovo via SS16,18146,3464,14189,0,0,442,0,0,51,0,0,0
+122,999 | Pozzonovo - Tribano DIRETTA,6022,2441,3581,0,0,0,0,0,1,0,0,0
+123,999 | Pozzonovo - Monselice,5799,2780,3019,0,0,0,0,0,1,0,0,0
+124,101 | Este - Bresega - Badia Polesine,28005,10204,17775,0,0,0,0,0,26,0,1,0
+125,107 | Este - Badia Polesine dev. ponte Valli Mocenighe 23,34270,17912,16317,0,0,0,0,0,41,0,0,0
+126,326 | Badia Polesine - Badia Polesine Ist. - Este,27334,6504,20626,0,0,0,0,137,67,0,0,0
+127,326 | Badia Polesine - Este dev. ponte Valli Mocenighe 23,34179,17921,16061,0,0,0,0,150,46,0,0,0
+128,327 | Badia Polesine - Bresega - Este,28257,10536,17377,0,0,0,0,141,203,0,1,0
+129,862 | Este - Badia Polesine Istituiti,26566,6373,19886,0,0,0,0,53,254,0,0,0
+130,104 | Este - Castelbaldo - Badia Polesine,35912,14929,20973,0,0,0,0,0,9,0,0,0
+131,232 | Este - Castelbaldo,30022,14365,15648,0,0,0,0,0,9,0,0,0
+132,233 | Este - Castelbaldo,30033,14363,15661,0,0,0,0,0,10,0,0,0
+133,312 | Castelbaldo - Este,30486,14846,15629,0,0,0,0,0,11,0,0,0
+134,312 | Badia Polesine - Badia Polesine Ist. - Castelbaldo - Este,38026,15583,22129,0,0,0,0,120,194,0,0,0
+135,312 | Badia Polesine - Castelbaldo - Este,36252,15293,20771,0,0,0,0,140,46,2,0,0
+136,323 | Casale Di Scodosia - Este,19641,12897,6737,0,0,0,0,0,7,0,0,0
+137,344 | Megliadino San Vitale - Este via Saletto,17808,13783,4017,0,0,0,0,0,8,0,0,0
+138,999 | Este - Casale Di Scodosia DIRETTA,22772,18114,4652,0,0,0,0,0,7,0,0,0
+139,999 | Este - Megliadino San Vitale [DIRETTA],17505,13483,4016,0,0,0,0,0,6,0,0,0
+140,329 | Lendinara - Este,23651,10208,13408,0,0,0,0,0,35,0,0,0
+141,332 | Lendinara - Vighizzolo - Este,28998,9946,19047,0,0,0,0,0,5,0,0,0
+142,332 | Lendinara - Vighizzolo - Este,28857,9698,19014,0,0,0,0,0,145,0,0,0
+143,384 | Este - Vighizzolo - Lendinara,28883,9623,19257,0,0,0,0,0,3,0,0,0
+144,385 | Este - Lendinara,23467,9816,13651,0,0,0,0,0,0,0,1,0
+145,309 | Vighizzolo - Este,10256,6162,4086,0,0,0,0,0,7,0,0,0
+146,814 | Este - Vighizzolo,9840,5749,4090,0,0,0,0,0,1,0,0,0
+147,333 | Pisana - Solesino - S. Elena - Este (via Deserto),14718,7829,6887,0,0,0,0,0,2,0,0,0
+148,678 | Este - S. Elena - Solesino - Pisana,16566,10051,6512,0,0,0,0,0,4,0,0,0
+149,877 | Este - Lusia - Cavazzana,26253,12385,13865,0,0,0,0,0,4,0,0,0
+150,887 | Cavazzana - Lusia - Este,26876,12709,14038,0,0,0,0,59,70,0,0,0
+151,999 | Cavazzana - Lendinara DIRETTA,4074,2521,1551,0,0,0,0,0,2,0,0,0
+152,999 | Lendinara - Cavazzana DIRETTA,3703,2436,1266,0,0,0,0,0,0,0,0,0
+153,1026 | Montagnana - Este - Monselice - Padova,52498,35266,16111,0,0,0,1105,0,15,0,0,1
+154,1026 | Montagnana - Megliadino S. Fidenzio - Este - Monselice - Padova,54778,35348,18314,0,0,0,1104,0,12,0,0,1
+155,1045 | Montagnana - Este,19443,17130,2307,0,0,0,0,0,7,0,0,0
+156,1045 | Monselice - Este,9307,2838,5649,0,0,0,817,0,2,0,0,0
+157,1045 | Montagnana - Ist. Sacchieri - Este,19957,16936,2927,0,0,0,0,0,94,0,0,0
+158,320 | Ist. Manfredini - Este,4219,4111,102,0,0,0,0,0,5,0,0,0
+159,338 | Montagnana - Casale Di Scodosia - Este,27219,13646,13564,0,0,0,0,0,9,0,0,0
+160,363 | Este - Ist. Manfredini,3752,3713,35,0,0,0,0,0,3,0,0,0
+161,410 | Este - Monselice,8958,2528,5613,0,0,0,815,0,2,0,0,0
+162,429 | Padova - Monselice - Este - Megliadino S. Fidenzio - Montagnana,55085,35265,18586,0,0,0,1104,0,128,2,0,0
+163,432 | Este - Casale Di Scodosia - Montagnana,26724,13136,12210,0,0,0,0,0,1378,0,0,0
+164,433 | Este - Megliadino S.F. - Montagnana,21259,16794,4396,0,0,0,0,0,69,0,0,0
+165,436 | Monselice - Este - Montagnana,28219,19471,7872,0,0,0,820,0,56,0,0,0
+166,436 | Padova - Monselice - Este - Montagnana,52740,35105,16375,0,0,0,1104,0,153,2,0,0
+167,444 | Este - Montagnana,18915,16633,2215,0,0,0,0,0,62,5,0,0
+168,499 | Montagnana - Este - Monselice - Padova via Riviere,52541,35428,15664,0,0,0,1104,0,328,17,0,0
+169,499 | Montagnana - Megliadino S.F. - Este - Monselice - Padova via Riviere,54819,35517,17989,0,0,0,1104,0,210,0,0,0
+170,1026 | Este - Monselice - Padova,33065,18137,13817,0,0,0,1107,0,5,0,0,1
+171,999 | Este - Ist. Manfredini,3744,3708,35,0,0,0,0,0,1,0,0,0
+172,1026 | Aeroporto Marco Polo - Padova,45587,36758,2589,0,6239,0,0,0,0,0,0,0
+173,1026 | Venezia - Padova,39359,34841,3814,0,0,0,348,0,356,0,0,0
+174,1071 | Padova - Montegrotto via tangenziale,20258,14773,5415,0,0,0,39,0,30,0,1,1
+175,1081 | Padova - Venezia,39928,30464,8128,0,0,0,439,0,897,0,1,0
+176,Padova - Aeroporto Marco Polo,43855,35225,2324,0,6305,0,0,0,2,0,0,0
+177,775 | Padova - Z.I. - Tessera Aeroporto,60256,42901,13639,0,0,0,2831,0,885,0,1,0
+178,550 | Montegrotto - Padova Diretta,16199,10132,5775,0,0,0,287,0,5,0,0,1
+179,592 | Tessera Aeroporto - Via 1^ Strada - Padova,56272,42860,10222,0,0,0,2796,0,394,0,0,0
+180,593 | Venezia - Z.I. - Padova,46804,39879,6568,0,0,0,348,0,10,0,0,0
+181,999 - Da Montegrotto a Padova diretta,17550,11410,5608,0,0,0,422,0,110,0,0,1
+182,999 | Venezia P.le Roma - Tronchetto,970,557,263,151,0,0,0,0,0,0,0,0
+183,1205 | Monselice - Abano Giarre,17234,11058,6174,0,0,0,0,0,2,0,0,0
+184,333 | Rovigo - Pisana,11577,10727,845,0,0,0,0,0,4,0,0,0
+185,410 | Pisana - Solesino - Monselice,8960,4255,4678,0,0,0,0,0,28,0,0,0
+186,553 | Rovigo - Monselice,20538,14988,5518,0,0,0,0,0,32,0,0,0
+187,553 | Rovigo - Monselice,20535,14990,5520,0,0,0,0,0,26,0,0,0
+188,612 | Rovigo - Monselice - Padova,44564,30594,13566,0,0,0,287,0,117,0,0,1
+189,707 | Cavarzerane - Rovigo,13833,12008,1823,0,0,0,0,0,2,0,0,0
+190,707 | Pisana - Rovigo,11706,10809,893,0,0,0,0,0,4,0,0,0
+191,709 | Monselice - Rovigo Ist. Scolastici,22244,14443,7143,0,0,0,654,0,3,0,0,0
+192,711 | Padova - Monselice - Rovigo Autostazione,44993,30319,14127,0,0,0,287,0,260,0,0,0
+193,711 | Padova - Monselice - Rovigo,45110,30490,14299,0,0,0,287,0,34,0,0,0
+194,712 | Monselice - Rovigo,20527,14894,5595,0,0,0,0,0,38,0,0,0
+195,994 | Monselice - Giarre,17953,11141,6811,0,0,0,0,0,1,0,0,0
+196,994 | Monselice - Giarre,17953,11141,6811,0,0,0,0,0,1,0,0,0
+197,999 | Rovigo - Cavarzerane DIRETTA,12614,12213,367,0,0,0,0,0,35,0,0,0
+198,553 | Rovigo - Monselice,20174,14858,5282,0,0,0,0,0,34,0,0,0
+199,612 | Rovigo - Monselice - Padova,44270,30461,13487,0,0,0,287,0,35,0,0,1
+200,711 | Padova - Monselice - Rovigo,44986,30546,14105,0,0,0,287,0,48,0,0,0
+201,711 | Padova - Monselice - Rovigo Autostazione,44918,30513,14080,0,0,0,287,0,38,0,0,0
+202,711 | Padova - Monselice - Rovigo,44857,30574,13962,0,0,0,285,0,36,0,0,0
+203,712 | Monselice - Rovigo,20338,14940,5394,0,0,0,0,0,4,0,0,0
+204,1026 | Ist. Duca Degli Abruzzi - Padova,6955,3907,2624,0,0,0,421,0,3,1,0,1
+205,1026 | Ist. Via Cave - Padova,5945,3375,2145,0,0,0,422,0,2,0,0,1
+206,1026 | Montemerlo - Padova,17137,6792,10093,0,0,0,39,0,213,1,0,0
+207,1026 | Villa Di Teolo - Padova,18871,5674,11756,0,0,0,1216,0,214,11,0,0
+208,1057 | Noventa Vicentina - Vò,11528,6005,5499,0,0,0,0,0,23,0,0,0
+209,1057 | Noventa Vicentina - Vò,11528,6005,5499,0,0,0,0,0,23,0,0,0
+210,1287 | Ferrovia - Ist. Duca degli Abruzzi via cave,6632,1334,5070,0,0,0,218,0,9,0,0,1
+211,354 | Padova - Ferrovia - Ist. via cave,5608,832,4520,0,0,0,218,0,37,0,0,1
+212,354 | Padova - Ist. Via Cave,5642,1493,3770,0,0,0,372,0,7,0,0,2
+213,466 | Padova - Montemerlo - Vo' - Noventa Vicentina.gpx,43420,16755,24645,0,0,0,1309,0,711,0,0,0
+214,501 | Noventa Vicentina - Vò - Padova,39217,12894,24744,0,0,0,1309,0,269,1,0,0
+215,502 | Noventa Vicentina - Vò - Montemerlo - Padova,43505,17197,24728,0,0,0,1309,0,270,1,0,0
+216,532 | Vò - Castelnuovo - Padova,30983,5836,23551,0,0,0,1305,0,291,1,0,0
+217,616 | Vò - Montemerlo - Padova,31978,11167,19297,0,0,0,1309,0,195,11,0,0
+218,617 | Vò - Padova,27690,6882,19260,0,0,0,1309,0,235,4,0,0
+219,830 | Padova - Montemerlo - Vò,31972,11105,19542,0,0,0,1309,0,15,1,0,0
+220,831 | Padova - Vò,27683,6818,19539,0,0,0,1309,0,17,0,0,0
+221,837 | Padova - Castelnuovo - Vo,30920,5775,23825,0,0,0,1309,0,11,1,0,0
+222,909 | Vò - Montemerlo - Padova via Prato Della Valle - Ospedale,33902,11731,20826,0,0,0,1270,0,73,1,0,0
+223,999 | Padova - Ist. Duca Degli Abbruzzi,6551,1736,4434,0,0,0,372,0,9,0,0,2
+224,999 | Agugliaro - Vò,4848,2488,2359,0,0,0,0,0,1,0,0,0
+225,999 | Montegrotto - Montemerlo,11328,10024,118,0,0,0,0,103,1083,0,0,0
+226,999 | Montegrotto - Villa Di Teolo,11756,7619,1782,0,0,0,1177,30,1147,0,0,0
+227,999 | Vo - Noventa Vicentina,11314,6274,5033,0,0,0,0,0,7,0,0,0
+228,1057 | Valbona - Vò,16455,2648,13804,0,0,0,0,0,3,0,0,0
+229,567 | Valbona - Padova,44119,9475,32880,0,0,0,1309,0,456,0,0,0
+230,802 | Padova - Montemerlo - Valbona,48392,13752,33315,0,0,0,1309,0,16,1,0,0
+231,804 | Padova - Valbona,44104,9458,33318,0,0,0,1309,0,17,1,0,0
+232,1026 | Saccolongo - Padova,14410,6178,7935,0,0,0,39,0,241,17,1,0
+233,1075 | Vo - Bastia - Cervarese - Montemerlo - Liceo Galilei,33297,15720,17538,0,0,0,0,0,38,0,0,0
+234,1076 | Liceo Galieli - Montemerlo - Cervarese - Bastia - Vò,33555,15849,17674,0,0,0,20,0,12,0,0,0
+235,1077 | Padova - Tencarola - Liceo Galilei,9955,3401,6506,0,0,0,39,0,8,1,0,0
+236,1079 | Liceo Galilei - Creola,11862,5808,6010,0,0,0,0,0,44,0,0,0
+237,1080 | Cervarese - Creola - Liceo Galilei,16198,11320,4821,0,0,0,0,0,57,0,1,0
+238,119 | Padova - Cervarese - Rovolon - Barbarano,47493,0,0,0,0,0,0,0,47493,0,0,0
+239,127 | Padova - Cervarese - Bastia,27339,13527,13667,0,0,0,39,0,106,1,0,0
+240,222 | Padova - Rovolon - Carbonara,31074,0,0,0,0,0,0,0,31074,0,0,0
+241,222 | Padova - Carbonara,26861,16752,9470,0,0,0,39,0,599,0,0,0
+242,223 Padova Cervarese Carbonara,31881,16861,14642,0,0,0,39,0,335,4,0,0
+243,223 | Padova - Cervarese - Carbonara,31481,16855,14506,0,0,0,39,0,81,1,0,0
+244,248 | Liceo Galilei - Creola - Cervarese,17303,11121,6116,0,0,0,0,0,66,0,0,0
+245,248 | Padova - Cervarese,21036,12526,8384,0,0,0,39,0,86,1,0,0
+246,498 | Cervarese - Padova via Prato Della Valle/Ospedale,22923,13372,9460,0,0,0,0,0,90,1,1,0
+247,499 | Bastia - Padova via Riviere,23661,14343,9007,0,0,0,0,0,311,0,1,0
+248,535 | Bastia - Cervarese - Padova,27676,13589,13743,0,0,0,39,0,304,1,1,0
+249,535 | Vò - Carbonara - Cervarese - Padova,36530,16976,19229,0,0,0,39,0,269,17,1,0
+250,832 | Padova - Carbonara - Vò,31167,16664,14355,0,0,0,62,0,86,1,0,0
+251,835 | Padova - Cervarese - Carbonara - Vò,36120,16860,19130,0,0,0,60,0,69,1,0,0
+252,933 | Padova - Cervarese - Rovolon - Carbonara - Vò,40224,0,0,0,0,0,0,0,40224,0,0,0
+253,899 | Carbonara - Padova,26648,16798,9550,0,0,0,39,0,243,17,1,0
+254,899 | Vò - Carbonara - Padova,31269,16796,14165,0,0,0,39,0,264,5,1,0
+255,903 | Barbarano - Rovolon - Padova,42289,25676,14421,0,0,0,39,0,2137,16,1,0
+256,933 | Padova - Rovolon - Carbonara - Vò,35278,0,0,0,0,0,0,0,35278,0,0,0
+257,999 | Abano Ist. - Fossona - Cervarese,18935,12362,6571,0,0,0,0,0,3,0,0,0
+258,999 | Barbarano - Vò,16936,12250,4682,0,0,0,0,0,5,0,0,0
+259,999 | Cervarese - Saccolongo,9143,8228,884,0,0,0,0,0,31,0,1,0
+260,999 | Cervarese - via Sacchette - Bastia,6607,1318,5284,0,0,0,0,0,5,0,0,0
+261,999 | Creola - Liceo Galilei,10704,6226,4447,0,0,0,0,0,32,0,1,0
+262,999 | Liceo Galilei - Saccolongo,8712,4411,4292,0,0,0,0,0,10,0,0,0
+263,999 | Vò - Barbarano,17062,12190,4797,0,0,0,0,0,76,0,0,0
+264,999 | Vò - Carbonara,5271,640,4628,0,0,0,0,0,4,0,0,0
+265,999 | Vo - Liceo Galilei,24243,15476,8649,0,0,0,0,0,118,0,1,0
+266,1116 | Cervarese - Montemerlo - Istituti - Padova,24305,13300,10640,0,0,0,0,0,347,17,0,0
+267,247 | Padova - Montemerlo - Cervarese,23033,12521,10437,0,0,0,39,0,36,0,0,0
+268,585 | Cervarese - Montemerlo - Padova,23048,12343,10440,0,0,0,39,0,226,1,0,0
+269,1026 | Pieve C. - Padova,17593,7701,8239,0,0,0,0,0,1654,0,0,0
+270,1043 | Bassano Centro Studi - Cittadella,14750,12504,1680,0,0,0,563,0,3,0,0,0
+271,1043 | Bassano Centro Studi - Terminal Cittadella,14998,13367,1330,0,0,0,296,0,6,0,0,0
+272,120 | Cittadella P. Treviso - Bassano,15829,13806,1295,0,0,0,689,0,39,0,0,0
+273,121 | Padova - Cittadella - Bassano,48575,28250,19487,0,0,0,689,0,149,0,0,0
+274,122 | Padova - Cittadella - Centro Studi - Bassano,50572,29962,19771,0,0,0,689,0,151,0,0,0
+275,123 | Cittadella P. Treviso - Centro Studi - Bassano,17826,15524,1555,0,0,0,689,0,59,0,0,0
+276,256 | Padova - Terminal Cittadella,32376,14624,17643,0,0,0,0,0,110,0,0,0
+277,265 | Bassano - Cittadella Ist. Fanoli,16521,14612,1586,0,0,0,318,0,5,0,0,0
+278,270 | Padova - Cittadella P. Treviso,32533,14819,17603,0,0,0,0,0,110,0,0,0
+279,538 | Bassano - Bassano C. Studi - Cittadella - Padova,49122,29762,16992,0,0,0,612,101,1655,0,0,0
+280,538 | Bassano - Cittadella - Padova,47685,29538,17405,0,0,0,630,0,111,0,0,0
+281,538 | Bassano - Terminal Cittadella - Padova,49103,30594,17695,0,0,0,629,0,185,0,0,0
+282,649 | Cittadella - Padova,31321,15802,15325,0,0,0,69,0,126,0,0,0
+283,660 |  Padova - Pieve C.,18542,6552,11362,0,0,0,0,0,628,0,0,0
+284,661 | Terminal Cittadella - Pieve Di Curtarolo,15062,7423,7327,0,0,0,311,0,1,0,0,0
+285,999 | Cittadella P. Treviso - Bassano Centro Studi,15206,13178,1297,0,0,0,689,0,43,0,0,0
+286,999 | Pieve Di Curtarolo - Terminal Cittadella,14078,7936,6137,0,0,0,0,0,5,0,0,0
+287,259 | Mussolente - Terminal Cittadella,20789,19754,862,0,0,0,36,0,137,0,0,0
+288,440 | Terminal Cittadella - Mussolente,22725,20257,1923,0,0,0,515,0,30,0,0,0
+289,999 | Cittadella - Mussolente,22020,19930,1138,0,0,0,930,0,22,0,0,0
+290,999 | Bassano - Mussolente,6676,6671,4,0,0,0,0,0,1,0,0,0
+291,245 | Padova - Montegaldella - Cervarese,22309,15252,6756,0,250,0,39,0,12,0,0,1
+292,246 | Padova - Montegaldella - S. Maria Di Veggiano - Cervarese,24944,15254,9390,0,250,0,39,0,11,0,0,1
+293,435 | Padova - Veggiano - Montegaldella,20368,13293,6775,0,250,0,39,0,11,0,0,1
+294,539 | Veggiano - Padova,15398,9887,5266,0,0,0,39,0,190,16,0,1
+295,582 | Montegaldella - Veggiano - Padova,20225,12931,6793,0,227,0,39,0,235,0,0,1
+296,583 | Cervarese - Montegaldella - S. Maria Di Veggiano - Padova,24774,14870,9440,0,227,0,39,0,199,0,0,1
+297,584 | Cervarese - Montegaldella - Padova,22138,14867,6693,0,227,0,39,0,295,17,0,1
+298,807 | Padova - Veggiano,15606,10164,5084,0,0,0,39,0,318,0,0,1
+299,999 Montegaldella a Dep. Montegrotto,20785,19393,1194,0,0,0,0,0,198,0,0,0
+300,999 | Grisignano - Cervarese,7450,4924,1202,0,246,1072,0,0,6,0,0,0
+301,999 | Montegaldella - Montegrotto,21836,20662,1142,0,0,0,0,0,32,0,0,0
+302,256 | Arsego - Villa Del Conte - Terminal Cittadella,25796,14776,10866,0,0,0,0,0,154,0,0,0
+303,257 | Padova - Villa Del Conte - Cittadella,45735,21305,24029,0,0,0,245,0,157,0,0,0
+304,257 | Padova - Villa Del Conte - Terminal Cittadella,46937,21814,24966,0,0,0,0,0,157,0,0,0
+305,534 | Cittadella - Villa Del Conte - Cavino - Padova,45298,21454,23535,0,0,0,243,0,65,0,0,0
+306,606 | Villa Del Conte - Padova,28680,16663,11971,0,0,0,0,0,47,0,0,0
+307,618 | Cittadella - Villa Del Conte - Padova,42725,21070,21347,0,0,0,243,0,64,0,0,0
+308,618 | Terminal Cittadella - Ist. Girardi - Villa Del Conte - Padova,44708,21846,22280,0,0,0,485,0,97,0,0,0
+309,618 | Terminal Cittadella - Villa Del Conte - Padova,43880,21249,22070,0,0,0,485,0,75,0,0,0
+310,816 | Padova - Villa Del Conte,31048,16393,14652,0,0,0,0,0,3,0,0,0
+311,883 | Padova - Cavino - Villa Del Conte - Cittadella,48308,21690,26214,0,0,0,245,0,158,0,0,0
+312,999 ArsegoVilladelContediretta,5957,4784,1173,0,0,0,0,0,0,0,0,0
+313,999 | Villa Del Conte - Arsego,8074,7159,913,0,0,0,0,0,2,0,0,0
+314,?? | Terminal Cittadella - Villa Del Conte,15195,4580,10112,0,0,0,485,0,19,0,0,0
+315,1026 | Mestrino - Padova,12017,7773,4008,0,0,0,37,0,198,0,0,1
+316,204 | Padova - Lissaro - Camisano,23141,11459,11323,0,0,0,39,0,319,0,0,1
+317,354 | Lissaro - Ist. Via Cave - Padova,19852,12334,7243,0,0,0,0,0,258,17,0,0
+318,354 | Villaguattera - Ist. Via Cave - Padova,20676,8307,11836,0,0,0,237,0,295,0,0,0
+319,406 | Padova - Mestrino,12083,8058,3954,0,0,0,39,0,32,0,0,1
+320,510 | Mestrino - Bosco Di Rubano - Padova,16132,9092,6812,0,0,0,34,0,193,0,0,1
+321,510 | Villaguattera - Rubano - Padova (transita per Via Adige),15047,5684,8834,0,0,0,274,0,255,0,0,1
+322,510 | Villaguattera - Rubano - Padova,15186,5684,8957,0,0,0,277,0,252,17,0,1
+323,605 | Villaguattera - Bosco Di Rubano Interna - Padova,16737,6309,10051,0,0,0,39,0,323,17,0,1
+324,821 | Padova - Bosco Di Rubano Interna - Villaguattera,13215,6070,7105,0,0,0,39,0,1,0,0,1
+325,843 | Padova - Rubano - Villaguattera (transita per via Adige),14942,5917,8727,0,0,0,271,0,26,0,0,1
+326,843 | Padova - Rubano - Villaguattera,15081,5918,8858,0,0,0,273,0,31,0,0,1
+327,999 | Padova - Villaguattera Diretta,8736,5646,3047,0,0,0,39,0,4,0,0,1
+328,999 | Padova - Lissaro Diretta,14325,9510,4771,0,0,0,39,0,6,0,0,1
+329,16 | Este - Agna,40766,19685,19996,0,0,206,817,0,62,0,0,0
+330,276 | Este - Monselice - Conselve,25338,12323,12160,0,0,0,817,0,37,0,0,0
+331,331 | Agna - Este,42296,19635,21467,0,0,206,817,0,171,0,0,0
+332,1058 | Este - Schiavonia Ospedale,10191,7319,2873,0,0,0,0,0,0,0,0,0
+333,1186 | Conselve - Pernumia - Monselice - Este,21483,4873,15756,0,0,0,817,0,38,0,0,0
+334,1189 | Schiavonia Ospedale - Este,10680,7767,2911,0,0,0,0,0,2,0,0,0
+335,22 Monseli-Pernumia-Agna via vanzo,25547,1634,23263,0,0,442,0,0,209,0,0,0
+336,275 | Este - Monselice - Pernumia - Conselve,21168,4580,15766,0,0,0,817,0,4,0,0,0
+337,285 ConselveBonvolentaCCandiana,21716,20314,1263,0,0,42,0,46,51,0,0,0
+338,410 | Due Carrare - Monselice,10459,5693,4765,0,0,0,0,0,1,0,0,0
+339,999 CandianaConselve[Diretta],10650,10450,158,0,0,42,0,0,0,0,0,0
+340,10 | Padova - Candiana - Agna,42532,30160,11565,0,0,721,0,0,86,0,0,0
+341,1026 | Bovolenta - Padova,17745,13265,3777,0,0,679,0,0,24,0,0,1
+342,1026 | Arzercavalli - Padova,24864,20297,3862,0,0,679,0,0,27,0,0,1
+343,1085 | Padova - Casalserugo Alì via Riviere,11344,8031,3163,0,0,0,0,15,135,0,0,0
+344,11 Padova Cristo Agna,34179,24151,9164,0,0,679,0,0,185,0,0,0
+345,999 | Padova - Arzercavalli,21637,16811,4044,0,0,679,0,0,103,0,0,0
+346,145 | Padova - Bovolenta,17827,13279,3785,0,0,679,0,0,84,0,0,0
+347,217 Padova Ronchi Candiana,35621,25836,8071,0,0,721,0,0,993,0,0,0
+348,27 | Arre - Cristo - Agna,6235,881,3214,0,0,0,0,0,2140,0,0,0
+349,38 | Agna - Cristo - Arre,6940,887,6053,0,0,0,0,0,0,0,0,0
+350,499 | Casalserugo Alì - Padova via Riviere,10932,7239,3455,0,0,0,0,0,221,17,0,0
+351,526 | Agna - Candiana - Padova,42426,30122,11485,0,0,721,0,0,98,0,0,1
+352,772 | Padova - Bovolenta - Terrassa P.,22379,17481,4135,0,0,679,0,0,84,0,0,0
+353,900 | Terrassa P. - Bovolenta - Padova,21985,17415,3864,0,0,681,0,0,25,0,0,1
+354,1026 | Ist. Severi - Padova,3283,1238,2043,0,0,0,0,0,2,0,0,0
+355,1026 | Ist. Valle - Padova,2003,774,1185,0,0,0,0,0,44,0,0,0
+356,1026 | Ist. Marchesi/Boaga - Padova,6829,2596,4227,0,0,0,0,0,6,0,0,0
+357,1066 | Padova - Mortise - Ist. Marchesi/Boaga,7359,2771,4529,0,0,0,0,0,59,0,0,0
+358,141 | Padova - S. Andrea - S. Michele - Borgoricco,22707,6166,16492,0,0,0,0,0,49,0,0,0
+359,142 PadovaFiumicelloBorgoriccocap.v.leindustrie,19638,3485,15875,0,0,0,0,0,278,0,0,0
+360,142 | Padova - Fiumicello - Borgoricco,18933,2987,15881,0,0,0,0,0,65,0,0,0
+361,142 | Padova - Fiumicello - Borgoricco (deviata S. Michele B.),23171,7508,15601,0,0,0,0,0,63,0,0,0
+362,366 | Ferrovia - Ist. Severi,4090,906,3179,0,0,0,0,0,6,0,0,1
+363,366 | Padova - Ist. Severi,3625,1313,2273,0,0,0,0,0,40,0,0,0
+364,560 | Borgoricco - Fiumicello - Padova,16760,3240,13423,0,0,0,0,0,97,0,0,0
+365,560 | Borgoricco - Fiumicello - Padova (deviata S. Michele B.),20998,7755,13144,0,0,0,0,0,99,0,0,0
+366,572 | Trebaseleghe - Borgoricco - Padova,33613,7151,26351,0,0,0,0,0,111,0,0,0
+367,573 | Trebaseleghe - Borgoricco - San Michele - Fiumicello - Padova,37893,11705,26040,0,0,0,0,0,148,0,0,0
+368,608 BorgoriccoS.AndreaS.MichelePadova,20294,6344,13787,0,0,0,0,0,163,0,0,0
+369,776 | Padova - Borgoricco - Trebaseleghe,35996,7006,28921,0,0,0,0,0,70,0,0,0
+370,777 | Padova - Fiumicello - San Michele - Borgoricco - Trebaseleghe,40241,11548,28592,0,0,0,0,0,100,0,0,0
+371,891 Padova Ist. Valle,1774,676,1026,0,0,0,0,0,72,0,0,1
+372,999 | Padova - Ist. Marchesi/Boaga,6542,2765,3714,0,0,0,0,0,63,0,0,0
+373,999 | Padova - S. Andrea Diretta,12136,4260,7769,0,0,0,0,0,107,0,0,0
+374,1026 | Vigonza - Peraga - Padova,11155,5911,5098,0,0,136,0,0,10,0,0,0
+375,1063 | Padova - Peraga - Vigonza,10892,5744,5006,0,0,132,0,0,10,0,0,0
+376,408 | Padova - Mirano,29195,14413,14370,0,0,132,0,0,280,0,0,0
+377,515 | Mirano - Padova,29547,14590,14767,0,0,132,0,0,58,0,0,0
+378,1043 | San Giorgio Delle Pertiche - Cittadella,19764,18046,1475,0,0,0,242,0,1,0,0,0
+379,Cittadella - Onara - Arsego - Cavino - Ist. Severi - Padova,47750,14768,30570,0,0,0,243,48,2119,2,0,0
+380,256 | Marsango - Villa Del Conte - S. Giorgio In Bosco - Terminal Cittadella - Cittadella,18231,12019,5853,0,0,0,242,0,117,0,0,0
+381,260 Padova - Cavino - Onara Cittadella dev. a Sant'Anna Morosina,45212,11212,33408,0,0,0,0,91,502,0,0,0
+382,260 | Padova - Cavino - Onara - Cittadella P. Treviso,45630,11838,33748,0,0,0,0,15,29,0,0,0
+383,267 | Arsego - Marsango - Terminal Cittadella - Cittadella,30389,18959,11131,0,0,0,242,0,57,0,0,0
+384,267 | Padova - Marsango - Villa Del Conte - San Giorgio In Bosco - Cittadella,43224,22178,20697,0,0,0,242,0,108,0,0,0
+385,41 | Terminal Cittadella - Ist. Girardi - Marsango - Tavo - Arsego,30873,19076,11484,0,0,0,311,0,1,0,0,0
+386,41 | Terminal Cittadella - Marsango - Tavo - Arsego,30263,18362,11585,0,0,0,311,0,5,0,0,0
+387,42 | Padova - Tavo - Molini - Arsego,21146,7033,14110,0,0,0,0,0,2,0,0,0
+388,815 | Padova - Busiago - Villa Del Conte,30639,11317,19300,0,0,0,0,15,7,0,0,0
+389,999 | Cittadella - Marsango,13012,7738,5204,0,0,0,69,0,0,0,0,0
+390,1121 | Villafranca - Ist. Via Cave - Padova,20719,8376,12036,0,0,0,0,0,307,0,0,0
+391,Padova - Taggia Z. Industriale,11282,3926,6527,0,0,0,251,0,578,0,0,0
+392,205 | Padova - Camisano,21908,9193,12369,0,0,0,243,0,103,0,0,0
+393,516 | San Pietro In Gù - Camisano - Padova,35023,18761,15576,0,0,0,196,0,491,0,1,0
+394,521 | Camisano - Padova,21432,9148,11665,0,0,0,196,0,423,0,1,0
+395,619 | Piazzola - Campodoro - Padova,25215,12358,12165,0,0,0,196,0,480,17,1,0
+396,630 | Piazzola - Tremignon -Villafranca- Padova,21016,6691,12945,0,0,0,199,0,1165,16,0,0
+397,630 | Piazzola - Villafranca - Padova,18854,7657,10634,0,0,0,196,0,367,0,1,0
+398,630 | Villafranca - Padova,12666,4262,7844,0,0,0,197,0,364,0,0,0
+399,656 | Padova - Villafranca - Piazzola,19305,7675,11322,0,0,0,243,4,62,0,0,0
+400,658 | Padova - Campodoro - Piazzola Ist.,25668,12382,12943,0,0,0,246,0,96,0,0,0
+401,732 | Padova - Camisano - San Pietro In Gu,35556,18670,16289,0,0,0,251,15,331,0,0,0
+402,914 | Padova - Villafranca - Tremignon - Piazzola,21338,6619,13423,0,0,0,133,0,1163,0,0,0
+403,999 Camisano - Piazzola sul Brenta Diretta,6037,5360,636,0,0,0,0,0,41,0,0,0
+404,999 | Carmignano - San Pietro In Gù,3890,194,3696,0,0,0,0,0,0,0,0,0
+405,1121 | Padova - Villafranca (via tangenziale),18537,10883,7625,0,0,0,0,0,29,0,0,0
+406,999 | Piazzola - Camisano,6041,5385,656,0,0,0,0,0,0,0,0,0
+407,999 | San Pietro In Gù - Carmignano,2993,0,2993,0,0,0,0,0,0,0,0,0
+408,138 | Padova - Zeminiana - Borgoricco,34211,13092,20976,0,0,132,0,0,11,0,0,0
+409,297 PadovaPioncaCodiverno,15210,6142,8930,0,0,132,0,0,6,0,0,0
+410,439PadovaVillanovaMurelle,19057,7504,11413,0,0,132,0,0,8,0,0,0
+411,497 | Zeminiana - Padova via Tangenziale,28765,9111,19649,0,0,0,0,0,4,0,0,0
+412,497 | Zeminiana - Padova,27745,8835,18676,0,0,132,0,0,103,0,0,0
+413,543 | Codiverno - Padova,15372,6281,8909,0,0,132,0,0,50,0,0,0
+414,543 | Villanova - Padova,17454,6317,10987,0,0,136,0,0,14,0,0,0
+415,822 | Padova - Villanova,17268,6149,10978,0,0,132,0,0,8,0,0,0
+416,852 | Padova - Zeminiana via Tangenziale,29931,9873,20047,0,0,0,0,0,11,0,0,0
+417,852 | Padova - Zeminiana,27668,8761,18768,0,0,132,0,0,8,0,0,0
+418,999 Codiverno Padova diretta,13467,5012,7997,0,0,0,0,0,459,0,0,0
+419,999 MurelleBorgoricco,8207,2584,5579,0,0,0,0,0,44,0,0,0
+420,999 | Caselle - Villanova Diretta,5278,672,4607,0,0,0,0,0,0,0,0,0
+421,999 | Padova - Bussedo,12508,5345,7023,0,0,132,0,0,8,0,0,0
+422,1133 | Este - Vo - Rovolon - Bastia - Cervarese,32871,0,0,0,0,0,0,0,32871,0,0,0
+423,242 | Este - Lozzo - Rovolon - Bastia - Cervarese,38547,0,0,0,0,0,0,0,38547,0,0,0
+424,303 | Saccolongo - Fossona - Cervarese - Bastia - Rovolon - Vo - Este,41582,0,0,0,0,0,0,0,41582,0,0,0
+425,304 | Carbonara - Vò - Lozzo - Cinto - Este,23416,10055,13325,0,0,0,20,0,16,0,0,0
+426,322 | Vò - Lozzo - Cinto - Este,19138,10053,9068,0,0,0,0,0,17,0,0,0
+427,339 | Vò - Valnogaredo - Este,21588,986,20600,0,0,0,0,0,2,0,0,0
+428,827 Este Vò,19239,10267,8972,0,0,0,0,0,0,0,0,0
+429,838 | Este - Cinto - Valnogaredo - Vò,21696,1122,20571,0,0,0,0,0,3,0,0,0
+430,999 | Este - Komastu - Vò,16155,9557,6597,0,0,0,0,0,2,0,0,0
+431,999 | Vò - Este,13332,7435,5884,0,0,0,0,0,14,0,0,0
+432,1045 | Campiglia - Ponticelli - Agugliaro - Valbona - Lozzo - Cinto - Este,23257,10942,12301,0,0,0,0,0,14,0,0,0
+433,735 | Este - Lozzo - Sossano,28989,9473,19499,0,0,0,0,0,17,0,0,0
+434,930 | Este - Lozzo - Valbona,14860,8006,6851,0,0,0,0,0,3,0,0,0
+435,999 | Sossano - Vò,15048,4093,10955,0,0,0,0,0,0,0,0,0
+436,999 | Vò - Campiglia,10209,5347,4859,0,0,0,0,0,3,0,0,0
+437,434 | Padova - Monteberico,39286,16171,22621,0,0,164,247,0,84,0,0,0
+438,565 | Monteberico - Padova,39381,14367,20137,0,0,166,197,0,4515,0,1,0
+439,Este - Noventa Vicentina - Agugliaro (via Riviera Berica),21585,13672,7894,0,0,0,0,0,19,0,0,0
+440,1026 | Treviso - Noale - Padova,52764,27134,25241,0,0,133,0,53,204,0,0,0
+441,1073 | Padova - Noale - Treviso,49528,24362,24489,0,0,132,0,137,404,4,0,0
+442,1073 | Padova - Noale - Treviso via Hub “La Madonnina”,49362,24776,23823,0,0,132,0,230,400,0,0,0
+443,30 Mag 2025 07:11:21,23273,10118,12918,0,0,132,0,0,104,1,0,0
+444,229PadovaCaselle,15529,9542,5843,0,0,132,0,0,12,0,0,0
+445,230 | Padova - Vigonza - Murelle - Caselle,18036,8154,9741,0,0,132,0,0,9,0,0,0
+446,463 | Padova - Noale,26008,13541,12299,0,0,132,0,0,36,0,0,0
+447,576 | Noale - Padova,26414,13399,12541,0,0,132,0,149,193,0,0,0
+448,586 | Caselle - Murelle - Vigonza - Padova,18324,8325,9849,0,0,136,0,0,14,0,0,0
+449,999 | Padova - Caselle,15302,9048,5923,0,0,132,0,98,101,0,0,0
+450,999 | Padova - Treponti S. Maria Di Sala,20096,11267,8421,0,0,132,0,120,157,0,0,0
+451,586 Caselle Int. Padova,19736,8958,10611,0,0,132,0,0,36,0,0,0
+452,1070 | Jesolo - Padova,79412,63244,8458,0,6239,0,1395,0,75,0,0,0
+453,1288PadovaJesolo,77841,37134,8810,0,4117,0,811,1065,25904,0,0,0
+454,114 | Padova - Bagnoli,29784,20936,8703,0,0,0,0,0,144,0,0,0
+455,17 | Padova - Bagnoli - Agna via Riviere,36216,21311,14786,0,0,0,0,0,119,0,0,0
+456,19 | Padova - Bagnoli - Anguillara - Agna,44121,27159,16849,0,0,0,0,0,113,0,0,0
+457,20 | Padova - Bagnoli - Agna,36683,20982,15591,0,0,0,0,0,111,0,0,0
+458,21 | Padova - Olmo - Anguillara - Agna,47748,24936,21633,0,0,1052,0,0,126,0,0,0
+459,227 | Padova - Cartura,19397,10692,8667,0,0,0,0,0,38,0,0,0
+460,29 Bagnoli Abano Ist.,34715,21417,6189,0,0,0,0,409,6700,0,0,0
+461,32 | Padova - Bagnoli - Anguillara,36060,23538,12377,0,0,0,0,0,144,0,0,0
+462,364 | Padova - Ist. Marconi,2980,1182,1768,0,0,0,0,0,30,0,0,0
+463,508 | Anguillara - Bagnoli - Padova,35271,23631,11603,0,0,0,0,0,37,0,0,1
+464,503 | Agna - Anguillara - Bagnoli - Padova,44481,27229,17203,0,0,0,0,0,49,0,0,1
+465,508 | Agna - Bagnoli - Padova,36733,21050,15648,0,0,0,0,0,36,0,0,1
+466,546 | Bagnoli - Padova via Ospedale,29019,21000,7951,0,0,0,0,0,68,0,0,1
+467,571 | Bagnoli - Padova via Riviere,29037,21185,7569,0,0,0,0,0,283,0,0,0
+468,570 | Cartura - Padova,18472,10898,7569,0,0,0,0,0,5,0,0,1
+469,610 Agna Bagnoli Padova via Riviere,36742,21150,15359,0,0,0,0,0,234,0,0,0
+470,994 | Giarre - Abano Ist.,4493,2941,1530,0,0,0,0,0,21,0,0,0
+471,294 | Padova - Due Carrare,19018,6794,12185,0,0,0,0,0,39,0,0,0
+472,570 | Bertipaglia - Padova,14249,6502,7744,0,0,0,0,0,2,0,0,1
+473,999 | Padova - Bertipaglia,20104,15168,4678,0,0,105,0,0,153,0,0,0
+474,544 | Rottanova - Piove Di Sacco - Z.I. - Padova,50431,0,0,0,0,0,0,0,50431,0,0,0
+475,593 | Piove Di Sacco - Z.I. - Via Uruguay - Padova,23953,18007,5941,0,0,0,0,0,5,0,0,0
+476,715 | Padova - Z.I. - Piove Di Sacco - Correzzola - Rottanova,56070,34223,21376,0,0,0,0,0,471,0,0,0
+477,1279 Da Piove di Sacco a Tombelle,14978,8036,6757,0,0,0,0,0,186,0,0,0
+478,133 | Padova - Ist. Marconi - Saonara - Bojon,28227,13669,14441,0,0,0,0,0,118,0,0,0
+479,523 | Bojon - S. Angelo - Celeseo - Vigonovo - Padova,30175,9770,20344,0,0,0,0,0,61,0,0,0
+480,524 | Bojon - Celeseo - Ist. Marconi - Padova,30586,11689,18517,0,0,0,0,0,364,17,0,0
+481,597 | Piove Di Sacco - S. Angelo - Celeseo - Vigonovo - Padova,27859,12619,15188,0,0,0,0,0,51,0,0,0
+482,687 | Sant’Angelo - Piove Di Sacco Ist. - Piove Di Sacco,6816,3183,3631,0,0,0,0,0,2,0,0,0
+483,868 | Padova - Vigonovo - Celeseo - S. Angelo - Bojon,29670,8532,21071,0,0,0,0,0,68,0,0,0
+484,892 | Padova - Vigonovo - Celeseo - Bojon - Campagna Lupia - Lova,36725,8693,27929,0,0,0,0,0,102,0,0,0
+485,902 | Lova - Campagna Lupia - Bojon - Celeseo - Vigonovo - Padova,37230,9930,27237,0,0,0,0,0,64,0,0,0
+486,915 | Padova - Vigonovo - Celeseo - S. Angelo - Piove Di Sacco,27031,11105,15852,0,0,0,0,0,73,0,0,0
+487,999 | Bojon - Corte - Piove Di Sacco,6754,6405,347,0,0,0,0,0,2,0,0,0
+488,999 | Bojon - Lova,3793,0,3793,0,0,0,0,0,0,0,0,0
+489,999 | Lova - Bojon,3798,0,3794,0,0,0,0,0,4,0,0,0
+490,999 | Lova - Campagna Lupia - Bojon,7141,159,6978,0,0,0,0,0,3,0,0,0
+491,999 | Piove Di Sacco - Bojon,7218,6690,528,0,0,0,0,0,0,0,0,0
+492,999 | Piove Di Sacco - Sant’Angelo,6571,4340,2230,0,0,0,0,0,2,0,0,0
+493,999 | Tombelle - Vigonovo - Piove Di Sacco,14369,9153,5211,0,0,0,0,0,5,0,0,0
+494,Piove Di Sacco - Piove Di Sacco Ist. - Celeseo - Vigonovo - Tombelle,14868,8563,6298,0,0,0,0,0,7,0,0,0
+495,362 | Strà - Ist. Cornaro - Padova,17189,8334,8699,0,0,118,0,0,37,0,0,0
+496,589 | Strà - Noventa P. - Padova,14276,5628,8495,0,0,117,0,0,34,0,0,0
+497,750 Padova Strà deviazione lavori/ sagra del folpo,14298,5036,9008,0,0,0,0,0,253,0,0,0
+498,750 | Padova - Noventa P. - Strà,14082,4403,9523,0,0,119,0,0,34,3,0,0
+499,751PadovaIst.CornaoNoventaStrà,17432,8906,7768,0,0,119,0,211,427,0,0,1
+500,906 | Strà - Noventa P. - Ponte Di Brenta - Padova,12906,5698,6913,0,0,236,0,0,60,0,0,0
+501,926 | Padova - Ponte Di Brenta - Noventa P. - Strà (via Venezia),11442,5199,5969,0,0,238,0,0,33,3,0,0
+502,926 | Padova - Ponte Di Brenta - Noventa P. - Strà,13180,5636,7243,0,0,237,0,0,62,3,0,0
+503,1128 | Piazzola - Istituti - Padova,27595,9303,17917,0,0,0,0,0,357,17,0,0
+504,225 | Padova - Piazzola - Carmignano,34260,4263,29887,0,0,0,0,0,111,0,0,0
+505,263 Padova-PiazzolaIst-Carmignano-Cittadella,44363,7282,34728,0,0,0,237,26,2090,0,0,0
+506,263 | Padova - Piazzola - Carmignano - Cittadella,43738,11438,31947,0,0,0,242,0,111,0,0,0
+507,281 | Padova - Piazzola Ist. - Carmignano,34567,3477,30979,0,0,0,0,0,111,0,0,0
+508,485 | Piazzola Ist. - Tremignon - Vaccarino - Padova,20577,5295,15181,0,0,0,0,0,101,0,0,0
+509,485 | Terminal Cittadella - Carmignano - Vaccarino - Padova,47542,14916,31725,0,0,0,798,0,102,0,1,0
+510,495 | Cittadella - Carmignano - Piazzola Ist. - Padova,45262,13962,30641,0,0,0,558,0,101,0,1,0
+511,496 | Cittadella - Carmignano - Villafranca - Padova,50164,18455,31014,0,0,0,558,0,138,0,1,0
+512,495 | Terminal Cittadella - Carmignano - Villafranca - Padova,51317,18638,31747,0,0,0,800,0,133,0,1,0
+513,529 | Terminal Cittadella - Carmignano - Padova,46111,14925,30285,0,0,0,800,0,101,0,1,0
+514,555 | Carmignano - Piazzola Ist. - Padova,34179,5189,28575,0,0,0,314,0,101,0,0,0
+515,594 | Carmignano - Piazzola - Padova (No Presina),33656,5981,27251,0,0,0,314,0,109,0,0,0
+516,594 | Carmignano - Piazzola - Padova,33872,5980,27474,0,0,0,314,0,104,0,0,0
+517,910 | Piazzola Sul Brenta - Padova,19122,4519,14503,0,0,0,0,0,101,0,0,0
+518,654 | Padova - Piazzola Sul Brenta,20148,3095,16941,0,0,0,0,0,112,0,0,0
+519,875 | Padova - Vaccarino - Piazzola Ist. - Carmignano,35691,4254,31328,0,0,0,0,0,109,0,0,0
+520,999 Carmignano Piazzola Diretto,14897,1381,9568,0,0,0,3949,0,0,0,0,0
+521,668 | Rosara - Piove Di Sacco,7022,6475,544,0,0,0,0,0,3,0,0,0
+522,700 | Piove Di Sacco - Rosara,6947,6536,407,0,0,0,0,0,4,0,0,0
+523,999 | Bojon - Corte - Rosara,5937,5681,252,0,0,0,0,0,4,0,0,0
+524,352 | Padova - Grisignano,17796,13368,4384,0,0,0,39,0,6,0,0,1
+525,539 | Grisignano - Padova,17790,13138,4302,0,0,0,39,0,292,19,0,1
+526,621 | Vicenza - Padova,35834,26054,9441,0,0,0,39,0,300,0,0,1
+527,813 | Padova - Vicenza,36201,26150,9964,0,0,0,39,0,47,0,2,1
+528,1164 | S. Andrea Interna - Borgoricco - Camposampiero (deviazione lavori Borgoricco),9787,5480,4303,0,0,0,0,0,3,0,0,0
+529,1164 | S. Andrea Interna - Borgoricco - Camposampiero,11250,5374,5873,0,0,0,0,0,3,0,0,0
+530,999 | Camposampiero - Padova Diretta,18699,8589,9839,0,0,0,239,0,33,0,0,0
+531,40 | Piazzola Ist. - Tavo - Arsego,18119,8825,9243,0,0,0,0,0,51,0,0,0
+532,651 | Arsego - Busiago - Marsango - Piazzola,13266,7506,5737,0,0,0,0,0,22,0,0,0
+533,651 | Arsego - Busiago - Marsango - Piazzola,13838,7880,5741,0,0,0,0,0,217,0,0,0
+534,659 | San Giorgio Delle Pertiche - Arsego - Tavo - Piazzola,20226,11337,8837,0,0,0,0,0,52,0,0,0
+535,921 | Piazzola Ist. - Busiago - Marsango - Arsego - San Giorgio Delle Pertiche,16436,10032,6168,0,0,0,0,60,176,0,0,0
+536,921 | (P165) Piazzola Ist. - Busiago - Marsango - Arsego - San Giorgio Delle Pertiche,16939,9283,7647,0,0,0,0,0,9,0,0,0
+537,921 | Piazzola Ist. - Busiago - Marsango - Arsego - San Giorgio Delle Pertiche (P367),16457,10173,6250,0,0,0,0,24,9,0,0,0
+538,999 | Arsego - Piazzola,10655,8591,1814,0,0,0,0,30,220,0,0,0
+539,999 | Arsego - San Giorgio Delle Pertiche,3214,1595,1619,0,0,0,0,0,0,0,0,0
+540,999 | San Giorgio Delle Pertiche - Piazzola,12833,11095,1484,0,0,0,0,26,228,0,0,0
+541,3 | Cervarese - Montemerlo - Abano Ist.,16070,14223,1790,0,0,0,0,0,57,0,0,0
+542,4 | Cinto Euganeo - Vò - Abano Ist.,31887,12080,18530,0,0,0,1270,0,7,0,0,0
+543,5 | Teolo - Abano - Abano Ist.,15623,6721,7623,0,0,0,1270,0,9,0,0,0
+544,5 | Vo - Abano Ist.,20206,8290,10640,0,0,0,1270,0,6,0,0,0
+545,771 | Abano Ist. - Montemerlo - Teolo,19166,11512,6377,0,0,0,1272,0,5,0,0,0
+546,831 | Abano Ist. - Vo,20421,8421,10722,0,0,0,1270,0,9,0,0,0
+547,999 | Vò - Cinto Euganeo,7582,1125,6455,0,0,0,0,0,1,0,0,0
+548,1 | Vo - Bastia - Cervarese - Abano Ist.,38383,20136,18179,0,0,0,0,0,68,0,1,0
+549,248 | Abano Ist. - Cervarese,23150,15903,7187,0,0,0,0,0,60,0,0,0
+550,833 | Abano Ist. - Cervarese - Bastia - Vo,38227,20231,17913,0,0,0,20,0,62,0,0,0
+551,999 | Cervarese - Abano Ist.,13654,12619,1003,0,0,0,0,0,32,0,0,0
+552,999 | Montegrotto - Creola,15283,10024,3897,0,0,0,1323,0,38,0,0,0
+553,1064 | Piazzola - Villafranca - Rubano- Abano Ist.,33690,17446,16166,0,0,0,0,0,77,0,1,0
+554,1065 | Abano Ist. - Rubano - Villafranca - Piazzola,33821,17643,16160,0,0,0,0,0,17,0,1,0
+555,994 | Liceo Galilei - Abano Ist.,9682,4633,5045,0,0,0,0,0,4,0,0,0
+556,999 Parco Pescarini Abano Ist./ Alberti,1533,1027,443,0,0,0,0,0,64,0,0,0
+557,1061 | Montegrotto - Monteortone - Mandria - Padova,25990,17084,8652,0,0,0,0,0,253,0,0,0
+558,A (cod. ALA) Padova a Abano Parco Pescarini,16212,8527,7169,0,0,0,0,0,516,0,0,0
+559,A | Garibaldi Eremitani - Abano Municipio via Giarre,13426,8600,4555,0,0,0,0,0,271,0,0,0
+560,A | Monteortone - Abano - Padova via Giarre,20326,13095,6968,0,0,0,0,0,263,0,0,0
+561,A | Padova - Abano - Monteortone via Giarre,20588,13017,7233,0,0,0,0,0,338,0,0,0
+562,A | Padova - Abano Sacro Cuore via Giarre,16351,9507,6510,0,0,0,0,0,334,0,0,0
+563,A | Scuola Alberghiera - Padova,19026,11832,6920,0,0,0,0,0,274,0,0,0
+564,A Monteortone Padova transita per park. Fidia,21685,13515,7078,0,0,0,0,0,1088,3,0,0
+565,A Padova Monteortone transita per park. Fidia,21598,13401,7048,0,0,0,0,51,1099,0,0,0
+566,A | Padova - Abano Configliacchi,17666,8944,6461,0,0,0,0,0,2261,0,0,0
+567,AA,21675,11915,7484,0,0,0,0,0,2275,0,0,0
+568,AB | Turri - Padova via Giarre,21827,14565,7035,0,0,0,0,0,227,0,0,0
+569,AT | Padova -  Abano - Torreglia,23086,13923,8824,0,0,0,0,0,338,0,0,0
+570,AT | Torreglia - Abano - Padova,24395,14285,9842,0,0,0,0,0,251,17,0,0
+571,ATL | Luvignano - Torreglia - Abano - Padova,25123,14089,10812,0,0,0,0,0,205,17,0,0
+572,ATL | Padova - Abano - Torreglia - Luvignano,25050,13995,10783,0,0,0,0,0,272,0,0,0
+573,M | Padova - Turri,20878,9628,11231,0,0,0,0,0,19,1,0,1
+574,M Turri Padova,22493,9977,11827,0,0,0,0,0,688,0,0,0
+575,MLA Padova-Neroniana-Montegrotto,19984,7382,11681,0,0,0,0,91,826,4,0,1
+576,T | Abano Previtali - Padova,17766,7081,10431,0,0,0,0,0,238,17,0,0
+577,T | Padova - Abano Previtali,16986,6071,10838,0,0,0,0,0,76,1,0,1
+578,T | Padova - Torreglia,23574,9124,14371,0,0,0,0,0,78,1,0,1
+579,T | Torreglia - Padova,24632,9443,14916,0,0,0,0,0,256,17,0,0
+580,T | Padova - Torreglia via Mandria,22660,11568,10754,0,0,0,0,0,338,0,0,0
+581,TD | Torreglia - Padova via Mandria,23390,11627,11485,0,0,0,0,0,277,0,0,0
+582,TL | Luvignano - Torreglia - Padova,25359,9246,15856,0,0,0,0,0,256,0,0,0
+583,TL | Padova - Torreglia - Luvignano,25538,9186,16340,0,0,0,0,0,12,1,0,1
+584,TL Luvigliano a Padova via Mandria,24067,11345,10213,0,0,0,0,0,2493,16,0,0
+585,TL da  Padova a Luvigliano via Mandria,24627,9693,12656,0,0,0,0,0,2278,0,0,0
+586,U02 Linea Piazze,6626,2314,4282,0,0,0,0,0,31,0,0,0
+587,3 | Ferrovia - Lion - Albignasego,13101,8328,4762,0,0,0,0,0,10,0,0,0
+588,3A | Via Orlandini - Lion,13197,8455,4679,0,0,0,0,0,63,0,0,0
+589,3B | Ferrovia - San Giacomo,9451,6935,2510,0,0,0,0,0,6,0,0,0
+590,3D | Albignasego - Lion - Ferrovia,13197,7471,5570,0,0,0,0,0,155,0,0,0
+591,3D | San Giacomo - Ferrovia,9434,6106,3139,0,0,0,0,0,190,0,0,0
+592,3F | Lion - Via Orlandini,13417,7982,5257,0,0,0,0,0,178,0,0,0
+593,4A | Bragni - Capolinea Nord Tram,4017,378,3453,0,0,0,103,0,82,0,0,0
+594,4A | Cadoneghe - Capolinea Nord Tram,4757,2325,2326,0,0,0,104,0,2,0,0,0
+595,4A | Ferrovia - Capolinea Nord Tram,3972,17,3799,0,0,0,104,0,52,0,0,0
+596,4B | Capolinea Nord Tram - Bragni,4934,451,4407,0,0,0,37,0,38,0,0,0
+597,4B | Ferrovia - Bragni via Giotto,9144,479,8517,0,0,0,0,0,149,0,0,0
+598,4B | Ferrovia - Zona Ind. Bragni via Giotto,11005,480,10429,0,0,0,0,0,97,0,0,0
+599,4C | Capolinea Nord Tram - Cadoneghe,4333,2244,2043,0,0,0,41,0,3,0,0,0
+600,4C | Ferrovia - Cadoneghe via Giotto,8540,2275,6198,0,0,0,0,0,67,0,0,0
+601,4D | Cadoneghe - Terranegra,13594,3694,9649,0,0,0,0,0,252,0,0,0
+602,4F | Cadoneghe - Piovese Park,14895,5888,8632,0,0,0,0,0,375,0,0,0
+603,4G | Cadoneghe - Pontecorvo,11777,3297,8150,0,0,0,0,0,329,0,0,0
+604,4H | Cadoneghe - Ospedale,11057,3174,7490,0,0,0,0,0,393,0,0,0
+605,4K | Bragni - Ferrovia via Belvedere,9527,1907,7334,0,0,0,0,0,286,0,0,0
+606,4K | Bragni - Ferrovia,8405,691,7302,0,0,0,0,0,412,0,0,0
+607,4K | Cadoneghe - Ferrovia,9144,2634,6225,0,0,0,0,0,285,0,0,0
+608,4L | Cadoneghe - Roncajette,19780,8025,11380,0,0,0,0,0,372,3,0,0
+609,5B | Ferrovia - Voltabrusegana,10290,5201,5082,0,0,0,0,0,7,0,0,1
+610,5D | Voltabrusegana - Ferrovia,9968,4828,4982,0,0,0,0,0,159,0,0,0
+611,6A | Terranegra - Lagrange via Cave,11871,2670,9159,0,0,0,39,0,3,0,0,1
+612,6B | Ferrovia - Lagrange via Sorio,6551,2099,4407,0,0,0,39,0,5,1,0,0
+613,6B | Terranegra - Lagrange via Sorio,11654,3142,8467,0,0,0,39,0,7,0,0,0
+614,6B | Via Boccaccio - Lagrange via Sorio,12035,3298,8695,0,0,0,39,0,4,0,0,0
+615,6C | Lagrange - Terranegra via Cave,10789,2442,8160,0,0,0,39,0,148,1,0,1
+616,6D | Lagrange - Terranegra via Sorio,10846,3280,7350,0,0,0,39,0,176,1,0,0
+617,"6E | Ist. Duca Degli Abruzzi - Ferrovia (via Cave, C.so Milano)",6628,1910,4491,0,0,0,39,0,188,1,0,1
+618,6E | Lagrange - Ferrovia via Cave,6338,1385,4803,0,0,0,39,0,111,1,0,1
+619,6F | Lagrange - Ferrovia via Sorio,6397,2218,4030,0,0,0,37,0,111,1,0,0
+620,"6H | Ferrovia - Ist. Duca Degli Abruzzi (via Tommaseo, via B. Pellegrino, via Cave)",6336,1067,5048,0,0,0,215,0,7,0,0,1
+621,"6H | Ferrovia - Ist. Duca Degli Abruzzi - Via Lagrange (via B. Pellegrino, via Cave)",7673,1596,5854,0,0,0,215,0,8,0,0,1
+622,6H | Ferrovia - Ist. Duca Degli Abruzzi via Cave,6023,1806,4175,0,0,0,39,0,3,0,0,1
+623,6H | Via Guardi - Ist. Duca Degli Abruzzi,8804,1777,6807,0,0,0,213,0,8,0,0,1
+624,6L | Ospedale - Ferrovia,1922,521,1401,0,0,0,0,0,0,0,0,0
+625,6L | Terranegra - Ferrovia,5103,1037,4066,0,0,0,0,0,0,0,0,0
+626,"6LD | Ist. Duca Degli Abruzzi - Ferrovia (via Cave, via Bronzetti)",7075,2342,4307,0,0,0,422,0,4,1,0,1
+627,"6LD | Ist. Scalcerle/Natta - Ferrovia (via Cave, via Bronzetti, via Sarpi)",5770,1814,3532,0,0,0,422,0,2,0,0,1
+628,"6LD | Lagrange - Ferrovia (via Cave, via Bronzetti, via Sarpi)",6790,1821,4543,0,0,0,422,0,3,1,0,1
+629,"6LE | Ist. Scalcerle/Natta - Codalunga Liceo (via Cave, via Bronzetti, via Sarpi)",5327,1640,3263,0,0,0,422,0,2,0,0,1
+630,"6LE | Lagrange - Codalunga Liceo (via Cave, via Bronzetti, via Sarpi)",6348,1638,4284,0,0,0,422,0,4,1,0,1
+631,6M | Ferrovia - Via Boccaccio,5472,1301,4141,0,0,0,0,0,30,0,0,0
+632,6N | Largo Europa - Ist. Scalcerle via Cave,4602,1453,3097,0,0,0,39,0,13,0,0,1
+633,7A | C.so Stati Uniti - Ferrovia,9600,4456,5049,0,0,0,0,0,95,0,0,0
+634,7A | Spagna fr MTCC - C.so Stati Uniti - Porche - Ferrovia,13012,5626,7257,0,0,0,0,36,93,0,0,0
+635,7C | Ferrovia - Granze,12104,4624,7461,0,0,0,0,0,19,0,0,0
+636,"7D | Ferrovia - C.so Stati Uniti (via Spagna, Via Ricerca Scientifica, Via Belgio)",12459,5191,7253,0,0,0,0,0,15,0,0,0
+637,"7E | Ferrovia - Granze (via Spagna, Via Ricerca Scientifica, Via Belgio)",15672,6101,9552,0,0,0,0,0,19,0,0,0
+638,7F | Ferrovia - C.so Stati Uniti,10831,4500,6316,0,0,0,0,0,15,0,0,0
+639,7A | Saonara - Ferrovia,11899,4729,7156,0,0,0,0,0,15,0,0,0
+640,7B | Ferrovia - Saonara,12412,7588,4793,0,0,0,0,0,31,0,0,0
+641,"7LA | Ferrovia - Via Belgio (via Spagna, Via Ricerca Scientifica)",11717,5244,6456,0,0,0,0,0,17,0,0,0
+642,F0 | Via Belgio - Bragni (DIRETTA),12529,10582,1945,0,0,0,0,0,2,0,0,0
+643,9A | Piazza Caduti Della Resistenza - Via Ippodromo,11265,3781,7005,0,0,0,210,0,270,0,0,0
+644,9B IppodromoP.zzaCadutidellaResistenza,11277,3441,6776,0,0,0,218,0,842,0,0,0
+645,9B | Ferrovia - Piazza Caduti Della Resistenza via C.so Milano,3449,1867,1542,0,0,0,39,0,1,0,0,0
+646,9B | Ferrovia - Piazza Caduti Della Resistenza,4621,1064,2920,0,0,0,217,87,333,0,0,0
+647,9B | Via Ippodromo - Piazza Caduti Della Resistenza,11481,3490,7461,0,0,0,213,30,287,0,0,0
+648,9BA | Ferrovia - Ist. Severi/Curiel via Belzoni,8938,3487,5410,0,0,0,0,0,41,0,0,0
+649,9G | Ist. Severi - Ferrovia via Goldoni,3795,1238,2545,0,0,0,0,0,11,0,0,0
+650,9J | Piazza Caduti Della Resistenza - Ferrovia via C.so Milano,3267,1578,1524,0,0,0,39,0,127,0,0,0
+651,9LA | Piazza Caduti Della Resistenza - Ferrovia,4357,1096,2819,0,0,0,213,0,230,0,0,0
+652,10A | Caselle - Ferrovia,7866,2906,4798,0,0,0,37,0,124,0,0,1
+653,10A | Ponte Di Brenta - Ferrovia,6335,4531,1545,0,0,132,0,0,127,0,0,0
+654,10A | Sarmeola - Ferrovia,6716,4030,2437,0,0,0,39,0,210,0,0,1
+655,10B | Ponte Di Brenta - Sarmeola,13433,8750,4318,0,0,132,39,26,167,0,0,1
+656,10C | Ferrovia - Caselle,7719,3140,4533,0,0,0,40,0,6,0,0,1
+657,10C | Ponte Di Brenta - Caselle,14054,7651,6078,0,0,132,36,26,130,0,0,1
+658,10D | Caselle - Ponte Di Brenta,14060,7557,6137,0,0,132,39,0,184,12,0,1
+659,10D | Ferrovia - Ponte Di Brenta,6195,4653,1405,0,0,132,0,0,4,0,0,0
+660,10D | Sarmeola - Ponte Di Brenta,12911,8688,3890,0,0,132,39,0,161,0,0,1
+661,10F | Ponte Di Brenta - Duca Degli Abruzzi,11661,7095,4387,0,0,132,0,0,48,0,0,1
+662,11 | Taggì - Ist. Duca Degli Abruzzi,14096,5260,8498,0,0,0,197,0,141,0,0,0
+663,11A | Taggì - Sant’Osvaldo,11230,4975,5953,0,0,0,197,0,105,0,0,0
+664,11B | Via Giotto - Due Palazzi,7563,2901,4418,0,0,0,242,0,2,0,0,0
+665,11C | Sant’Osvaldo - Taggì,11723,4690,6667,0,0,0,246,0,117,3,0,0
+666,11C | Via De Lazara - Taggì,12831,4665,7841,0,0,0,246,0,79,0,0,0
+667,11C | Via Giotto - Taggì,7926,2256,5425,0,0,0,243,0,2,0,0,0
+668,11D | Taggì - Via De Lazara,12697,5087,7196,0,0,0,197,0,217,0,0,0
+669,11LA | Taggì - Via Giotto,7563,2186,5136,0,0,0,197,0,44,0,0,0
+670,11LD | Due Palazzi - Largo Europa,7708,2887,4541,0,0,0,196,0,85,0,0,0
+671,11LD | Taggì - Largo Europa,7793,2190,5290,0,0,0,197,0,116,0,0,0
+672,11LE | Taggì - Ist. Marconi via San Micheli,11076,4555,6108,0,0,0,197,0,217,0,0,0
+673,12 | Ferrovia - Caselle,11559,4674,6872,0,0,0,0,0,12,1,0,1
+674,12A | Caselle - Ferrovia,12102,4831,7064,0,0,0,0,0,206,1,0,0
+675,12A | Lagrange - Ferrovia,7645,3181,4335,0,0,0,0,0,129,0,0,0
+676,12A | Park Colli - Ferrovia,6698,3151,3334,0,0,0,0,0,212,0,0,0
+677,12A | Selvazzano - Ferrovia via San Domenico,13674,3821,9712,0,0,0,0,0,141,0,0,0
+678,12A | Selvazzano - Ferrovia,13068,3816,9127,0,0,0,0,0,125,0,0,0
+679,12A | Tencarola - Ferrovia,10297,3515,6619,0,0,0,0,0,162,1,0,0
+680,12B | Ferrovia - Tencarola,9691,3309,6373,0,0,0,0,0,9,1,0,1
+681,12C | Ferrovia - Selvazzano,12506,3657,8828,0,0,0,0,0,20,1,0,1
+682,12E | Ferrovia - Duca Degli Abruzzi,6974,3204,3765,0,0,0,0,0,5,0,0,1
+683,12LA | Largo Europa - Lagrange,7115,2899,4200,0,0,0,0,0,17,0,0,1
+684,13 | Querini - Giotto,6208,1416,4791,0,0,0,0,0,0,0,0,0
+685,13A | Borgomagno - Altichiero,6565,1171,5393,0,0,0,0,0,0,0,0,0
+686,13A | Prato Della Valle - Altichiero,8962,2573,6315,0,0,0,0,0,73,0,0,0
+687,13A | Via Boccaccio - Altichiero,14203,4565,9583,0,0,0,0,0,55,0,0,0
+688,13B | Altichiero - Via Boccaccio,14166,0,0,0,0,0,0,0,14166,0,0,0
+689,13B | Limena - Via Boccaccio,19322,4782,14347,0,0,0,0,0,193,0,0,0
+690,13C | Via Boccaccio - Limena,19361,4683,14556,0,0,0,0,0,122,0,0,0
+691,13G | Limena - Voltabarozzo,18328,5938,12111,0,0,0,0,0,279,0,0,0
+692,13LG | Altichiero - Ferrovia via Giotto,7507,1409,5796,0,0,0,0,0,301,0,0,0
+693,14A | Ferrovia - Ponte San Nicolò via Riviere,9410,5642,3672,0,0,0,0,0,96,0,0,0
+694,14B | Granze - Ferrovia via Riviere,12048,6474,5356,0,0,0,0,0,217,0,0,0
+695,13B | Ponte San Nicolò - Ferrovia via Riviere,10256,6319,3682,0,0,0,0,0,255,0,0,0
+696,14C | Ferrovia - Ponte San Nicolò via Ospedale,8615,4363,4154,0,0,0,0,0,98,0,0,0
+697,14D | Ponte San Nicolò - Ferrovia via Ospedale,9080,4809,4225,0,0,0,0,0,45,0,0,0
+698,14D | Rio - Ferrovia via Ospedale,8771,5104,3645,0,0,0,0,0,22,0,0,0
+699,14I | Ferrovia - Piovese Park via Ospedale,5949,3251,2603,0,0,0,0,0,95,0,0,0
+700,14J | Ferrovia - Rio via Ospedale,9049,5107,3774,0,0,0,0,0,169,0,0,0
+701,14K | Ferrovia - Granze via Ospedale.gpx,11030,5004,5699,0,0,0,0,0,326,0,0,0
+702,15B | Largo Debussy - Granze,15984,4442,11445,0,0,0,0,0,97,0,0,1
+703,15C | Largo Debussy - Villatora,15154,4066,10987,0,0,0,0,0,100,0,0,1
+704,15D | Granze - Largo Debussy via Plebiscito,18361,6142,11910,0,0,0,0,0,309,0,0,0
+705,15D | Granze - Largo Debussy,17090,5184,11571,0,0,0,0,0,335,0,0,0
+706,15D | Valli - Largo Debussy via Plebiscito,16224,5748,10233,0,0,0,0,0,240,2,0,0
+707,15D | Valli - Largo Debussy,14952,4794,9884,0,0,0,0,0,275,0,0,0
+708,15D | Via Giotto - Largo Debussy via Plebiscito,5975,2525,3448,0,0,0,0,0,2,0,0,0
+709,15D | Villatora - Largo Debussy,16319,4780,11255,0,0,0,0,18,266,0,0,0
+710,15E | Largo Debussy - Valli,13872,4066,9676,0,0,0,0,0,130,0,0,1
+711,15J | Codalunga Liceo - Villatora via Belzoni,10722,2224,8369,0,0,0,0,0,129,0,0,1
+712,15J | Ferrovia - Villatora via Belzoni,9771,2256,7478,0,0,0,0,0,37,0,0,0
+713,15LA | Granze - Ferrovia via Belzoni,10462,2027,8410,0,0,0,0,0,25,0,0,0
+714,15LA | Villatora - Ferrovia via Belzoni,9620,1642,7964,0,0,0,0,0,15,0,0,0
+715,15LD | Villatora - Giardini via Belzoni,10039,1729,8282,0,0,0,0,0,28,0,0,0
+716,15N | Ferrovia - Via Messico Rotonda C.so Spagna,10510,2287,8188,0,0,0,0,0,35,0,0,0
+717,15O | Granze - Codalunga via Belzoni,12043,2208,9543,0,0,0,0,0,289,3,0,0
+718,15O | Villatora - Codalunga via Belzoni,11273,1829,9051,0,0,0,0,0,392,0,0,0
+719,16A | Piovese Park - Ferrovia,6764,4750,1770,0,0,0,0,0,244,0,0,0
+720,16A | Rio - Ferrovia,9979,6612,3100,0,0,0,0,0,267,0,0,0
+721,16A | Roncajette - Ferrovia,11780,6988,4556,0,0,0,0,0,236,0,0,0
+722,16B | Ferrovia - Rio,9837,6381,3295,0,0,0,0,0,161,0,0,0
+723,16F | Codalunga - Roncajette,11739,6542,5029,0,0,0,0,0,168,0,0,0
+724,16F | Ferrovia - Roncajette,11623,6665,4859,0,0,0,0,0,99,0,0,0
+725,16F | Plebiscito - Roncajette,15200,7195,7741,0,0,0,0,0,264,0,0,0
+726,16G | Ferrovia - Plebiscito,3644,742,2901,0,0,0,0,0,2,0,0,0
+727,16G | Piovese Park - Plebiscito,10134,5501,4501,0,0,0,0,0,132,0,0,0
+728,16LB | Ponte San Nicolò - Ferrovia,7820,4945,2793,0,0,0,0,0,81,0,0,0
+729,16LB | Roncajette - Prato Della Valle,9501,5577,3772,0,0,0,0,0,151,0,0,0
+730,16LC | Roncajette - Codalunga,11922,7015,4670,0,0,0,0,0,237,0,0,0
+731,16LD | Ferrovia - Piovese Park,6739,4529,2115,0,0,0,0,0,96,0,0,0
+732,16LD | Largo Europa - Piovese Park,6103,4407,1587,0,0,0,0,0,109,0,0,0
+733,16LD | Plebiscito - Piovese Park,10319,5130,5006,0,0,0,0,0,183,0,0,0
+734,16LD | Via Giotto - Piovese Park,6335,4339,1734,0,0,0,0,0,262,0,0,0
+735,16LI | Plebiscito - Pontecorvo,6954,2458,4300,0,0,0,0,0,196,0,0,0
+736,F0 | Roncajette - Capolinea Nord Tram,15606,9384,6117,0,0,0,104,0,1,0,0,0
+737,19B | Capolinea Nord Tram - Saletto,5780,1005,4736,0,0,0,37,0,2,0,0,0
+738,19B | Ferrovia - Saletto,9966,1038,8854,0,0,0,0,0,74,0,0,0
+739,19D | Saletto - Capolinea Nord Tram,5889,994,4790,0,0,0,103,0,2,0,0,0
+740,19D | Tavo - Capolinea Nord Tram,8897,3051,5740,0,0,0,103,0,2,0,0,0
+741,19E | Capolinea Nord Tram - Tavo,9043,3062,5942,0,0,0,37,0,2,0,0,0
+742,19E | Ferrovia - Tavo (via Tommaseo),12371,3083,9285,0,0,0,0,0,3,0,0,0
+743,19F | Saletto - Ferrovia,10114,1306,8473,0,0,0,0,0,335,0,0,0
+744,19F | Tavo - Ferrovia,13311,3365,9610,0,0,0,0,0,335,0,0,0
+745,19H | Saletto - Roncajette,20938,6212,12128,0,0,0,0,0,2597,0,0,0
+746,19I | Saletto - Pontecorvo,12936,1484,8910,0,0,0,0,0,2524,17,0,0
+747,21 Ferrovia Villaguattera,10729,3027,6771,0,0,0,257,0,673,0,0,0
+748,21 Villaguattera Ferrovia,10387,3099,6718,0,0,0,199,0,372,0,0,0
+749,21 | Ponterotto - Ferrovia,8304,2206,5626,0,0,0,196,0,276,0,0,0
+750,21 | Ferrovia - Ponterotto,9652,2229,6843,0,0,0,243,0,332,4,0,0
+751,22A | Giarre - Torre,18301,8209,9997,0,0,0,0,0,95,0,0,0
+752,22A | Mandria via Carnia - Torre,16673,5646,9152,0,0,0,0,0,1875,0,0,0
+753,22A | Mandria via Monselice - Torre,15513,6454,8065,0,0,0,0,0,994,0,0,0
+754,22C | Codalunga - Giarre,11105,6155,4573,0,0,0,0,0,378,0,0,0
+755,22C | Torre - Giarre,18546,8780,9391,0,0,0,0,0,375,0,0,0
+756,22E | Giarre - Ferrovia,11187,6134,4859,0,0,0,0,0,193,0,0,0
+757,22E | Ist. Severi - Ferrovia,3794,1238,2545,0,0,0,0,0,11,0,0,0
+758,22 | Torre - Mandria via Monselice,15914,7706,7820,0,0,0,0,0,388,0,0,0
+759,22H | Ferrovia - Mandria via Carnia,9450,5201,3994,0,0,0,0,0,255,0,0,0
+760,22 | Torre - Mandria via Carnia,17032,7701,8942,0,0,0,0,0,389,0,0,0
+761,22LA | Curiel - Prato Della Valle,4491,2309,2087,0,0,0,0,0,95,0,0,0
+762,22LA | Torre - Prato Della Valle,9956,4122,5694,0,0,0,0,0,140,0,0,0
+763,22LE | Codalunga - Ist. Severi,3717,893,2817,0,0,0,0,0,7,0,0,0
+764,22LE | Prato Della Valle - Ist. Severi,6115,2293,3740,0,0,0,0,0,82,0,0,0
+765,22LF | Curiel - Codalunga - Giotto - Ferrovia,3165,807,2031,0,0,0,0,0,327,0,0,0
+766,22LG | Prato Della Valle - Via Bajardi,5256,1946,3094,0,0,0,0,0,216,0,0,0
+767,24A | Capolinea Nord Tram - Mandriola,15887,4862,10952,0,0,0,41,0,32,0,0,0
+768,24A | Plebiscito - Mandriola,14153,4594,9526,0,0,0,0,0,33,0,0,0
+769,24E | Mandriola - Plebiscito via Riviere,12826,4493,8188,0,0,0,0,0,145,0,0,1
+770,24E | Mandriola - Plebiscito,13465,4096,9323,0,0,0,0,0,46,0,0,1
+771,24H | Ferrovia - Capolinea Nord Tram,4021,15,3900,0,0,0,103,0,3,0,0,1
+772,25 | Ferrovia - Zona Ind. Nord - Ferrovia,12140,4297,7140,0,0,0,0,98,602,3,0,0
+773,42A | Via Ippodromo - Voltabrusegana,15604,6668,8732,0,0,0,39,0,164,0,0,0
+774,42B | Voltabrusegana - Via Ippodromo,15121,6495,8438,0,0,0,39,0,148,3,0,0
+775,43B | Ferrovia - Mandriola,10448,3700,6717,0,0,0,0,0,31,0,0,0
+776,43D | Mandriola - Ferrovia,9986,3355,6599,0,0,0,0,0,32,0,0,0
+777,88A | Albignasego - Capolinea Sud Tram,2635,917,1681,0,0,0,0,0,37,0,0,0
+778,88A | Carpanedo - Capolinea Sud Tram,4490,2354,2097,0,0,0,0,0,39,0,0,0
+779,88B | Capolinea Sud Tram - Carpanedo,4173,2261,1911,0,0,0,0,0,1,0,0,0
+780,88B | Ferrovia - Carpanedo,11435,4668,6720,0,0,0,0,0,46,0,0,0
+781,88C | Circolare Carpanedo via Prato Della Valle,17475,6396,11035,0,0,0,0,0,44,0,0,0
+782,88D | Capolinea Sud Tram - Albignasego via San Tommaso,5418,1320,4063,0,0,0,0,0,35,0,0,0
+783,88E | Albignasego - Ferrovia via Ospedale,10186,2717,7437,0,0,0,0,0,31,0,0,0
+784,88E | Carpanedo - Ferrovia,11018,4549,6335,0,0,0,0,0,135,0,0,0
+785,88F | Capolinea Sud Tram - Carpanedo via San Tommaso,6569,2666,3868,0,0,0,0,0,35,0,0,0
+786,F0 | Capolinea Sud Tram - Granze,10693,7024,3665,0,0,0,0,0,4,0,0,0
+787,687 Tombelle - Vigonovo - Piove di Sacco,14756,8070,6346,0,0,0,0,0,340,0,0,0
+788,1265 Cittadella Onara Cavino Ist. Severi Padova.gpx dev. a Sant_Anna Morosina_,46773,13983,31914,0,0,0,243,238,394,0,0,0
