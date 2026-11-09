@@ -8,16 +8,20 @@ import MapKit
         let payload: [String: Any] = [
             "name":"Prova layout", "points":[[45.0,11.0],[45.0,11.01]],
             "offsets":[700], "stops":["PADOVA AUTOSTAZIONE – CAPOLINEA PROVVISORIO VIALE DELLA STAZIONE"],
+            "coverage":["ranges":[[0,700]],"complete":false,"percent":90], "speedLimits":[[0,200,50]],
             "turns":[["at":300,"side":"destra","text":"Alla prossima rotonda prendi la terza uscita in direzione Aeroporto Marco Polo e prosegui lungo il percorso ufficiale", "verifiedRoad":true]]
         ]
         let route = try JSONDecoder().decode(NativeRoute.self,from:JSONSerialization.data(withJSONObject:payload))
-        for size in [CGSize(width:320,height:568),CGSize(width:375,height:667),CGSize(width:390,height:844),CGSize(width:440,height:956)] {
+        for size in [CGSize(width:320,height:568),CGSize(width:375,height:667),CGSize(width:390,height:844),CGSize(width:440,height:956),CGSize(width:568,height:320),CGSize(width:956,height:440)] {
             for category in [UIContentSizeCategory.large,.accessibilityExtraExtraExtraLarge] {
                 let root = UIViewController()
                 let window = UIWindow(frame:CGRect(origin:.zero,size:size))
                 window.rootViewController = root; window.isHidden = false
                 root.view.frame = CGRect(origin:.zero,size:size)
-                root.additionalSafeAreaInsets = UIEdgeInsets(top:62,left:0,bottom:34,right:0)
+                let landscape = size.width > size.height
+                root.additionalSafeAreaInsets = landscape
+                    ? UIEdgeInsets(top:0,left:44,bottom:21,right:44)
+                    : UIEdgeInsets(top:62,left:0,bottom:34,right:0)
                 let drive = DriveViewController(route:route,voiceEnabled:true)
                 root.addChild(drive); root.view.addSubview(drive.view)
                 drive.view.frame = root.view.bounds
@@ -27,7 +31,7 @@ import MapKit
                 drive.update(along:0,deviation:0,stop:0,reliable:true)
                 root.view.setNeedsLayout(); root.view.layoutIfNeeded(); drive.view.layoutIfNeeded()
                 let safe = drive.view.safeAreaLayoutGuide.layoutFrame
-                XCTAssertGreaterThanOrEqual(safe.minY,62)
+                if !landscape { XCTAssertGreaterThanOrEqual(safe.minY,62) }
                 let ids = ["endNavigation","toggleVoice","recenter","repeatCue","compass"]
                 let buttons = descendants(drive.view).filter { ids.contains($0.accessibilityIdentifier ?? "") }
                 XCTAssertEqual(buttons.count,5)
@@ -42,8 +46,21 @@ import MapKit
                 let panels = descendants(drive.view).filter { ["instructionPanel","stopPanel"].contains($0.accessibilityIdentifier ?? "") }
                 XCTAssertEqual(panels.count,2)
                 XCTAssertFalse(panels[0].frame.intersects(panels[1].frame))
+                if landscape {
+                    XCTAssertGreaterThan(safe.maxX - panels.map { $0.frame.maxX }.max()!, safe.width * 0.45)
+                }
+                let sign = descendants(drive.view).first { $0.accessibilityIdentifier == "speedLimitSign" } as! UILabel
+                XCTAssertFalse(sign.isHidden)
+                XCTAssertEqual(sign.text,"50")
+                XCTAssertTrue(safe.contains(sign.frame))
+                for frame in frames { XCTAssertFalse(sign.frame.intersects(frame)) }
+                for panel in panels { XCTAssertFalse(sign.frame.intersects(panel.frame)) }
                 let image = UIGraphicsImageRenderer(size:size).image { _ in root.view.drawHierarchy(in:root.view.bounds,afterScreenUpdates:true) }
                 let attachment = XCTAttachment(image:image); attachment.name = "Navigation-\(Int(size.width))-\(category.rawValue)"; attachment.lifetime = .keepAlways; add(attachment)
+                drive.update(along:250,deviation:0,stop:0,reliable:true)
+                XCTAssertTrue(sign.isHidden)
+                drive.update(along:0,deviation:0,stop:0,reliable:false)
+                XCTAssertTrue(sign.isHidden)
                 window.isHidden = true
                 drive.willMove(toParent:nil); drive.view.removeFromSuperview(); drive.removeFromParent()
             }
@@ -80,8 +97,11 @@ import MapKit
         XCTAssertEqual(map.camera.centerCoordinate.longitude,before.longitude,accuracy:0.000001)
         let center = descendants(drive.view).first { $0.accessibilityIdentifier == "recenter" } as! UIButton
         center.sendActions(for:.touchUpInside)
-        XCTAssertEqual(map.camera.centerCoordinate.latitude,45.01,accuracy:0.00001)
-        XCTAssertEqual(map.camera.centerCoordinate.longitude,11.02,accuracy:0.00001)
+        let point = map.convert(CLLocationCoordinate2D(latitude:45.01,longitude:11.02),toPointTo:map)
+        let top = descendants(drive.view).first { $0.accessibilityIdentifier == "instructionPanel" }!.frame.maxY + 8
+        let bottom = descendants(drive.view).first { $0.accessibilityIdentifier == "stopPanel" }!.frame.minY - 8
+        XCTAssertEqual(point.x,map.bounds.midX,accuracy:12)
+        XCTAssertEqual(point.y,top + (bottom - top) * 0.63,accuracy:24)
         XCTAssertTrue(map.gestureRecognizers!.contains { $0 is UIPanGestureRecognizer && $0.delegate === drive })
     }
     private final class BeganPan: UIPanGestureRecognizer { override var state: UIGestureRecognizer.State { get { .began } set {} } }

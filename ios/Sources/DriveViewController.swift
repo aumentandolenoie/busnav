@@ -10,6 +10,12 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     private let stopDistance = UILabel()
     private let status = UILabel()
     private let roadStatus = UILabel()
+    private let speedSign = UILabel()
+    private var portraitConstraints: [NSLayoutConstraint] = []
+    private var landscapeConstraints: [NSLayoutConstraint] = []
+    private var landscape: Bool?
+    private var cameraViewport = CGRect.zero
+    private var routeBounds = MKMapRect.null
     private let symbol = UIImageView()
     private var topPanel: UIView!
     private var bottomPanel: UIView!
@@ -52,7 +58,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         var coordinates = route.points.map { CLLocationCoordinate2D(latitude: $0[0],longitude: $0[1]) }
         let line = MKPolyline(coordinates: &coordinates,count: coordinates.count)
         map.addOverlay(line,level: .aboveRoads)
-        map.setVisibleMapRect(line.boundingMapRect,edgePadding: UIEdgeInsets(top:200,left:40,bottom:250,right:40),animated:false)
+        routeBounds = line.boundingMapRect
         for (i,name) in route.stops.enumerated() {
             let p = route.stopCoordinates?.indices.contains(i) == true ? route.stopCoordinates![i] : geometry.coordinate(at: route.offsets[i])
             guard p.count == 2, p.allSatisfy(\.isFinite) else { continue }
@@ -76,13 +82,6 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         topPanel = panel(top,dark:true,trailing:repeatButton)
         topPanel.accessibilityIdentifier = "instructionPanel"
         view.addSubview(topPanel)
-        NSLayoutConstraint.activate([
-            topPanel.topAnchor.constraint(equalTo:view.safeAreaLayoutGuide.topAnchor,constant:8),
-            topPanel.leadingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.leadingAnchor,constant:12),
-            topPanel.trailingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.trailingAnchor,constant:-12),
-            topPanel.heightAnchor.constraint(greaterThanOrEqualToConstant:80),
-            topPanel.heightAnchor.constraint(lessThanOrEqualTo:view.safeAreaLayoutGuide.heightAnchor,multiplier:0.42)
-        ])
         let label = UILabel(); label.text = "PROSSIMA FERMATA"; label.font = .systemFont(ofSize:12,weight:.bold); label.textColor = .secondaryLabel
         stopName.text = route.stops.first ?? "Solo percorso GPX"; stopName.font = UIFontMetrics(forTextStyle:.title2).scaledFont(for:.systemFont(ofSize:24,weight:.bold),maximumPointSize:34); stopName.adjustsFontForContentSizeCategory = true; stopName.numberOfLines = 2
         stopDistance.font = .monospacedDigitSystemFont(ofSize:19,weight:.semibold); stopDistance.textColor = .systemBlue
@@ -93,7 +92,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         let center = UIButton(type:.system); center.setImage(UIImage(systemName:"location.fill"),for:.normal); center.accessibilityLabel = "Centra GPS"; center.accessibilityIdentifier = "recenter"; touchTarget(center); center.addTarget(self,action:#selector(recenter),for:.touchUpInside)
         let compass = MKCompassButton(mapView:map); compass.compassVisibility = .visible
         compass.accessibilityLabel = "Orienta a nord"; compass.accessibilityIdentifier = "compass"; touchTarget(compass)
-        let buttons = UIStackView(arrangedSubviews:[end,UIView(),sound,center]); buttons.spacing = 12; buttons.alignment = .center
+        let buttons = UIStackView(arrangedSubviews:[end,UIView(),sound,center]); buttons.spacing = 4; buttons.alignment = .center
         end.setContentCompressionResistancePriority(.required,for:.horizontal)
         let attribution = UILabel(); attribution.text = "GPX Academy · manovre © OpenStreetMap contributors"; attribution.font = .systemFont(ofSize:10); attribution.textColor = .secondaryLabel; attribution.numberOfLines = 2
         roadStatus.font = UIFont.preferredFont(forTextStyle: .footnote)
@@ -103,15 +102,51 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         roadStatus.isHidden = true
         let bottom = UIStackView(arrangedSubviews:[label,stopName,stopDistance,roadStatus,status,attribution]); bottom.axis = .vertical; bottom.spacing = 8
         bottomPanel = panel(bottom,dark:false,footer:buttons); bottomPanel.accessibilityIdentifier = "stopPanel"; view.addSubview(bottomPanel); view.addSubview(compass)
+        let safe = view.safeAreaLayoutGuide
+        speedSign.translatesAutoresizingMaskIntoConstraints = false
+        speedSign.accessibilityIdentifier = "speedLimitSign"
+        speedSign.isAccessibilityElement = true
+        speedSign.textAlignment = .center
+        speedSign.font = .monospacedDigitSystemFont(ofSize:19,weight:.bold)
+        speedSign.textColor = .black
+        speedSign.backgroundColor = .white
+        speedSign.layer.cornerRadius = 23
+        speedSign.layer.borderWidth = 4
+        speedSign.layer.borderColor = UIColor(red:0.83,green:0.10,blue:0.13,alpha:1).cgColor
+        speedSign.clipsToBounds = true
+        speedSign.isHidden = true
+        view.addSubview(speedSign)
+
         NSLayoutConstraint.activate([
-            bottomPanel.bottomAnchor.constraint(equalTo:view.safeAreaLayoutGuide.bottomAnchor,constant:-8),
-            bottomPanel.leadingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.leadingAnchor,constant:12),
-            bottomPanel.trailingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.trailingAnchor,constant:-12),
-            bottomPanel.heightAnchor.constraint(lessThanOrEqualTo:view.safeAreaLayoutGuide.heightAnchor,multiplier:0.48),
-            bottomPanel.topAnchor.constraint(greaterThanOrEqualTo:topPanel.bottomAnchor,constant:60),
-            compass.trailingAnchor.constraint(equalTo:view.safeAreaLayoutGuide.trailingAnchor,constant:-12),
-            compass.bottomAnchor.constraint(equalTo:bottomPanel.topAnchor,constant:-8)
+            topPanel.topAnchor.constraint(equalTo:safe.topAnchor,constant:8),
+            topPanel.leadingAnchor.constraint(equalTo:safe.leadingAnchor,constant:12),
+            topPanel.heightAnchor.constraint(greaterThanOrEqualToConstant:72),
+            bottomPanel.bottomAnchor.constraint(equalTo:safe.bottomAnchor,constant:-8),
+            bottomPanel.leadingAnchor.constraint(equalTo:topPanel.leadingAnchor),
+            bottomPanel.widthAnchor.constraint(equalTo:topPanel.widthAnchor),
+            compass.trailingAnchor.constraint(equalTo:safe.trailingAnchor,constant:-12),
+            speedSign.trailingAnchor.constraint(equalTo:compass.leadingAnchor,constant:-8),
+            speedSign.centerYAnchor.constraint(equalTo:compass.centerYAnchor),
+            speedSign.widthAnchor.constraint(equalToConstant:46),
+            speedSign.heightAnchor.constraint(equalTo:speedSign.widthAnchor)
         ])
+        portraitConstraints = [
+            topPanel.trailingAnchor.constraint(equalTo:safe.trailingAnchor,constant:-12),
+            topPanel.heightAnchor.constraint(lessThanOrEqualTo:safe.heightAnchor,multiplier:0.42),
+            bottomPanel.heightAnchor.constraint(lessThanOrEqualTo:safe.heightAnchor,multiplier:0.48),
+            bottomPanel.topAnchor.constraint(greaterThanOrEqualTo:topPanel.bottomAnchor,constant:60),
+            compass.bottomAnchor.constraint(equalTo:bottomPanel.topAnchor,constant:-9)
+        ]
+        let columnWidth = topPanel.widthAnchor.constraint(equalTo:safe.widthAnchor,multiplier:0.38)
+        columnWidth.priority = .defaultHigh
+        landscapeConstraints = [
+            columnWidth,
+            topPanel.widthAnchor.constraint(greaterThanOrEqualToConstant:210),
+            topPanel.widthAnchor.constraint(lessThanOrEqualToConstant:280),
+            topPanel.heightAnchor.constraint(lessThanOrEqualTo:safe.heightAnchor,multiplier:0.42),
+            bottomPanel.topAnchor.constraint(greaterThanOrEqualTo:topPanel.bottomAnchor,constant:8),
+            compass.bottomAnchor.constraint(equalTo:safe.bottomAnchor,constant:-12)
+        ]
         // MapKit installs its own recognizers on internal subviews. Observe gestures
         // independently and simultaneously, without stealing map scrolling/zooming.
         for recognizer in [UIPanGestureRecognizer(target:self,action:#selector(mapGesture(_:))),
@@ -169,17 +204,42 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         return panel
     }
 
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        let isLandscape = view.bounds.width > view.bounds.height
+        guard landscape != isLandscape else { return }
+        NSLayoutConstraint.deactivate(portraitConstraints + landscapeConstraints)
+        NSLayoutConstraint.activate(isLandscape ? landscapeConstraints : portraitConstraints)
+        landscape = isLandscape
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        guard let topPanel, let bottomPanel else { return }
-        map.layoutMargins = UIEdgeInsets(top:topPanel.frame.maxY+8,left:16,bottom:view.bounds.maxY-bottomPanel.frame.minY+8,right:16)
+        let safe = view.safeAreaLayoutGuide.layoutFrame
+        let left = landscape == true ? topPanel.frame.maxX + 8 : safe.minX + 8
+        let top = landscape == true ? safe.minY + 8 : topPanel.frame.maxY + 8
+        let bottom = landscape == true ? safe.maxY - 8 : bottomPanel.frame.minY - 8
+        let viewport = CGRect(x:left,y:top,width:safe.maxX-8-left,height:bottom-top)
+        guard viewport.width > 0, viewport.height > 0, cameraViewport != viewport else { return }
+        let initialLayout = cameraViewport.isEmpty
+        cameraViewport = viewport
+        let margins = UIEdgeInsets(top:viewport.minY,left:viewport.minX,
+                                   bottom:map.bounds.maxY-viewport.maxY,right:map.bounds.maxX-viewport.maxX)
+        map.layoutMargins = margins
+        if initialLayout && fix == nil {
+            map.setVisibleMapRect(routeBounds,edgePadding:margins,animated:false)
+        }
+        updateCamera()
     }
     func location(_ location: CLLocation) { fix = location; if simulated { demoMarker.coordinate = location.coordinate; demoMarker.title = "Posizione simulata"; if !map.annotations.contains(where: { $0 === demoMarker }) { map.addAnnotation(demoMarker) } }; updateCamera() }
     func message(_ message: String) { status.text = message }
     func update(along:Double,deviation:Double,stop:Int,reliable:Bool) {
+        let limit = reliable && deviation < 45 ? route.speedLimit(at: along) : nil
+        speedSign.text = limit.map { String($0) }
+        speedSign.accessibilityLabel = limit.map { "Limite di velocità \($0) chilometri orari" }
+        speedSign.isHidden = limit == nil
         var roadDetails: [String] = []
         if reliable, deviation < 45 {
-            if let limit = route.speedLimit(at: along) { roadDetails.append("Limite mappato \(limit) km/h") }
             if let index = route.nextCamera(at: along, within: 350), let camera = route.roadCameras?[index] {
                 roadDetails.append("\(camera.title) · \(distance(camera.at - along))")
             }
@@ -223,7 +283,19 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
             }
         } else if fix.course >= 0 && fix.speed > 3 { heading = fix.course }
         lastHeading = heading
-        map.setCamera(MKMapCamera(lookingAtCenter:fix.coordinate,fromDistance:650,pitch:55,heading:heading),animated:false)
+        let camera = MKMapCamera(lookingAtCenter:fix.coordinate,fromDistance:650,pitch:55,heading:heading)
+        map.setCamera(camera,animated:false)
+        guard !cameraViewport.isEmpty else { return }
+        let anchor = CGPoint(x:cameraViewport.midX,y:cameraViewport.minY + cameraViewport.height * 0.63)
+        // Use the projected ground point so the offset also works with pitch and heading.
+        let actual = map.convert(fix.coordinate,toPointTo:map)
+        let underAnchor = map.convert(anchor,toCoordinateFrom:map)
+        guard CLLocationCoordinate2DIsValid(underAnchor),
+              hypot(actual.x-anchor.x,actual.y-anchor.y) > 1 else { return }
+        let target = MKMapPoint(fix.coordinate), ground = MKMapPoint(underAnchor)
+        let center = MKMapPoint(camera.centerCoordinate)
+        camera.centerCoordinate = MKMapPoint(x:center.x+target.x-ground.x,y:center.y+target.y-ground.y).coordinate
+        map.setCamera(camera,animated:false)
     }
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { true }
     @objc private func mapGesture(_ gesture: UIGestureRecognizer) {

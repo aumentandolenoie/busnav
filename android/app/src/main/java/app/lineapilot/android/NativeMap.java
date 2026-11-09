@@ -36,7 +36,7 @@ final class NativeMap extends FrameLayout {
     private boolean started, destroyed, vectorStyle;
     private final TextView attribution;
     private final Runnable fallback = this::useRasterBasemap;
-    private int mapTopInset, mapBottomInset;
+    private int mapLeftInset, mapTopInset, mapRightInset, mapBottomInset;
     static synchronized void initialize(Context context){
         if(initialized)return;MapLibre.getInstance(context.getApplicationContext());
         OkHttpClient client=new OkHttpClient.Builder().cache(new Cache(new File(context.getCacheDir(),"native-map-http"),64L*1024*1024))
@@ -45,6 +45,7 @@ final class NativeMap extends FrameLayout {
     }
     NativeMap(Context c,Bundle state,boolean offlineTest){
         super(c);initialize(c);setTag("native-map");
+        mapLeftInset=mapRightInset=dp(8);
         mapView=new MapView(c);addView(mapView,new LayoutParams(-1,-1));mapView.onCreate(state);
         attribution=new TextView(c);attribution.setMovementMethod(LinkMovementMethod.getInstance());setAttribution(false);attribution.setTextColor(Color.DKGRAY);attribution.setTextSize(10);attribution.setBackgroundColor(0xddffffff);attribution.setPadding(dp(4),dp(2),dp(4),dp(2));
         LayoutParams ap=new LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.START);ap.setMargins(dp(8),0,0,dp(8));addView(attribution,ap);
@@ -56,7 +57,7 @@ final class NativeMap extends FrameLayout {
             map.getUiSettings().setLogoEnabled(false);
             map.getUiSettings().setAttributionEnabled(false);
             map.getUiSettings().setTiltGesturesEnabled(true);
-            map.setPadding(dp(8), mapTopInset, dp(8), mapBottomInset);
+            map.setPadding(mapLeftInset,mapTopInset,mapRightInset,mapBottomInset);
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(45.4064,11.8768),11));
             if (pendingFit) fitRoute();
             if (pendingCenter != null) centerLocation(pendingCenter[0], pendingCenter[1]);
@@ -139,6 +140,15 @@ final class NativeMap extends FrameLayout {
     }
     @Override protected void onSizeChanged(int w,int h,int ow,int oh){super.onSizeChanged(w,h,ow,oh);if(pendingFit)post(this::fitRoute);}
     int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
-    void setInsets(int top,int bottom){mapTopInset=top;mapBottomInset=bottom;if(map!=null)map.setPadding(dp(8),top,dp(8),bottom);LayoutParams p=(LayoutParams)attribution.getLayoutParams();if(p.bottomMargin!=bottom){p.bottomMargin=bottom;attribution.setLayoutParams(p);}}
+    void setInsets(int left,int top,int right,int bottom){
+        if(left==mapLeftInset&&top==mapTopInset&&right==mapRightInset&&bottom==mapBottomInset)return;
+        mapLeftInset=left;mapTopInset=top;mapRightInset=right;mapBottomInset=bottom;
+        if(map!=null)map.setPadding(left,top,right,bottom);
+        LayoutParams p=(LayoutParams)attribution.getLayoutParams();
+        if(p.leftMargin!=left||p.bottomMargin!=bottom){
+            p.leftMargin=left;p.bottomMargin=bottom;
+            attribution.setLayoutParams(p);
+        }
+    }
     void start(){if(started||destroyed)return;mapView.onStart();mapView.onResume();started=true;}void pause(){if(!started||destroyed)return;mapView.onPause();mapView.onStop();started=false;}void destroy(){if(destroyed)return;pause();destroyed=true;removeCallbacks(fallback);mapView.onDestroy();}void lowMemory(){mapView.onLowMemory();}
 }

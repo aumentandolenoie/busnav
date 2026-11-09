@@ -13,7 +13,9 @@ import java.util.Locale;
 final class DriverView extends FrameLayout {
     final NativeMap nativeMap;final NavigationSession session;
     final TextView distance,instruction,stopName,stopDistance,status;final ImageView symbol;
-    private final TextView roadStatus;
+    private final TextView roadStatus,speedSign;
+    private final ImageButton north;
+    private boolean landscape;
     private final BoundedScroll topText,bottomText;private final LinearLayout top,bottom;
     private boolean following=true;private double heading;private Location lastFix;
     DriverView(MainActivity c,NavigationSession s,boolean test){
@@ -41,21 +43,67 @@ final class DriverView extends FrameLayout {
         ImageButton sound=iconButton(c,s.voice?"sound":"muted",Color.rgb(0,122,255),"Attiva o disattiva annunci","nav-sound",null);sound.setOnClickListener(v->{s.voice=!s.voice;if(!s.voice)c.stopNativeSpeech();sound.setImageDrawable(new NavigationIcon(s.voice?"sound":"muted",Color.rgb(0,122,255)));});controls.addView(sound,new LinearLayout.LayoutParams(dp(48),dp(48)));
         ImageButton center=iconButton(c,"location",Color.rgb(0,122,255),"Centra GPS","nav-center",()->{following=true;if(lastFix!=null)location(lastFix,session.matched,session.along);else nativeMap.fitRoute();});controls.addView(center,new LinearLayout.LayoutParams(dp(48),dp(48)));bottom.addView(controls);
         LayoutParams bp=new LayoutParams(-1,-2,Gravity.BOTTOM);bp.setMargins(dp(12),0,dp(12),dp(8));addView(bottom,bp);
-        ImageButton north=iconButton(c,"north",Color.DKGRAY,"Orienta a nord","nav-north",()->{if(nativeMap.map!=null)nativeMap.map.animateCamera(CameraUpdateFactory.bearingTo(0));following=false;});north.setBackground(background(Color.WHITE));LayoutParams np=new LayoutParams(dp(48),dp(48),Gravity.END|Gravity.BOTTOM);np.setMargins(0,0,dp(12),dp(270));addView(north,np);
-        bottom.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{LayoutParams p=(LayoutParams)north.getLayoutParams();int margin=getHeight()-bottom.getTop()+dp(8);if(p.bottomMargin!=margin){p.bottomMargin=margin;north.setLayoutParams(p);}if(nativeMap.map!=null)nativeMap.setInsets(top.getBottom()+dp(8),getHeight()-bottom.getTop()+dp(8));});
+        north=iconButton(c,"north",Color.DKGRAY,"Orienta a nord","nav-north",()->{if(nativeMap.map!=null)nativeMap.map.animateCamera(CameraUpdateFactory.bearingTo(0));following=false;});
+        north.setBackground(background(Color.WHITE));
+        addView(north,new LayoutParams(dp(48),dp(48)));
+        speedSign=new TextView(c);
+        speedSign.setTag("nav-speed-limit");
+        speedSign.setGravity(Gravity.CENTER);
+        speedSign.setTextColor(Color.BLACK);
+        speedSign.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        speedSign.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP,19);
+        GradientDrawable sign=new GradientDrawable();
+        sign.setShape(GradientDrawable.OVAL);
+        sign.setColor(Color.WHITE);
+        sign.setStroke(dp(4),Color.rgb(212,26,33));
+        speedSign.setBackground(sign);
+        speedSign.setVisibility(INVISIBLE);
+        speedSign.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
+        addView(speedSign,new LayoutParams(dp(46),dp(46)));
     }
-    @Override protected void onSizeChanged(int w,int h,int ow,int oh){super.onSizeChanged(w,h,ow,oh);int budget=Math.max(dp(160),h-dp(76));topText.limit=Math.max(dp(40),(int)(budget*.46)-dp(24));bottomText.limit=Math.max(dp(20),(int)(budget*.54)-dp(88));topText.requestLayout();bottomText.requestLayout();}
+
+    @Override protected void onMeasure(int widthSpec,int heightSpec){
+        int width=MeasureSpec.getSize(widthSpec),height=MeasureSpec.getSize(heightSpec);
+        landscape=width>height;
+        int column=landscape?Math.min(dp(280),Math.max(dp(210),Math.round(width*.38f))):LayoutParams.MATCH_PARENT;
+        for(LinearLayout panel:new LinearLayout[]{top,bottom}){
+            LayoutParams params=(LayoutParams)panel.getLayoutParams();
+            params.width=column;
+            params.gravity=(panel==top?Gravity.TOP:Gravity.BOTTOM)|Gravity.LEFT;
+        }
+        int budget=Math.max(dp(144),height-dp(landscape?24:76));
+        int topHeight=Math.max(dp(72),Math.round(budget*.42f));
+        topText.setLimit(topHeight-dp(24));
+        bottomText.setLimit(Math.max(0,budget-topHeight-dp(80)));
+        super.onMeasure(widthSpec,heightSpec);
+    }
+
+    @Override protected void onLayout(boolean changed,int l,int t,int r,int b){
+        super.onLayout(changed,l,t,r,b);
+        int controlsBottom=landscape?getHeight()-dp(12):bottom.getTop()-dp(8);
+        int right=getWidth()-dp(12), buttonSize=dp(48), signSize=dp(46);
+        north.layout(right-buttonSize,controlsBottom-buttonSize,right,controlsBottom);
+        int signRight=right-buttonSize-dp(8);
+        speedSign.layout(signRight-signSize,controlsBottom-signSize-dp(1),signRight,controlsBottom-dp(1));
+        int leftInset=landscape?top.getRight()+dp(8):dp(8);
+        int topInset=landscape?dp(8):top.getBottom()+dp(8);
+        int bottomInset=landscape?dp(8):getHeight()-bottom.getTop()+dp(8);
+        int visibleHeight=Math.max(0,getHeight()-topInset-bottomInset);
+        nativeMap.setInsets(leftInset,topInset+Math.round(visibleHeight*.26f),dp(8),bottomInset);
+    }
+
     void message(String text){status.setText(text);}
     void progress(double along,int stop,boolean reliable,double deviation){
+        int limit = reliable && deviation < 45 ? session.route.speedLimit(along) : 0;
+        speedSign.setVisibility(limit > 0 ? VISIBLE : INVISIBLE);
+        speedSign.setText(limit > 0 ? Integer.toString(limit) : "");
+        speedSign.setContentDescription(limit > 0 ? "Limite di velocità " + limit + " chilometri orari" : null);
         String roadDetails = "";
         if (reliable && deviation < 45) {
-            int limit = session.route.speedLimit(along);
-            if (limit > 0) roadDetails = "Limite mappato " + limit + " km/h";
             int index = session.route.nextCamera(along, 350, java.util.Collections.emptySet());
             if (index >= 0) {
                 NativeRoute.Camera camera = session.route.cameras.get(index);
-                if (!roadDetails.isEmpty()) roadDetails += "\n";
-                roadDetails += camera.title + " · " + metres(camera.at - along);
+                roadDetails = camera.title + " · " + metres(camera.at - along);
             }
         }
         roadStatus.setText(roadDetails);
@@ -79,5 +127,5 @@ final class DriverView extends FrameLayout {
     private ImageButton iconButton(Context c,String kind,int color,String description,String tag,Runnable action){ImageButton v=new ImageButton(c);v.setImageDrawable(new NavigationIcon(kind,color));v.setScaleType(ImageView.ScaleType.FIT_CENTER);v.setPadding(dp(12),dp(12),dp(12),dp(12));v.setContentDescription(description);v.setTag(tag);v.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x33007aff),null,background(Color.WHITE)));if(action!=null)v.setOnClickListener(x->action.run());return v;}
     private Button button(Context c,String text,String description,String tag,Runnable action){Button v=new Button(c);v.setText(text);v.setTextSize(16);v.setTextColor(Color.rgb(0,122,255));v.setMinWidth(dp(48));v.setMinimumWidth(dp(48));v.setMinimumHeight(dp(48));v.setPadding(dp(4),0,dp(4),0);v.setAllCaps(false);v.setBackgroundColor(Color.TRANSPARENT);v.setContentDescription(description);v.setTag(tag);if(action!=null)v.setOnClickListener(x->action.run());return v;}
     private int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
-    private static final class BoundedScroll extends ScrollView {int limit=400;BoundedScroll(Context c){super(c);setFillViewport(false);} @Override protected void onMeasure(int w,int h){super.onMeasure(w,MeasureSpec.makeMeasureSpec(limit,MeasureSpec.AT_MOST));}}
+    private static final class BoundedScroll extends ScrollView {int limit=400;void setLimit(int value){if(limit!=value){limit=value;forceLayout();}} BoundedScroll(Context c){super(c);setFillViewport(false);} @Override protected void onMeasure(int w,int h){super.onMeasure(w,MeasureSpec.makeMeasureSpec(limit,MeasureSpec.AT_MOST));}}
 }

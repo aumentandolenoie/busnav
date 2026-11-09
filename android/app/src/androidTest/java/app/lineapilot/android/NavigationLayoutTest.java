@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
             scenario.onActivity(a->{assertNotNull(a.previewMap);assertTrue(a.previewMap.mapView instanceof org.maplibre.android.maps.MapView);
                 try{
                     JSONObject route=new JSONObject("{\"name\":\"Test\",\"points\":[[45,11],[45,11.01]],\"offsets\":[700],\"stops\":[\"PADOVA AUTOSTAZIONE CAPOLINEA PROVVISORIO VIALE DELLA STAZIONE\"],\"coverage\":{\"ranges\":[[0,787]],\"complete\":true,\"percent\":100},\"turns\":[{\"at\":300,\"side\":\"destra\",\"kind\":\"roundabout\",\"verifiedRoad\":true,\"text\":\"Alla prossima rotonda prendi la terza uscita in direzione Aeroporto Marco Polo\"}]}");
+                    route.put("speedLimits",new JSONArray("[[0,200,50]]"));
                     JSONObject body=new JSONObject();body.put("route",route);body.put("voice",false);a.startNavigation(body);
                 }catch(Exception e){throw new AssertionError(e);}
             });
@@ -34,6 +35,15 @@ import static org.junit.Assert.*;
                 List<View> controls=new ArrayList<>();collect(screen,controls);assertEquals(5,controls.size());
                 Rect bounds=new Rect();assertTrue(screen.getGlobalVisibleRect(bounds));List<Rect> rectangles=new ArrayList<>();float d=a.getResources().getDisplayMetrics().density;
                 for(View control:controls){Rect r=new Rect();assertTrue(control.getGlobalVisibleRect(r));int[] position=new int[2];control.getLocationOnScreen(position);Rect full=new Rect(position[0],position[1],position[0]+control.getWidth(),position[1]+control.getHeight());assertEquals("Clipped control: "+control.getTag(),full,r);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(full));assertTrue(control.getWidth()>=48*d-1);assertTrue(control.getHeight()>=48*d-1);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(r));for(Rect other:rectangles)assertFalse("Overlapping controls",Rect.intersects(r,other));rectangles.add(r);}
+                android.widget.TextView sign=screen.findViewWithTag("nav-speed-limit");
+                assertEquals(View.VISIBLE,sign.getVisibility());
+                assertEquals("50",sign.getText().toString());
+                Rect signBounds=new Rect();assertTrue(sign.getGlobalVisibleRect(signBounds));
+                assertTrue(bounds.contains(signBounds));
+                for(Rect other:rectangles)assertFalse("Speed sign overlaps a control",Rect.intersects(signBounds,other));
+                screen.progress(250,0,true,0);
+                assertEquals(View.INVISIBLE,sign.getVisibility());
+                screen.progress(0,0,true,0);
                 assertTrue(a.session.screen.nativeMap.mapView instanceof org.maplibre.android.maps.MapView);
             });
             final int[] touch=new int[2];
@@ -56,6 +66,11 @@ import static org.junit.Assert.*;
                 screen.findViewWithTag("nav-center").performClick();
                 assertEquals(45.02,screen.nativeMap.map.getCameraPosition().target.getLatitude(),0.00001);
                 assertEquals(11.03,screen.nativeMap.map.getCameraPosition().target.getLongitude(),0.00001);
+                android.graphics.PointF point=screen.nativeMap.map.getProjection().toScreenLocation(
+                        new org.maplibre.android.geometry.LatLng(45.02,11.03));
+                int top=screen.getChildAt(1).getBottom(),bottom=screen.getChildAt(2).getTop();
+                assertTrue("GPS should sit below the center of the visible map",point.y>(top+bottom)*.5f);
+                assertTrue("GPS must stay above the stop panel",point.y<bottom);
             });
             android.graphics.Bitmap screenshot=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
             scenario.onActivity(a->{
@@ -67,6 +82,35 @@ import static org.junit.Assert.*;
                     android.net.Uri uri=a.getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);assertNotNull(uri);
                     try(java.io.OutputStream output=a.getContentResolver().openOutputStream(uri)){assertTrue(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,output));}
                 }catch(Exception e){throw new AssertionError(e);}
+                a.setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            });
+            java.util.concurrent.atomic.AtomicBoolean rotated=new java.util.concurrent.atomic.AtomicBoolean();
+            for(int attempt=0;attempt<50&&!rotated.get();attempt++){
+                scenario.onActivity(a->{
+                    DriverView screen=a.session.screen;
+                    rotated.set(screen.getWidth()>screen.getHeight());
+                });
+                if(!rotated.get())Thread.sleep(100);
+            }
+            assertTrue("Navigation did not rotate",rotated.get());
+            scenario.onActivity(a->{
+                DriverView screen=a.session.screen;
+                View top=screen.getChildAt(1),bottom=screen.getChildAt(2);
+                assertTrue("Landscape map should occupy the right half",Math.max(top.getRight(),bottom.getRight())<screen.getWidth()*.55);
+                assertTrue("Landscape panels overlap",top.getBottom()<bottom.getTop());
+                Rect safe=new Rect();assertTrue(screen.getGlobalVisibleRect(safe));
+                List<View> controls=new ArrayList<>();collect(screen,controls);
+                assertEquals(5,controls.size());
+                controls.add(screen.findViewWithTag("nav-speed-limit"));
+                List<Rect> used=new ArrayList<>();
+                for(View control:controls){
+                    Rect rect=new Rect();assertTrue(control.getGlobalVisibleRect(rect));
+                    assertTrue(safe.contains(rect));
+                    assertEquals(control.getWidth(),rect.width());
+                    assertEquals(control.getHeight(),rect.height());
+                    for(Rect other:used)assertFalse(Rect.intersects(rect,other));
+                    used.add(rect);
+                }
                 a.endNavigation();assertNull(a.session);
             });
         }
@@ -130,5 +174,5 @@ import static org.junit.Assert.*;
         }
     }
 
-    private void collect(View root,List<View> out){if(root.getTag()!=null&&root.getTag().toString().startsWith("nav-"))out.add(root);if(root instanceof ViewGroup){ViewGroup group=(ViewGroup)root;for(int i=0;i<group.getChildCount();i++)collect(group.getChildAt(i),out);}}
+    private void collect(View root,List<View> out){if(root.getTag()!=null&&root.getTag().toString().startsWith("nav-")&&root.isClickable())out.add(root);if(root instanceof ViewGroup){ViewGroup group=(ViewGroup)root;for(int i=0;i<group.getChildCount();i++)collect(group.getChildAt(i),out);}}
 }

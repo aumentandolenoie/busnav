@@ -13,7 +13,7 @@
 <key>LSRequiresIPhoneOS</key><true/>
 <key>UILaunchScreen</key><dict/>
 <key>UIRequiredDeviceCapabilities</key><array><string>arm64</string></array>
-<key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string></array>
+<key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
 <key>NSLocationWhenInUseUsageDescription</key><string>LineaPilot usa il GPS per seguire il percorso Academy e annunciare le fermate e le svolte.</string>
 <key>NSLocationAlwaysAndWhenInUseUsageDescription</key><string>LineaPilot può continuare a usare la posizione durante una corsa attiva anche con lo schermo bloccato.</string>
 <key>UIBackgroundModes</key><array><string>location</string><string>audio</string></array>
