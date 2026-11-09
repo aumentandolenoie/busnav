@@ -44,7 +44,7 @@ def measure(ranges, total):
     return sum(b - a for a, b in road.merged_ranges(ranges, total))
 
 
-def audit(route, features):
+def audit(route, features, candidates=None):
     points = route["points"]
     distances = road.cumulative(points)
     south, north = min(p[0] for p in points), max(p[0] for p in points)
@@ -63,9 +63,12 @@ def audit(route, features):
         if interval is None:
             continue
         matched.append(interval)
-        if explicit_limit(props) is None:
+        limit = explicit_limit(props)
+        if limit is None:
             continue
         numeric.append(interval)
+        if candidates is not None:
+            candidates.append((*interval, limit))
         sources = [s["dataset"] for s in props.get("sources") or []
                    if (s.get("property") or "").startswith("/speed_limits") and s.get("dataset")]
         provenance.update(set(sources or ["Provenienza del singolo valore non indicata"]))

@@ -1,0 +1,35 @@
+name: Compare the recovered speed limit release
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['LineaPilot iOS unsigned IPA']
+    types: [completed]
+permissions:
+  contents: write
+jobs:
+  compare:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_sha == 'd0d3200f3422b6385593b2fbe8983bda30d9601a')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare verified archives and the public Padova extract
+        run: |
+          mkdir -p build/old build/new
+          gh release download ios-preview-aeacc9af4443 --pattern navigation-data.zip --dir build/old
+          gh release download ios-preview-d0d3200f3422 --pattern navigation-data.zip --dir build/new
+          unzip -oq build/old/navigation-data.zip -d build/old
+          unzip -oq build/new/navigation-data.zip -d build/new
+          python3 -m pip install overturemaps
+          timeout 8m overturemaps download -r 2026-10-21.0 --bbox=11.82,45.36,11.94,45.49 -f geojson --type=segment -o build/overture-padova.geojson
+          python3 .github/tools/compare-speed-releases.py
+      - name: Preserve the measured recovery
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/speed-limit-recovery.md
+          git diff --cached --quiet || git commit -m 'Record measured speed limit recovery and Overture overlap'
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
