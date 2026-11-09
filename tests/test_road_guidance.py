@@ -235,6 +235,31 @@ class AcademyRoadTests(unittest.TestCase):
                 self.assertEqual(len(data["roadCameras"]), expected_count)
                 self.assertEqual([r[2] for r in data["speedLimits"]], [50] if way == 71 else [])
 
+    def test_speed_recovery_checks_attribute_geometry_in_travel_order(self):
+        import road_safety
+        points = [[45.0,11.0],[45.001,11.0],[45.002,11.0]]
+        original = [p[:] for p in points]
+        base = encode_polyline6(points)
+        attributes = [[45.0,11.0],[45.0005,11.0],[45.001,11.0],[45.002,11.0]]
+        catalog = road_safety.index_catalog({"limits":{"71":50}, "cameras":[]})
+        for track, expected in [(attributes, [50]), (attributes[::-1], []),
+                                ([[lat,lon+.00004] for lat,lon in attributes], [])]:
+            with self.subTest(track=track):
+                response = {"trip":{"language":"it-IT","legs":[{"shape":base,"maneuvers":[]}]},
+                            "_edgeAttributes":{"shape":encode_polyline6(track),"edges":[
+                                {"way_id":71,"begin_shape_index":0,"end_shape_index":3}]}}
+                data = module.convert({"id":"safety","points":points}, response, allow_empty=True, safety=catalog)
+                self.assertEqual([limit for _,_,limit in data["speedLimits"]], expected)
+                self.assertEqual(points, original)
+
+    def test_numeric_limits_accept_units_and_descriptive_tags_but_not_restrictions(self):
+        from road_safety import explicit_speed
+        self.assertEqual(explicit_speed({"maxspeed":"50 km/h","maxspeed:type":"sign"}), 50)
+        for tags in [{"maxspeed":"IT:urban"}, {"maxspeed":"50","maxspeed:forward":"30"},
+                     {"maxspeed":"50","maxspeed:bus":"30"}, {"maxspeed":"50","maxspeed:variable":"yes"},
+                     {"maxspeed":"50","maxspeed:conditional":"30 @ (Mo-Fr)"}]:
+            self.assertIsNone(explicit_speed(tags))
+
     def test_never_simplifies_gpx_to_meet_api_point_limit(self):
         with self.assertRaises(ValueError):
             module.downsample(self.points, limit=2)

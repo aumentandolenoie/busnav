@@ -7,6 +7,18 @@ from collections import defaultdict
 from pathlib import Path
 
 
+def explicit_speed(tags):
+    """Return the mapped km/h value only for an unconditional road-wide limit."""
+    metadata = {"maxspeed:source", "maxspeed:type", "maxspeed:reason"}
+    if any(key.startswith("maxspeed:") and key not in metadata for key in tags):
+        return None
+    match = re.fullmatch(r"([0-9]{1,3})(?:\s+km/h)?", tags.get("maxspeed", "").strip())
+    if not match:
+        return None
+    value = int(match[1])
+    return value if 5 <= value <= 130 else None
+
+
 def extract(pbf):
     import osmium
 
@@ -44,10 +56,9 @@ def extract(pbf):
             tags = way.tags
             if not tags.get("highway"):
                 return
-            value = tags.get("maxspeed", "")
-            if re.fullmatch(r"[0-9]{1,3}", value) and 5 <= int(value) <= 130:
-                if not any(t.k.startswith("maxspeed:") and t.k != "maxspeed:source" for t in tags):
-                    limits[str(way.id)] = int(value)
+            value = explicit_speed({tag.k: tag.v for tag in tags if tag.k.startswith("maxspeed")})
+            if value is not None:
+                limits[str(way.id)] = value
             for node in way.nodes:
                 if node.ref in needed:
                     node_ways[node.ref].append(way.id)
@@ -82,7 +93,28 @@ def index_catalog(data):
     return data["limits"], by_way
 
 
-def annotate(catalog, attributes, matched, projected, official, distances):
+def same_driven_edge(shape, shape_dist, reference, progress, begin, finish):
+    """Compare the local attribute edge with the accepted trace in travel order."""
+    import enrich_road_guidance as road
+
+    start = max(0, bisect.bisect_left(progress, begin - 12) - 1)
+    end = min(len(reference), bisect.bisect_right(progress, finish + 12) + 1)
+    local = reference[start:end]
+    if len(local) < 2 or shape_dist[-1] < 5:
+        return False
+    local_dist = road.cumulative(local)
+    hits = [road.project(p, local, local_dist) for p in road.sampled(shape, 3)]
+    a, b = hits[0][1], hits[-1][1]
+    if b <= a or abs(b - a - shape_dist[-1]) > max(2, shape_dist[-1] * .02):
+        return False
+    if any(error > 1.5 for error, _ in hits) or any(
+            right[1] + .5 < left[1] for left, right in zip(hits, hits[1:])):
+        return False
+    core = road.clip_line(local, local_dist, a, b)
+    return all(road.project(p, shape, shape_dist)[0] <= 1.5 for p in road.sampled(core, 3))
+
+
+def annotate(catalog, attributes, matched, projected, official, distances, reference=None):
     """Return safety annotations only where matched edges tightly follow the GPX."""
     import enrich_road_guidance as road
 
@@ -91,8 +123,15 @@ def annotate(catalog, attributes, matched, projected, official, distances):
     trusted = defaultdict(list)
     cameras = {}
     ranges = []
+    reference_progress = []
+    if reference is not None:
+        reference, reference_projection = reference
+        for _, at in reference_projection:
+            reference_progress.append(max(at, reference_progress[-1] if reference_progress else 0))
     for edge in attributes:
         start, end, way = (edge.get(k) for k in ("begin_shape_index", "end_shape_index", "way_id"))
+        if reference is not None and str(way) not in limits:
+            continue
         if type(start) is not int or type(end) is not int or not 0 <= start < end < len(matched):
             continue
         begin, finish = projected[start][1], projected[end][1]
@@ -111,6 +150,9 @@ def annotate(catalog, attributes, matched, projected, official, distances):
         if any(road.project(p, shape, shape_dist)[0] > 12 for p in road.sampled(core, 8)):
             continue
         if any(road.project(p, core, core_dist)[0] > 12 for p in road.sampled(shape, 8)):
+            continue
+        if reference is not None and not same_driven_edge(
+                shape, shape_dist, reference, reference_progress, begin, finish):
             continue
         ranges.append((begin, finish))
         if str(way) in limits:

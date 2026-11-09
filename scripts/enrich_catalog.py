@@ -44,7 +44,8 @@ def main():
                 ):
                     cameras.append(camera)
             data['roadCameras'] = cameras
-            safety_stats['limitRoutes'] += bool(data['speedLimits'])
+            row['hasSpeedLimits'] = bool(data['speedLimits'])
+            safety_stats['limitRoutes'] += row['hasSpeedLimits']
             safety_stats['cameraRoutes'] += bool(cameras)
             for camera in cameras:
                 safety_stats[camera['kind']] += 1

@@ -298,6 +298,20 @@ def convert(route, response, allow_empty=False, strict_local=False, safety=None)
     if safety is not None and attrs.get("shape") == leg["shape"]:
         import road_safety
         limits, cameras = road_safety.annotate(safety, attrs["edges"], matched, projected, official, official_dist)
+    elif safety is not None and isinstance(attrs.get("shape"), str) and attrs.get("edges"):
+        import road_safety
+        # Attribute indices belong to their own polyline. Compare each proposed
+        # speed edge with both the GPX and the already validated maneuver trace.
+        # Cameras still require the original identical-shape check.
+        try:
+            attribute_shape = decode_polyline(attrs["shape"])
+            if len(attribute_shape) >= 2:
+                attribute_projection = ordered_projection(attribute_shape, official, official_dist)
+                limits, _ = road_safety.annotate(
+                    (safety[0], {}), attrs["edges"], attribute_shape, attribute_projection,
+                    official, official_dist, reference=(matched, projected))
+        except (ValueError, IndexError):
+            limits = []
     return {
         "version": 1, "source": "valhalla-osm", "language": "it-IT",
         "academyId": str(route["id"]),
