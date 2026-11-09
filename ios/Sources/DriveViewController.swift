@@ -87,7 +87,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         stopDistance.font = .monospacedDigitSystemFont(ofSize:19,weight:.semibold); stopDistance.textColor = .systemBlue
         status.font = UIFontMetrics(forTextStyle:.footnote).scaledFont(for:.systemFont(ofSize:13,weight:.medium),maximumPointSize:22); status.adjustsFontForContentSizeCategory = true; status.textColor = .secondaryLabel; status.numberOfLines = 2
         status.text = "GPX ufficiale · GPS in primo piano"
-        let end = UIButton(type:.system); end.setTitle("Termina",for:.normal); end.tintColor = .systemRed; end.accessibilityIdentifier = "endNavigation"; touchTarget(end); end.addTarget(self,action:#selector(finish),for:.touchUpInside)
+        let end = UIButton(type:.system); end.setTitle("Termina",for:.normal); end.tintColor = .systemRed; end.accessibilityIdentifier = "endNavigation"; touchTarget(end,width:78); end.addTarget(self,action:#selector(finish),for:.touchUpInside)
         let sound = UIButton(type:.system); sound.setImage(UIImage(systemName:voice ? "speaker.wave.2.fill" : "speaker.slash.fill"),for:.normal); sound.accessibilityLabel = "Attiva o disattiva annunci"; sound.accessibilityIdentifier = "toggleVoice"; touchTarget(sound); sound.addTarget(self,action:#selector(toggleVoice(_:)),for:.touchUpInside)
         let center = UIButton(type:.system); center.setImage(UIImage(systemName:"location.fill"),for:.normal); center.accessibilityLabel = "Centra GPS"; center.accessibilityIdentifier = "recenter"; touchTarget(center); center.addTarget(self,action:#selector(recenter),for:.touchUpInside)
         let compass = MKCompassButton(mapView:map); compass.compassVisibility = .visible
@@ -157,10 +157,10 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         }
     }
 
-    private func touchTarget(_ button: UIView) {
+    private func touchTarget(_ button: UIView,width:CGFloat = 44) {
         button.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(greaterThanOrEqualToConstant:44),
+            button.widthAnchor.constraint(equalToConstant:width),
             button.heightAnchor.constraint(equalToConstant:44)
         ])
     }

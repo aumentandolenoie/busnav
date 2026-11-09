@@ -69,8 +69,8 @@ import static org.junit.Assert.*;
                 android.graphics.PointF point=screen.nativeMap.map.getProjection().toScreenLocation(
                         new org.maplibre.android.geometry.LatLng(45.02,11.03));
                 int top=screen.getChildAt(1).getBottom(),bottom=screen.getChildAt(2).getTop();
-                assertTrue("GPS should sit below the center of the visible map",point.y>(top+bottom)*.5f);
-                assertTrue("GPS must stay above the stop panel",point.y<bottom);
+                assertTrue("GPS should sit below the center of the visible map: "+point+" between "+top+" and "+bottom,point.y>(top+bottom)*.5f);
+                assertTrue("GPS must stay above the stop panel: "+point+" between "+top+" and "+bottom,point.y<bottom);
             });
             android.graphics.Bitmap screenshot=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
             scenario.onActivity(a->{

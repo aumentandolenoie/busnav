@@ -16,6 +16,7 @@ final class DriverView extends FrameLayout {
     private final TextView roadStatus,speedSign;
     private final ImageButton north;
     private boolean landscape;
+    private final double[] followPadding=new double[4];
     private final BoundedScroll topText,bottomText;private final LinearLayout top,bottom;
     private boolean following=true;private double heading;private Location lastFix;
     DriverView(MainActivity c,NavigationSession s,boolean test){
@@ -89,7 +90,13 @@ final class DriverView extends FrameLayout {
         int topInset=landscape?dp(8):top.getBottom()+dp(8);
         int bottomInset=landscape?dp(8):getHeight()-bottom.getTop()+dp(8);
         int visibleHeight=Math.max(0,getHeight()-topInset-bottomInset);
-        nativeMap.setInsets(leftInset,topInset+Math.round(visibleHeight*.26f),dp(8),bottomInset);
+        int paddedTop=topInset+Math.round(visibleHeight*.26f),rightInset=dp(8);
+        boolean viewportChanged=followPadding[0]!=leftInset||followPadding[1]!=paddedTop
+                ||followPadding[2]!=rightInset||followPadding[3]!=bottomInset;
+        followPadding[0]=leftInset;followPadding[1]=paddedTop;
+        followPadding[2]=rightInset;followPadding[3]=bottomInset;
+        nativeMap.setInsets(leftInset,topInset,rightInset,bottomInset);
+        if(viewportChanged&&following&&lastFix!=null)location(lastFix,session.matched,session.along);
     }
 
     void message(String text){status.setText(text);}
@@ -117,7 +124,7 @@ final class DriverView extends FrameLayout {
     void location(Location p,boolean reliable,double along){lastFix=p;nativeMap.location(p.getLatitude(),p.getLongitude());if(!following||nativeMap.map==null)return;
         if(reliable){double[] a=session.tracker.coordinate(along),b=session.tracker.coordinate(along+40);double r=Math.PI/180,d=(b[1]-a[1])*r;if(GPXTracker.metres(a,b)>10)heading=Math.atan2(Math.sin(d)*Math.cos(b[0]*r),Math.cos(a[0]*r)*Math.sin(b[0]*r)-Math.sin(a[0]*r)*Math.cos(b[0]*r)*Math.cos(d))/r;}
         else if(p.hasBearing()&&p.getSpeed()>3)heading=p.getBearing();
-        nativeMap.map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(p.getLatitude(),p.getLongitude())).zoom(17).tilt(55).bearing(heading).build()));
+        nativeMap.map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(p.getLatitude(),p.getLongitude())).zoom(17).tilt(55).bearing(heading).padding(followPadding.clone()).build()));
     }
     private String metres(double value){return value<1000?((int)Math.max(0,value)/10*10)+" m":String.format(Locale.ITALY,"%.1f km",value/1000);}
     private LinearLayout column(Context c){LinearLayout v=new LinearLayout(c);v.setOrientation(LinearLayout.VERTICAL);return v;}

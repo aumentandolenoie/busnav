@@ -40,7 +40,7 @@ import MapKit
                     XCTAssertGreaterThanOrEqual(frame.width,43.9,"\(ids[i]) width at \(size)")
                     XCTAssertGreaterThanOrEqual(frame.height,43.9)
                     XCTAssertTrue(safe.insetBy(dx:-0.5,dy:-0.5).contains(frame),"Unsafe control \(buttons[i].accessibilityIdentifier ?? ""): \(frame) safe \(safe) at \(size)")
-                    XCTAssertFalse(buttons[i].hasAmbiguousLayout)
+                    XCTAssertFalse(buttons[i].hasAmbiguousLayout,"Ambiguous control \(buttons[i].accessibilityIdentifier ?? "") at \(size)")
                     for other in frames.dropFirst(i+1) { XCTAssertFalse(frame.intersects(other),"Controls overlap at \(size)") }
                 }
                 let panels = descendants(drive.view).filter { ["instructionPanel","stopPanel"].contains($0.accessibilityIdentifier ?? "") }
