@@ -9,6 +9,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     private let stopName = UILabel()
     private let stopDistance = UILabel()
     private let status = UILabel()
+    private let roadStatus = UILabel()
     private let symbol = UIImageView()
     private var topPanel: UIView!
     private var bottomPanel: UIView!
@@ -95,7 +96,12 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         let buttons = UIStackView(arrangedSubviews:[end,UIView(),sound,center]); buttons.spacing = 12; buttons.alignment = .center
         end.setContentCompressionResistancePriority(.required,for:.horizontal)
         let attribution = UILabel(); attribution.text = "GPX Academy · manovre © OpenStreetMap contributors"; attribution.font = .systemFont(ofSize:10); attribution.textColor = .secondaryLabel; attribution.numberOfLines = 2
-        let bottom = UIStackView(arrangedSubviews:[label,stopName,stopDistance,status,attribution]); bottom.axis = .vertical; bottom.spacing = 8
+        roadStatus.font = UIFont.preferredFont(forTextStyle: .footnote)
+        roadStatus.adjustsFontForContentSizeCategory = true
+        roadStatus.numberOfLines = 2
+        roadStatus.textColor = .label
+        roadStatus.isHidden = true
+        let bottom = UIStackView(arrangedSubviews:[label,stopName,stopDistance,roadStatus,status,attribution]); bottom.axis = .vertical; bottom.spacing = 8
         bottomPanel = panel(bottom,dark:false,footer:buttons); bottomPanel.accessibilityIdentifier = "stopPanel"; view.addSubview(bottomPanel); view.addSubview(compass)
         NSLayoutConstraint.activate([
             bottomPanel.bottomAnchor.constraint(equalTo:view.safeAreaLayoutGuide.bottomAnchor,constant:-8),
@@ -171,6 +177,15 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     func location(_ location: CLLocation) { fix = location; if simulated { demoMarker.coordinate = location.coordinate; demoMarker.title = "Posizione simulata"; if !map.annotations.contains(where: { $0 === demoMarker }) { map.addAnnotation(demoMarker) } }; updateCamera() }
     func message(_ message: String) { status.text = message }
     func update(along:Double,deviation:Double,stop:Int,reliable:Bool) {
+        var roadDetails: [String] = []
+        if reliable, deviation < 45 {
+            if let limit = route.speedLimit(at: along) { roadDetails.append("Limite mappato \(limit) km/h") }
+            if let index = route.nextCamera(at: along, within: 350), let camera = route.roadCameras?[index] {
+                roadDetails.append("\(camera.title) · \(distance(camera.at - along))")
+            }
+        }
+        roadStatus.text = roadDetails.joined(separator: "\n")
+        roadStatus.isHidden = roadDetails.isEmpty
         progress = along; self.reliable = reliable
         if !reliable {
             instruction.text = deviation > 85 ? "Fuori dal percorso ufficiale" : "Verifica posizione GPS"
@@ -226,4 +241,3 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         let pin = MKMarkerAnnotationView(annotation:annotation,reuseIdentifier:"stop"); pin.markerTintColor = .systemBlue; pin.glyphImage = UIImage(systemName:annotation === demoMarker ? "location.fill" : "bus.fill"); pin.canShowCallout = true; pin.displayPriority = .defaultLow; return pin
     }
 }
-

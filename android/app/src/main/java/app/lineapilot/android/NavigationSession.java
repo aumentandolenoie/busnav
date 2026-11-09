@@ -8,6 +8,7 @@ import java.util.*;
 final class NavigationSession implements LocationListener {
     final MainActivity owner;final NativeRoute route;final GPXTracker tracker;final DriverView screen;
     final boolean demo;private double demoProgress;boolean active=true,voice,turnVoice,matched;int stopIndex;double along;
+    private final Set<Integer> spokenCameras = new HashSet<>();
     private double chainedStopAfter = Double.NEGATIVE_INFINITY;
     private long lastGood,lastOffRoute;private final Map<Integer,Integer> stopStages=new HashMap<>(),turnStages=new HashMap<>();
     private final LocationManager locations;private final Handler handler=new Handler(Looper.getMainLooper());
@@ -35,7 +36,18 @@ final class NavigationSession implements LocationListener {
         matched=true;along=hit.along;while(stopIndex<route.stops.length&&along>route.offsets[stopIndex]+35)stopIndex++;
         if(stopIndex==0&&route.offsets.length>1&&route.offsets[0]<50&&Math.abs(along-route.offsets[0])<30)stopIndex=1;
         screen.location(p,true,along);screen.progress(along,stopIndex,true,hit.distance);screen.message("GPS ±"+Math.round(p.getAccuracy())+" m · GPX ufficiale");
-        announce(speed, hit.distance);
+        boolean announced = announce(speed, hit.distance);
+        if (!announced && voice && hit.distance < 45 && !owner.navigationSpeaking()) {
+            int index = route.nextCamera(along, Math.max(120, Math.min(250, speed * 12)), spokenCameras);
+            if (index >= 0) {
+                NativeRoute.Camera camera = route.cameras.get(index);
+                double distance = camera.at - along;
+                if (distance >= 15 && owner.speakNavigation("Tra circa " + Math.max(20, Math.round(distance / 10) * 10)
+                        + " metri, " + camera.title.toLowerCase(Locale.ITALIAN) + ".", false)) {
+                    spokenCameras.add(index);
+                }
+            }
+        }
     }
 
     private int nextVoiceTurn(double maxDistance) {
@@ -49,8 +61,8 @@ final class NavigationSession implements LocationListener {
         return -1;
     }
 
-    private void announce(double speed, double deviation) {
-        if (!voice) return;
+    private boolean announce(double speed, double deviation) {
+        if (!voice) return false;
         int index = turnVoice && deviation < 65 ? nextVoiceTurn(450) : -1;
         NativeRoute.Turn turn = index < 0 ? null : route.turns.get(index);
         double distance = turn == null ? Double.POSITIVE_INFINITY : turn.at - along;
@@ -74,7 +86,7 @@ final class NavigationSession implements LocationListener {
                         turnStages.put(index, distance <= near ? 2 : 1);
                         stages.put(continuation.index, 1);
                         if (continuation.isStop) chainedStopAfter = turn.at;
-                        return;
+                        return true;
                     }
                 }
             }
@@ -85,22 +97,29 @@ final class NavigationSession implements LocationListener {
                 if (owner.speakNavigation("Tra " + Math.max(50, Math.round(remaining / 50) * 50)
                         + " metri, prossima fermata: " + route.stops[stopIndex] + ".", true)) {
                     stopStages.put(stopIndex, 1);
-                    return;
+                    return true;
                 }
             } else if (stopStage == 1 && remaining <= 65 && remaining >= 8 && speed > 2 && along >= chainedStopAfter) {
                 if (owner.speakNavigation("Fermata in arrivo: " + route.stops[stopIndex] + ".", true)) {
                     stopStages.put(stopIndex, 2);
-                    return;
+                    return true;
                 }
             }
         }
-        if (turn == null) return;
+        if (turn == null) return false;
         int stage = turnStages.getOrDefault(index, 0);
         if (stage < 2 && distance <= near) {
-            if (owner.speakNavigation(NativeRoute.voiceMessage(turn.text, null, null), false)) turnStages.put(index, 2);
+            if (owner.speakNavigation(NativeRoute.voiceMessage(turn.text, null, null), false)) {
+                turnStages.put(index, 2);
+                return true;
+            }
         } else if (stage == 0 && distance <= lead) {
-            if (owner.speakNavigation(NativeRoute.voiceMessage(turn.text, distance, null), false)) turnStages.put(index, 1);
+            if (owner.speakNavigation(NativeRoute.voiceMessage(turn.text, distance, null), false)) {
+                turnStages.put(index, 1);
+                return true;
+            }
         }
+        return false;
     }
 
     void repeat() {
@@ -123,4 +142,3 @@ final class NavigationSession implements LocationListener {
     @Override public void onProviderEnabled(String provider){}
     @Override public void onStatusChanged(String provider,int status,Bundle extras){}
 }
-

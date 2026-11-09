@@ -56,6 +56,35 @@ struct NativeRoute: Decodable {
         let text: String?
         let verifiedRoad: Bool?
     }
+    struct Camera: Decodable {
+        let at: Double
+        let kind: String
+        var title: String { kind == "redLight" ? "Controllo semaforico" : "Autovelox fisso" }
+    }
+
+    let speedLimits: [[Double]]?
+    let roadCameras: [Camera]?
+
+    func speedLimit(at along: Double) -> Int? {
+        guard supportsGuidance(at: along) else { return nil }
+        let values = Set((speedLimits ?? []).compactMap { segment -> Int? in
+            guard segment.count == 3, segment[0] <= along, along < segment[1],
+                  (5...130).contains(segment[2]), segment[2].rounded() == segment[2] else { return nil }
+            return Int(segment[2])
+        })
+        return values.count == 1 ? values.first : nil
+    }
+
+    func nextCamera(at along: Double, within distance: Double, excluding used: Set<Int> = []) -> Int? {
+        guard let cameras = roadCameras else { return nil }
+        return cameras.indices.filter { index in
+            let camera = cameras[index]
+            return !used.contains(index) && ["speed", "redLight"].contains(camera.kind) &&
+                camera.at > along && camera.at <= along + distance &&
+                supportsGuidance(at: along, maneuver: camera.at)
+        }.min { cameras[$0].at < cameras[$1].at }
+    }
+
     let name: String?
     let stopCoordinates: [[Double]]?
     let points: [[Double]]        // Latitude, longitude in canonical Academy order
@@ -144,6 +173,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     private var interrupted = false
     private var staleWarning = false
     private var stopIndex = 0
+    private var spokenCameras = Set<Int>()
     private var chainedStopAfter = -Double.infinity
     private var stopStages: [Int: Int] = [:]
     private var turnStages: [Int: Int] = [:]
@@ -179,6 +209,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         stopIndex = 0
         lastGoodFix = Date()
         staleWarning = false
+        spokenCameras.removeAll()
         chainedStopAfter = -.infinity
         stopStages.removeAll()
         turnStages.removeAll()
@@ -234,6 +265,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         tracker = nil
         lastGoodFix = Date()
         staleWarning = false
+        spokenCameras.removeAll()
         chainedStopAfter = -.infinity
         stopStages.removeAll()
         turnStages.removeAll()
@@ -328,6 +360,12 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
 
         onProgress?(along, hit.distance, stopIndex, true)
         announce(atSpeed: speed, deviation: hit.distance, route: route)
+        if voiceEnabled, hit.distance < 45, !synthesizer.isSpeaking,
+           let index = route.nextCamera(at: along, within: max(120, min(250, speed * 12)), excluding: spokenCameras),
+           let camera = route.roadCameras?[index], camera.at - along >= 15 {
+            let metres = Int(max(20, ((camera.at - along) / 10).rounded() * 10))
+            if speak("Tra circa \(metres) metri, \(camera.title.lowercased()).") { spokenCameras.insert(index) }
+        }
     }
 
     private func nextVoiceTurn(in route: NativeRoute, maxDistance: Double = 450) -> Int? {
@@ -462,4 +500,3 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     }
 
 }
-

@@ -223,7 +223,13 @@ function normalizeRoadGuidance(data,total){
  const source=data.coverage||{complete:true,percent:100,ranges:[[0,sourceTotal]],gaps:[]};
  const coverage={...source,totalM:total,coveredM:(source.coveredM??sourceTotal)*scale,
   ranges:source.complete?[[0,total]]:source.ranges.map(r=>r.map(at)),gaps:(source.gaps||[]).map(r=>r.map(at))};
- return {turns:data.turns.map(t=>({...t,at:at(t.at),verifiedRoad:true})),coverage};
+ const speedLimits=(Array.isArray(data.speedLimits)?data.speedLimits:[]).filter(r=>
+  Array.isArray(r)&&r.length===3&&r.every(Number.isFinite)&&r[0]>=0&&r[0]<r[1]&&r[1]<=sourceTotal+1&&
+  Number.isInteger(r[2])&&r[2]>=5&&r[2]<=130).map(([a,b,k])=>[at(a),at(b),k]);
+ const roadCameras=(Array.isArray(data.roadCameras)?data.roadCameras:[]).filter(c=>
+  c&&Number.isFinite(c.at)&&c.at>=0&&c.at<=sourceTotal+1&&['speed','redLight'].includes(c.kind))
+  .map(c=>({at:at(c.at),kind:c.kind}));
+ return {turns:data.turns.map(t=>({...t,at:at(t.at),verifiedRoad:true})),coverage,speedLimits,roadCameras};
 }
 async function loadRoadGuidance(chosen,dists){
  const serial=++roadGuidanceLoadId;
@@ -252,6 +258,8 @@ async function loadRoadGuidance(chosen,dists){
   turns=normalized.turns;
   current.guidanceDate=data.generatedAt||'';
   current.guidanceCoverage=normalized.coverage;
+  current.speedLimits=normalized.speedLimits;
+  current.roadCameras=normalized.roadCameras;
   refreshReadySummary();
   $('turnHint').textContent='Manovre stradali in italiano, verificate sul GPX Academy';
   if(nativeActive){
@@ -1126,6 +1134,8 @@ async function startGPS(simulated=false){
   const route={
    name:current.academy.name,
    coverage:current.guidanceCoverage||{complete:false,percent:0,ranges:[]},
+   speedLimits:current.speedLimits||[],
+   roadCameras:current.roadCameras||[],
    stopCoordinates:current.stops.map(s=>[s.stop.lat,s.stop.lng]),
    points:current.points.map(p=>[p.lat,p.lng]),
    offsets:current.offsets,

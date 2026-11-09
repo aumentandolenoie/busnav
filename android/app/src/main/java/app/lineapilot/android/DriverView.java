@@ -13,6 +13,7 @@ import java.util.Locale;
 final class DriverView extends FrameLayout {
     final NativeMap nativeMap;final NavigationSession session;
     final TextView distance,instruction,stopName,stopDistance,status;final ImageView symbol;
+    private final TextView roadStatus;
     private final BoundedScroll topText,bottomText;private final LinearLayout top,bottom;
     private boolean following=true;private double heading;private Location lastFix;
     DriverView(MainActivity c,NavigationSession s,boolean test){
@@ -27,7 +28,12 @@ final class DriverView extends FrameLayout {
         LayoutParams tp=new LayoutParams(-1,-2,Gravity.TOP);tp.setMargins(dp(12),dp(8),dp(12),0);addView(top,tp);
         bottom=card(c,Color.rgb(250,250,252));bottom.setOrientation(LinearLayout.VERTICAL);bottomText=new BoundedScroll(c);
         LinearLayout info=column(c);info.addView(label(c,"PROSSIMA FERMATA",12,Color.GRAY,true));stopName=label(c,s.route.stops.length>0?s.route.stops[0]:"Solo percorso GPX",24,Color.BLACK,true);stopName.setMaxLines(2);stopName.setEllipsize(android.text.TextUtils.TruncateAt.END);info.addView(stopName);
-        stopDistance=label(c,"",19,Color.rgb(0,122,255),true);info.addView(stopDistance);status=label(c,"GPX ufficiale · GPS in primo piano",13,Color.DKGRAY,false);status.setMaxLines(2);info.addView(status);info.addView(label(c,"GPX Academy · manovre © OpenStreetMap contributors",10,Color.GRAY,false));
+        stopDistance=label(c,"",19,Color.rgb(0,122,255),true);info.addView(stopDistance);
+        roadStatus=label(c,"",13,Color.DKGRAY,true);
+        roadStatus.setMaxLines(2);
+        roadStatus.setVisibility(GONE);
+        info.addView(roadStatus);
+        status=label(c,"GPX ufficiale · GPS in primo piano",13,Color.DKGRAY,false);status.setMaxLines(2);info.addView(status);info.addView(label(c,"GPX Academy · manovre © OpenStreetMap contributors",10,Color.GRAY,false));
         bottomText.addView(info);bottom.addView(bottomText,new LinearLayout.LayoutParams(-1,-2));
         LinearLayout controls=new LinearLayout(c);controls.setGravity(Gravity.CENTER_VERTICAL);controls.setPadding(0,dp(8),0,0);
         Button end=button(c,"Termina","Termina navigazione","nav-end",c::endNavigation);end.setTextColor(Color.rgb(235,60,60));controls.addView(end,new LinearLayout.LayoutParams(-2,dp(48)));
@@ -41,6 +47,19 @@ final class DriverView extends FrameLayout {
     @Override protected void onSizeChanged(int w,int h,int ow,int oh){super.onSizeChanged(w,h,ow,oh);int budget=Math.max(dp(160),h-dp(76));topText.limit=Math.max(dp(40),(int)(budget*.46)-dp(24));bottomText.limit=Math.max(dp(20),(int)(budget*.54)-dp(88));topText.requestLayout();bottomText.requestLayout();}
     void message(String text){status.setText(text);}
     void progress(double along,int stop,boolean reliable,double deviation){
+        String roadDetails = "";
+        if (reliable && deviation < 45) {
+            int limit = session.route.speedLimit(along);
+            if (limit > 0) roadDetails = "Limite mappato " + limit + " km/h";
+            int index = session.route.nextCamera(along, 350, java.util.Collections.emptySet());
+            if (index >= 0) {
+                NativeRoute.Camera camera = session.route.cameras.get(index);
+                if (!roadDetails.isEmpty()) roadDetails += "\n";
+                roadDetails += camera.title + " · " + metres(camera.at - along);
+            }
+        }
+        roadStatus.setText(roadDetails);
+        roadStatus.setVisibility(roadDetails.isEmpty() ? GONE : VISIBLE);
         if(!reliable){distance.setText("Annunci sospesi");instruction.setText(deviation>85?"Fuori dal percorso ufficiale":"Verifica posizione GPS");symbol.setImageDrawable(new NavigationIcon("warning",Color.WHITE));return;}
         NativeRoute.Turn next=session.route.nextTurn(along);if(next!=null){distance.setText(metres(Math.max(0,next.at-along)));instruction.setText(next.text);symbol.setImageDrawable(new NavigationIcon("roundabout".equals(next.kind)?"roundabout":"sinistra".equals(next.side)?"left":"right",Color.WHITE));}
         else{boolean covered=session.route.covered(along,along);distance.setText(covered?metres(session.tracker.total()-along):"Tratto non coperto");instruction.setText(covered?"Segui il GPX ufficiale":"Manovre non disponibili qui: segui il GPX ufficiale");symbol.setImageDrawable(new NavigationIcon("forward",Color.WHITE));}

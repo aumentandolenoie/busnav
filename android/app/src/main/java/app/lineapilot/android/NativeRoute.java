@@ -4,6 +4,16 @@ import java.util.*;
 
 final class NativeRoute {
     static final class Turn {double at;String text,side,kind;boolean verified;}
+    static final class Camera {
+        final double at;
+        final String title;
+        Camera(double at, String kind) {
+            this.at = at;
+            title = kind.equals("redLight") ? "Controllo semaforico" : "Autovelox fisso";
+        }
+    }
+    private final List<double[]> speedLimits = new ArrayList<>();
+    final List<Camera> cameras = new ArrayList<>();
     final double[][] points,stopCoordinates,ranges;
     final double[] offsets;final String[] stops;final List<Turn> turns=new ArrayList<>();final String name;
     NativeRoute(JSONObject raw)throws JSONException{
@@ -18,11 +28,54 @@ final class NativeRoute {
             JSONObject t=ts.getJSONObject(i);Turn turn=new Turn();turn.at=t.getDouble("at");turn.text=t.optString("text","");turn.side=t.optString("side","");turn.kind=t.optString("kind","turn");turn.verified=t.optBoolean("verifiedRoad",false);
             if(turn.verified&&Double.isFinite(turn.at)&&turn.at>=0&&turn.at<=tracker.total()&&!turn.text.isEmpty()&&turn.text.length()<1500&&covered(turn.at,turn.at))turns.add(turn);
         }
+        JSONArray limits = raw.optJSONArray("speedLimits");
+        if (limits != null) for (int i = 0; i < limits.length(); i++) {
+            JSONArray row = limits.optJSONArray(i);
+            if (row == null || row.length() != 3) continue;
+            double from = row.optDouble(0), to = row.optDouble(1), limit = row.optDouble(2);
+            if (from >= 0 && to > from && to <= tracker.total() + 1 &&
+                    limit >= 5 && limit <= 130 && limit == Math.rint(limit)) {
+                speedLimits.add(new double[]{from, to, limit});
+            }
+        }
+        JSONArray camerasJson = raw.optJSONArray("roadCameras");
+        if (camerasJson != null) for (int i = 0; i < camerasJson.length(); i++) {
+            JSONObject item = camerasJson.optJSONObject(i);
+            if (item == null) continue;
+            double at = item.optDouble("at");
+            String kind = item.optString("kind");
+            if (at >= 0 && at <= tracker.total() && (kind.equals("speed") || kind.equals("redLight"))) {
+                cameras.add(new Camera(at, kind));
+            }
+        }
+        cameras.sort(Comparator.comparingDouble(c -> c.at));
         turns.sort(Comparator.comparingDouble(t->t.at));
     }
     static double[][] coordinates(JSONArray a)throws JSONException{if(a==null)return new double[0][2];double[][] out=new double[a.length()][2];for(int i=0;i<a.length();i++){JSONArray p=a.getJSONArray(i);if(p.length()!=2)throw new IllegalArgumentException("Coppia di coordinate non valida");out[i][0]=p.getDouble(0);out[i][1]=p.getDouble(1);}return out;}
     boolean covered(double along,double maneuver){return GuidanceCoverage.contains(ranges,along,maneuver);}
     Turn nextTurn(double along){for(Turn t:turns)if(t.at>along-12&&covered(along,t.at))return t;return null;}
+    int speedLimit(double along) {
+        if (!covered(along, along)) return 0;
+        int result = 0;
+        for (double[] segment : speedLimits) {
+            if (segment[0] <= along && along < segment[1]) {
+                int value = (int) segment[2];
+                if (result != 0 && result != value) return 0;
+                result = value;
+            }
+        }
+        return result;
+    }
+
+    int nextCamera(double along, double distance, Set<Integer> excluded) {
+        for (int index = 0; index < cameras.size(); index++) {
+            Camera camera = cameras.get(index);
+            if (camera.at > along + distance) break;
+            if (!excluded.contains(index) && camera.at > along && covered(along, camera.at)) return index;
+        }
+        return -1;
+    }
+
     static final class Continuation {
         final int index;
         final boolean isStop;
@@ -72,4 +125,3 @@ final class NativeRoute {
     }
 
 }
-

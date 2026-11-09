@@ -1,10 +1,12 @@
 """Checks for Academy GPX immutable road enrichment. No external Valhalla needed."""
 import importlib.util
 import unittest
+import sys
 from unittest.mock import patch
 from pathlib import Path
 
 script = Path(__file__).resolve().parents[1] / "scripts" / "enrich_road_guidance.py"
+sys.path.insert(0, str(script.parent))
 spec = importlib.util.spec_from_file_location("academy_road_enrichment", script)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
@@ -218,6 +220,21 @@ class AcademyRoadTests(unittest.TestCase):
         out=module.convert(self.route,self.response)
         self.assertFalse(out['roundaboutAudit'][0]['numberVerified'])
 
+    def test_road_safety_uses_the_verified_way_and_camera_direction(self):
+        import road_safety
+        points = [[45.0,11.0],[45.001,11.0],[45.002,11.0],[45.003,11.0]]
+        camera = {"id": 9, "kind": "redLight", "from": points[1], "to": points[2],
+                  "device": points[2], "fromWays": [71], "toWays": [71]}
+        catalog = road_safety.index_catalog({"limits": {"71": 50}, "cameras": [camera]})
+        for track, way, expected_count in [(points, 71, 1), (points[::-1], 71, 0), (points, 72, 0)]:
+            with self.subTest(way=way, count=expected_count):
+                shape = encode_polyline6(track)
+                response = {"trip": {"language":"it-IT","legs":[{"shape":shape,"maneuvers":[]} ]},
+                            "_edgeAttributes": {"shape":shape,"edges":[{"way_id":way,"begin_shape_index":0,"end_shape_index":3}]}}
+                data = module.convert({"id":"safety","points":track}, response, allow_empty=True, safety=catalog)
+                self.assertEqual(len(data["roadCameras"]), expected_count)
+                self.assertEqual([r[2] for r in data["speedLimits"]], [50] if way == 71 else [])
+
     def test_never_simplifies_gpx_to_meet_api_point_limit(self):
         with self.assertRaises(ValueError):
             module.downsample(self.points, limit=2)
@@ -287,5 +304,3 @@ class AcademyRoadTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-

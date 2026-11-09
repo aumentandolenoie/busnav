@@ -145,7 +145,7 @@ def get_response(endpoint, points, precise=False):
         result = json.load(reply)
     # Roundabout counting depends on driving-side flags, independently of shape.
     attributes = trace_request(points, precise)
-    attributes["filters"] = {"action":"include","attributes":["edge.drive_on_right","edge.roundabout"]}
+    attributes["filters"] = {"action":"include","attributes":["edge.drive_on_right","edge.roundabout","edge.way_id","edge.begin_shape_index","edge.end_shape_index","shape"]}
     attr_req = urllib.request.Request(uri.rsplit("/",1)[0]+"/trace_attributes",json.dumps(attributes).encode("utf8"),
         {"Content-Type":"application/json","X-Client-Id":"lineapilot-academy-validation"},method="POST")
     with urllib.request.urlopen(attr_req,timeout=30) as reply:
@@ -154,6 +154,7 @@ def get_response(endpoint, points, precise=False):
     if not edges or any(edge.get("drive_on_right") is not True for edge in edges):
         raise ValueError("Driving-side graph validation failed: Italian trace must drive on right")
     result["_drivingSideValidated"] = True
+    result["_edgeAttributes"] = attrs
     return result
 
 
@@ -218,7 +219,7 @@ def roundabout_geometry(maneuver, matched, projected, official, official_dist):
     return max(a+b) <= 12
 
 
-def convert(route, response, allow_empty=False, strict_local=False):
+def convert(route, response, allow_empty=False, strict_local=False, safety=None):
     official = [(float(a), float(b)) for a,b in route["points"]]
     if len(official) < 2:
         raise ValueError("Missing official GPX")
@@ -292,6 +293,11 @@ def convert(route, response, allow_empty=False, strict_local=False):
         maneuvers.append({"at": int(round(at)), "kind": kind, "side": side, "text": instruction})
     if not maneuvers and not allow_empty:
         raise ValueError("Valhalla found no road maneuvers: keep geometric fallback")
+    limits, cameras = [], []
+    attrs = response.get("_edgeAttributes", {})
+    if safety is not None and attrs.get("shape") == leg["shape"]:
+        import road_safety
+        limits, cameras = road_safety.annotate(safety, attrs["edges"], matched, projected, official, official_dist)
     return {
         "version": 1, "source": "valhalla-osm", "language": "it-IT",
         "academyId": str(route["id"]),
@@ -302,6 +308,7 @@ def convert(route, response, allow_empty=False, strict_local=False):
             "p95DeviationM": round(errors[int((len(errors)-1)*0.95)], 1),
             "matchedLengthM": int(round(matched_dist[-1]))},
         "turns": maneuvers, "noManeuvers": not bool(maneuvers),
+        "speedLimits": limits, "roadCameras": cameras,
         "roundaboutAudit": roundabout_audit, "drivingSideValidated":response.get("_drivingSideValidated") is True,
     }
 
@@ -357,7 +364,7 @@ def coverage_for(ranges,total):
             "percent":round(covered/max(1,total)*100,2),"ranges":ranges,"gaps":gaps}
 
 
-def annotate_route(route,endpoint):
+def annotate_route(route,endpoint,safety=None):
     """Try whole-trace matching, precision tuning, then overlapping GPX windows.
 
     Every accepted window passes the SAME strict bidirectional geometry checks.
@@ -367,7 +374,7 @@ def annotate_route(route,endpoint):
     attempts=[]
     def attempt(part,label,precise,strict_local=False):
         try:
-            data=convert(part,get_response(endpoint,part['points'],precise=precise),allow_empty=True,strict_local=strict_local)
+            data=convert(part,get_response(endpoint,part['points'],precise=precise),allow_empty=True,strict_local=strict_local,safety=safety)
             attempts.append({'strategy':label,'accepted':True,'turns':len(data['turns'])})
             return data
         except Exception as error:
@@ -426,6 +433,10 @@ def annotate_route(route,endpoint):
         'turns':unique,'noManeuvers':not bool(unique),'coverage':coverage,'solution':'validated-windows',
         'drivingSideValidated':all(d.get('drivingSideValidated') for _,_,d in accepted),
         'roundaboutAudit':[{**r,'at':r['at']+distances[a]} for a,_,d in accepted for r in d.get('roundaboutAudit',[])],
+        'speedLimits': sorted([a+distances[start],b+distances[start],limit]
+                              for start,_,d in accepted for a,b,limit in d['speedLimits']),
+        'roadCameras': sorted(({**c,'at':c['at']+distances[start]}
+                               for start,_,d in accepted for c in d['roadCameras']), key=lambda c:c['at']),
     }
     return data,attempts
 
@@ -554,4 +565,3 @@ def refine_roundabouts(route,data,endpoint):
 
 if __name__ == "__main__":
     main()
-

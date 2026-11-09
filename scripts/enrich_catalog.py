@@ -6,6 +6,7 @@ import json
 import pathlib
 from datetime import datetime, timezone
 import enrich_road_guidance as road
+import road_safety
 from guidance_audit import summarize
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -13,7 +14,10 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--endpoint', required=True)
+    parser.add_argument('--road-safety', type=pathlib.Path)
     args = parser.parse_args()
+    safety = road_safety.index_catalog(json.loads(args.road_safety.read_text())) if args.road_safety else None
+    safety_stats = {'limitRoutes': 0, 'cameraRoutes': 0, 'speed': 0, 'redLight': 0}
     source = ROOT / 'official-routes.json'
     original = source.read_bytes()
     catalog = road.load_catalog()
@@ -24,10 +28,26 @@ def main():
     for index, route in enumerate(catalog):
         target = out / (str(route['id'])+'.json')
         target.unlink(missing_ok=True)
-        data,attempts=road.annotate_route(route,args.endpoint)
+        data,attempts=road.annotate_route(route,args.endpoint,safety)
         row={'id':route['id'],'name':route['name'],'category':route['category'],'line':route['line'],'attempts':attempts}
         if data:
             data=road.refine_roundabouts(route,data,args.endpoint)
+            # Keep only contiguous validated portions and deduplicate the same site
+            # where two trace windows overlap.
+            ranges = data['coverage']['ranges']
+            data['speedLimits'] = [[a,b,k] for a,b,k in data['speedLimits']
+                                   if any(lo <= a < b <= hi for lo,hi in ranges)]
+            cameras = []
+            for camera in sorted(data['roadCameras'], key=lambda c:c['at']):
+                if any(lo <= camera['at'] <= hi for lo,hi in ranges) and not any(
+                    c['id']==camera['id'] and abs(c['at']-camera['at'])<25 for c in cameras
+                ):
+                    cameras.append(camera)
+            data['roadCameras'] = cameras
+            safety_stats['limitRoutes'] += bool(data['speedLimits'])
+            safety_stats['cameraRoutes'] += bool(cameras)
+            for camera in cameras:
+                safety_stats[camera['kind']] += 1
             data['generatedAt'] = report['generatedAt']
             target.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':'))+'\n')
             complete=data['coverage']['complete']
@@ -37,6 +57,10 @@ def main():
             row.update(status='unavailable',reason=attempts[-1]['reason'] if attempts else 'No valid trace')
             print(f"{index+1}/{len(catalog)} {route['id']}: escluso: {row['reason']}",flush=True)
         report['routes'].append(row)
+    if safety is not None and not safety_stats['limitRoutes']:
+        raise RuntimeError('No explicit speed limits matched the official GPX')
+    report['roadSafety'] = safety_stats
+    print('Road safety audit:', json.dumps(safety_stats), flush=True)
     report['validated'] = sum(r['status']=='validated' for r in report['routes'])
     report['partial'] = sum(r['status']=='partial' for r in report['routes'])
     report['unavailable'] = sum(r['status']=='unavailable' for r in report['routes'])
@@ -62,4 +86,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
