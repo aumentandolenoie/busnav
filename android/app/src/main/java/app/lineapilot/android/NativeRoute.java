@@ -23,4 +23,48 @@ final class NativeRoute {
     static double[][] coordinates(JSONArray a)throws JSONException{if(a==null)return new double[0][2];double[][] out=new double[a.length()][2];for(int i=0;i<a.length();i++){JSONArray p=a.getJSONArray(i);if(p.length()!=2)throw new IllegalArgumentException("Coppia di coordinate non valida");out[i][0]=p.getDouble(0);out[i][1]=p.getDouble(1);}return out;}
     boolean covered(double along,double maneuver){return GuidanceCoverage.contains(ranges,along,maneuver);}
     Turn nextTurn(double along){for(Turn t:turns)if(t.at>along-12&&covered(along,t.at))return t;return null;}
+    static final class Continuation {
+        final int index;
+        final boolean isStop;
+        final String text;
+
+        Continuation(int index, boolean isStop, String text) {
+            this.index = index;
+            this.isStop = isStop;
+            this.text = text;
+        }
+    }
+
+    Continuation continuation(int index, double progress, int stopIndex) {
+        Turn first = turns.get(index);
+        double stopAt = stopIndex < offsets.length && offsets[stopIndex] >= progress
+                ? offsets[stopIndex] : Double.POSITIVE_INFINITY;
+        if (first.at < progress || stopAt <= first.at) return null;
+        int nextIndex = index + 1;
+        Turn next = nextIndex < turns.size() ? turns.get(nextIndex) : null;
+        double nextAt = next == null ? Double.POSITIVE_INFINITY : next.at;
+        double secondAt = Math.min(stopAt, nextAt);
+        double gap = secondAt - first.at;
+        if (gap < 5 || gap > 80 || !covered(progress, secondAt)) return null;
+        if (stopAt < nextAt) return new Continuation(stopIndex, true, "prossima fermata: " + stops[stopIndex]);
+        if (next == null || nextAt >= stopAt) return null;
+        return new Continuation(nextIndex, false, next.text);
+    }
+
+    static String voiceMessage(String first, Double distance, Continuation continuation) {
+        String clause = stripPunctuation(first);
+        String message = distance == null ? clause : "Tra circa " + Math.round(distance) + " metri, " + lowerInitial(clause);
+        if (continuation != null) message += ", poi " + lowerInitial(stripPunctuation(continuation.text));
+        return message + ".";
+    }
+
+    private static String stripPunctuation(String text) {
+        return text.trim().replaceFirst("[.!?]+$", "");
+    }
+
+    private static String lowerInitial(String text) {
+        return text.isEmpty() ? text : text.substring(0, 1).toLowerCase(Locale.ITALIAN) + text.substring(1);
+    }
+
 }
+

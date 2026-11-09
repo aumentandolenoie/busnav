@@ -487,7 +487,7 @@ test('installed apps use native route preview and native simulation without chan
  assert.match(ios,/MKMapView/);assert.match(ios,/MKPolyline/);
  const android=fs.readFileSync('android/app/src/main/java/app/lineapilot/android/NativeMap.java','utf8');
  assert.match(android,/org\.maplibre\.android/);assert.match(android,/setPrefetchZoomDelta\(0\)/);
- assert.match(fs.readFileSync('android/app/src/main/java/app/lineapilot/android/NavigationSession.java','utf8'),/route\.covered\(along,t\.at\)/);
+ assert.match(fs.readFileSync('android/app/src/main/java/app/lineapilot/android/NavigationSession.java','utf8'),/route\.covered\(along,\s*turn\.at\)/);
 });
 
 test('native preview keeps feedback visible outside the hidden web map',()=>{
@@ -497,3 +497,4 @@ test('native preview keeps feedback visible outside the hidden web map',()=>{
  context.window.lineaPilotNativeReceive('previewReady',{});
  assert.ok(classes.has('native-preview'));assert.equal(notice.parentElement,body);
 });
+

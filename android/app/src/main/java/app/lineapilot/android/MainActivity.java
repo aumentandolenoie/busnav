@@ -208,6 +208,7 @@ public final class MainActivity extends Activity {
         }
         if(selected!=null)tts.setVoice(selected);else tts.setLanguage(Locale.ITALIAN);
     }
+    boolean navigationSpeaking(){return tts!=null&&tts.isSpeaking();}
     boolean speakNavigation(String text,boolean priority){
         if(!ttsReady||tts==null||text.isEmpty()||text.length()>2000)return false;
         if(tts.isSpeaking()&&(!priority||speakingStop))return false;
@@ -223,7 +224,7 @@ public final class MainActivity extends Activity {
             case "start":startNavigation(body);break;
             case "stop":endNavigation(false);break;
             case "settings":configureVoice(body);if(session!=null){session.voice=body.optBoolean("voice",session.voice);session.turnVoice=body.optBoolean("turnVoice",session.turnVoice);if(!session.voice)stopNativeSpeech();}break;
-            case "testVoice":speakNavigation("Tra duecento metri, svolta a destra in via Roma. Alla rotonda, prendi la terza uscita. Prossima fermata: Padova Autostazione.",true);break;
+            case "testVoice":speakNavigation("Tra duecento metri, alla rotonda, prendi la seconda uscita, poi prossima fermata: Padova Autostazione. Svolta a destra, poi svolta a sinistra.",true);break;
             case "openUpdate":new Bridge(this).openExternal(body.optString("url"));break;
             case "checkUpdates":new Thread(()->{try{HttpURLConnection connection=(HttpURLConnection)new URL("https://api.github.com/repos/aumentandolenoie/busnav/releases?per_page=40").openConnection();connection.setConnectTimeout(15000);connection.setReadTimeout(15000);connection.setRequestProperty("Accept","application/vnd.github+json");try(java.io.InputStream in=connection.getInputStream()){java.io.ByteArrayOutputStream bytes=new java.io.ByteArrayOutputStream();byte[] buffer=new byte[8192];int count;while((count=in.read(buffer))!=-1)bytes.write(buffer,0,count);JSONArray releases=new JSONArray(new String(bytes.toByteArray(),StandardCharsets.UTF_8));JSONObject out=new JSONObject();out.put("releases",releases);send("releases",out);}finally{connection.disconnect();}}catch(Exception e){JSONObject out=new JSONObject();try{out.put("message",e.getMessage());}catch(Exception ignored){}send("updateError",out);}}).start();break;
         }
@@ -285,5 +286,6 @@ public final class MainActivity extends Activity {
         }
     }
 }
+
 
 

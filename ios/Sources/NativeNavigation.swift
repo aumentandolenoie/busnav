@@ -12,6 +12,39 @@ struct NativeRoute: Decodable {
     func nextTurn(at along: Double) -> Turn? {
         turns.first { $0.verifiedRoad == true && $0.at > along-12 && supportsGuidance(at: along, maneuver: $0.at) }
     }
+    struct Continuation {
+        let index: Int
+        let isStop: Bool
+        let text: String
+    }
+
+    func continuation(after index: Int, from progress: Double, stopIndex: Int) -> Continuation? {
+        let first = turns[index]
+        let stopAt = offsets.indices.contains(stopIndex) && offsets[stopIndex] >= progress
+            ? offsets[stopIndex] : .infinity
+        guard first.at >= progress, stopAt > first.at else { return nil }
+        let nextIndex = index + 1
+        let next = turns.indices.contains(nextIndex) ? turns[nextIndex] : nil
+        let nextAt = next?.at ?? .infinity
+        let secondAt = min(stopAt, nextAt)
+        let gap = secondAt - first.at
+        guard gap >= 5, gap <= 80, supportsGuidance(at: progress, maneuver: secondAt) else { return nil }
+        if stopAt < nextAt {
+            return Continuation(index: stopIndex, isStop: true, text: "prossima fermata: \(stops[stopIndex])")
+        }
+        guard nextAt < stopAt, next?.verifiedRoad == true, let text = next?.text, !text.isEmpty else { return nil }
+        return Continuation(index: nextIndex, isStop: false, text: text)
+    }
+
+    func voiceMessage(_ first: String, distance: Double?, continuation: Continuation? = nil) -> String {
+        let punctuation = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ".!?"))
+        let firstClause = first.trimmingCharacters(in: punctuation)
+        let prefix = distance.map { "Tra circa \(Int($0.rounded())) metri, " } ?? ""
+        func lowerInitial(_ text: String) -> String { text.prefix(1).lowercased() + String(text.dropFirst()) }
+        let secondClause = continuation.map { ", poi " + lowerInitial($0.text.trimmingCharacters(in: punctuation)) } ?? ""
+        return prefix + (prefix.isEmpty ? firstClause : lowerInitial(firstClause)) + secondClause + "."
+    }
+
     struct Turn: Decodable {
         let at: Double
         let side: String
@@ -107,6 +140,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     private var interrupted = false
     private var staleWarning = false
     private var stopIndex = 0
+    private var chainedStopAfter = -Double.infinity
     private var stopStages: [Int: Int] = [:]
     private var turnStages: [Int: Int] = [:]
 
@@ -141,6 +175,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         stopIndex = 0
         lastGoodFix = Date()
         staleWarning = false
+        chainedStopAfter = -.infinity
         stopStages.removeAll()
         turnStages.removeAll()
         active = true
@@ -195,6 +230,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         tracker = nil
         lastGoodFix = Date()
         staleWarning = false
+        chainedStopAfter = -.infinity
         stopStages.removeAll()
         turnStages.removeAll()
         try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
@@ -287,46 +323,91 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
            route.offsets[0] < 50 && abs(along - route.offsets[0]) < 30 { stopIndex = 1 }
 
         onProgress?(along, hit.distance, stopIndex, true)
-        let remaining = stopIndex < route.offsets.count ? route.offsets[stopIndex] - along : .infinity
-        if voiceEnabled && stopIndex < route.stops.count && hit.distance < 100 && remaining >= 0 {
-            let stage = stopStages[stopIndex, default: 0]
-            let lead = max(140, min(400, max(speed, 6) * 22))
-            if stage == 0 && remaining <= lead && !speakingStop {
-                if speak("Tra \(Int(max(50, (remaining / 50).rounded() * 50))) metri, prossima fermata: \(route.stops[stopIndex]).", stopPriority: true) { stopStages[stopIndex] = 1 }
-            } else if stage == 1 && remaining <= 65 && remaining >= 8 && speed > 2 {
-                if speak("Fermata in arrivo: \(route.stops[stopIndex]).", stopPriority: true) { stopStages[stopIndex] = 2 }
-            }
+        announce(atSpeed: speed, deviation: hit.distance, route: route)
+    }
+
+    private func nextVoiceTurn(in route: NativeRoute, maxDistance: Double = 450) -> Int? {
+        route.turns.indices.first { index in
+            let turn = route.turns[index]
+            return turn.verifiedRoad == true && !(turn.text ?? "").isEmpty &&
+                turn.at > along - 12 && turn.at < along + maxDistance &&
+                !(turn.at <= along && turnStages[index] == 2) &&
+                route.supportsGuidance(at: along, maneuver: turn.at)
         }
-        if turnsEnabled && voiceEnabled && hit.distance < 65 {
-            for (index, turn) in route.turns.enumerated() where turn.verifiedRoad == true && route.supportsGuidance(at: along, maneuver: turn.at) && turn.at > along - 12 && turn.at < along + 450 {
-                let distance = turn.at - along
-                let lead = max(150, min(350, max(speed, 6) * 18))
-                let stage = turnStages[index, default: 0]
-                if stage == 0 && distance <= lead && !synthesizer.isSpeaking {
-                    if turn.verifiedRoad == true, let message = turn.text, !message.isEmpty {
-                        if speak("Tra circa \(Int(max(0,distance).rounded())) metri, \(message).") { turnStages[index] = 1 }
-                    }
-                } else if stage == 1 && distance <= max(20, speed * 3) && !synthesizer.isSpeaking {
-                    if turn.verifiedRoad == true, let message = turn.text, !message.isEmpty {
-                        if speak(message) { turnStages[index] = 2 }
+    }
+
+    private func announce(atSpeed speed: Double, deviation: Double, route: NativeRoute) {
+        guard voiceEnabled else { return }
+        let index = turnsEnabled && deviation < 65 ? nextVoiceTurn(in: route) : nil
+        let turn = index.map { route.turns[$0] }
+        let distance = (turn?.at ?? .infinity) - along
+        let lead = max(150, min(350, max(speed, 6) * 18))
+        let near = max(20, speed * 3)
+        let stopLead = max(140, min(400, max(speed, 6) * 22))
+        let remaining = stopIndex < route.stops.count ? route.offsets[stopIndex] - along : .infinity
+        let stopStage = stopStages[stopIndex, default: 0]
+
+        var stopFollowsChain = false
+        if let index, let turn, let text = turn.text, distance >= 0,
+           turnStages[index, default: 0] == 0,
+           let continuation = route.continuation(after: index, from: along, stopIndex: stopIndex) {
+            let secondaryStage = continuation.isStop ? stopStages[continuation.index] : turnStages[continuation.index]
+            if (secondaryStage ?? 0) == 0 {
+                stopFollowsChain = continuation.isStop
+                let chainLead = continuation.isStop ? max(lead, stopLead - (remaining - distance)) : lead
+                if distance <= chainLead {
+                    let message = route.voiceMessage(text, distance: distance > near ? distance : nil, continuation: continuation)
+                    if speak(message, stopPriority: continuation.isStop) {
+                        turnStages[index] = distance <= near ? 2 : 1
+                        if continuation.isStop {
+                            stopStages[continuation.index] = 1
+                            chainedStopAfter = turn.at
+                        } else {
+                            turnStages[continuation.index] = 1
+                        }
+                        return
                     }
                 }
-                break
             }
+        }
+
+        if stopIndex < route.stops.count && deviation < 100 && remaining >= 0 {
+            if stopStage == 0 && remaining <= stopLead && !stopFollowsChain && !synthesizer.isSpeaking {
+                if speak("Tra \(Int(max(50, (remaining / 50).rounded() * 50))) metri, prossima fermata: \(route.stops[stopIndex]).", stopPriority: true) {
+                    stopStages[stopIndex] = 1
+                    return
+                }
+            } else if stopStage == 1 && remaining <= 65 && remaining >= 8 && speed > 2 && along >= chainedStopAfter {
+                if speak("Fermata in arrivo: \(route.stops[stopIndex]).", stopPriority: true) {
+                    stopStages[stopIndex] = 2
+                    return
+                }
+            }
+        }
+        guard let index, let text = turn?.text, !synthesizer.isSpeaking else { return }
+        let stage = turnStages[index, default: 0]
+        if stage < 2 && distance <= near {
+            if speak(route.voiceMessage(text, distance: nil)) { turnStages[index] = 2 }
+        } else if stage == 0 && distance <= lead {
+            if speak(route.voiceMessage(text, distance: distance)) { turnStages[index] = 1 }
         }
     }
 
     func repeatInstruction() {
         guard voiceEnabled, matched, let route else { return }
-        if turnsEnabled, let turn = route.nextTurn(at: along), let text = turn.text {
-            speak("Tra \(Int(max(0, turn.at-along).rounded())) metri, \(text)", stopPriority: true)
+        let remaining = stopIndex < route.stops.count ? route.offsets[stopIndex] - along : .infinity
+        if turnsEnabled, let index = nextVoiceTurn(in: route, maxDistance: .infinity), let text = route.turns[index].text,
+           remaining < 0 || route.turns[index].at - along < remaining {
+            let distance = route.turns[index].at - along
+            let continuation = route.continuation(after: index, from: along, stopIndex: stopIndex)
+            speak(route.voiceMessage(text, distance: distance > 20 ? distance : nil, continuation: continuation), stopPriority: true)
         } else if stopIndex < route.stops.count {
             speak("Prossima fermata: \(route.stops[stopIndex])", stopPriority: true)
         } else { speak("Segui il percorso ufficiale.", stopPriority: true) }
     }
 
     func testVoice() {
-        speak("Tra duecento metri, svolta a destra in via Roma. Alla rotonda, prendi la terza uscita. Prossima fermata: Padova Autostazione.")
+        speak("Tra duecento metri, alla rotonda, prendi la seconda uscita, poi prossima fermata: Padova Autostazione. Svolta a destra, poi svolta a sinistra.")
     }
 
     @objc private func audioInterrupted(_ note: Notification) {
@@ -376,3 +457,4 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     }
 
 }
+

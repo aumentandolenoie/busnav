@@ -71,6 +71,34 @@ import static org.junit.Assert.*;
             });
         }
     }
+    @Test public void voiceChainsTheNextEventInRouteOrder() throws Exception {
+        NativeRoute stopFirst = voiceRoute(340, 360, "[[0,700]]");
+        NativeRoute.Continuation stop = stopFirst.continuation(0, 100, 0);
+        assertNotNull(stop);
+        assertTrue(stop.isStop);
+        assertEquals("Tra circa 200 metri, alla rotonda, prendi la seconda uscita, poi prossima fermata: Padova Autostazione.",
+                NativeRoute.voiceMessage(stopFirst.turns.get(0).text, 200.0, stop));
+
+        NativeRoute turnFirst = voiceRoute(420, 360, "[[0,700]]");
+        NativeRoute.Continuation turn = turnFirst.continuation(0, 100, 0);
+        assertNotNull(turn);
+        assertFalse(turn.isStop);
+        assertEquals("Svolta a destra, poi svolta a sinistra.", NativeRoute.voiceMessage("Svolta a destra.", null, turn));
+        assertNull(voiceRoute(280, 360, "[[0,700]]").continuation(0, 100, 0));
+        assertNull(voiceRoute(420, 405, "[[0,700]]").continuation(0, 100, 0));
+        assertNull(voiceRoute(420, 360, "[[0,320],[330,700]]").continuation(0, 100, 0));
+    }
+
+    private NativeRoute voiceRoute(double stopAt, double secondAt, String ranges) throws JSONException {
+        JSONObject route = new JSONObject("{\"points\":[[45,11],[45,11.01]],\"stops\":[\"Padova Autostazione\"],"
+                + "\"turns\":[{\"at\":300,\"side\":\"rotatoria\",\"text\":\"Alla rotonda, prendi la seconda uscita.\",\"verifiedRoad\":true},"
+                + "{\"at\":" + secondAt + ",\"side\":\"sinistra\",\"text\":\"Svolta a sinistra.\",\"verifiedRoad\":true}]}");
+        route.put("offsets", new JSONArray().put(stopAt));
+        route.put("coverage", new JSONObject().put("ranges", new JSONArray(ranges)));
+        return new NativeRoute(route);
+    }
+
     private void collect(View root,List<View> out){if(root.getTag()!=null&&root.getTag().toString().startsWith("nav-"))out.add(root);if(root instanceof ViewGroup){ViewGroup group=(ViewGroup)root;for(int i=0;i<group.getChildCount();i++)collect(group.getChildAt(i),out);}}
 }
+
 

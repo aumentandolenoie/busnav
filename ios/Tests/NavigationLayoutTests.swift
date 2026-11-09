@@ -85,8 +85,36 @@ import MapKit
         XCTAssertTrue(map.gestureRecognizers!.contains { $0 is UIPanGestureRecognizer && $0.delegate === drive })
     }
     private final class BeganPan: UIPanGestureRecognizer { override var state: UIGestureRecognizer.State { get { .began } set {} } }
+    func testVoiceChainsTheNextEventInRouteOrder() throws {
+        func route(stopAt: Double, secondAt: Double = 360, ranges: [[Double]] = [[0,700]]) throws -> NativeRoute {
+            let payload: [String: Any] = [
+                "points": [[45.0,11.0],[45.0,11.01]], "offsets": [stopAt], "stops": ["Padova Autostazione"],
+                "coverage": ["ranges": ranges, "complete": false, "percent": 90],
+                "turns": [
+                    ["at": 300, "side": "rotatoria", "text": "Alla rotonda, prendi la seconda uscita.", "verifiedRoad": true],
+                    ["at": secondAt, "side": "sinistra", "text": "Svolta a sinistra.", "verifiedRoad": true]
+                ]
+            ]
+            return try JSONDecoder().decode(NativeRoute.self, from: JSONSerialization.data(withJSONObject: payload))
+        }
+        let stopFirst = try route(stopAt: 340)
+        let stop = stopFirst.continuation(after: 0, from: 100, stopIndex: 0)
+        XCTAssertEqual(stop?.isStop, true)
+        XCTAssertEqual(stopFirst.voiceMessage(stopFirst.turns[0].text!, distance: 200, continuation: stop),
+            "Tra circa 200 metri, alla rotonda, prendi la seconda uscita, poi prossima fermata: Padova Autostazione.")
+        let turnFirst = try route(stopAt: 420)
+        let turn = turnFirst.continuation(after: 0, from: 100, stopIndex: 0)
+        XCTAssertEqual(turn?.isStop, false)
+        XCTAssertEqual(turnFirst.voiceMessage("Svolta a destra.", distance: nil, continuation: turn),
+            "Svolta a destra, poi svolta a sinistra.")
+        XCTAssertNil(try route(stopAt: 280).continuation(after: 0, from: 100, stopIndex: 0))
+        XCTAssertNil(try route(stopAt: 420, secondAt: 405).continuation(after: 0, from: 100, stopIndex: 0))
+        XCTAssertNil(try route(stopAt: 420, ranges: [[0,320],[330,700]]).continuation(after: 0, from: 100, stopIndex: 0))
+    }
+
     private func descendants(_ view: UIView) -> [UIView] {
         view.subviews.flatMap { [$0] + descendants($0) }
     }
 }
+
 

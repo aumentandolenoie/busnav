@@ -8,6 +8,7 @@ import java.util.*;
 final class NavigationSession implements LocationListener {
     final MainActivity owner;final NativeRoute route;final GPXTracker tracker;final DriverView screen;
     final boolean demo;private double demoProgress;boolean active=true,voice,turnVoice,matched;int stopIndex;double along;
+    private double chainedStopAfter = Double.NEGATIVE_INFINITY;
     private long lastGood,lastOffRoute;private final Map<Integer,Integer> stopStages=new HashMap<>(),turnStages=new HashMap<>();
     private final LocationManager locations;private final Handler handler=new Handler(Looper.getMainLooper());
     private final Runnable watchdog=new Runnable(){public void run(){if(!active)return;if(SystemClock.elapsedRealtime()-lastGood>8000){matched=false;owner.stopNativeSpeech();screen.progress(along,stopIndex,false,0);screen.message("Segnale GPS non aggiornato · annunci sospesi");}handler.postDelayed(this,2000);}};
@@ -34,17 +35,91 @@ final class NavigationSession implements LocationListener {
         matched=true;along=hit.along;while(stopIndex<route.stops.length&&along>route.offsets[stopIndex]+35)stopIndex++;
         if(stopIndex==0&&route.offsets.length>1&&route.offsets[0]<50&&Math.abs(along-route.offsets[0])<30)stopIndex=1;
         screen.location(p,true,along);screen.progress(along,stopIndex,true,hit.distance);screen.message("GPS ±"+Math.round(p.getAccuracy())+" m · GPX ufficiale");
-        if(voice&&stopIndex<route.stops.length){double remaining=route.offsets[stopIndex]-along;int stage=stopStages.getOrDefault(stopIndex,0);double lead=Math.max(140,Math.min(400,Math.max(speed,6)*22));
-            if(stage==0&&remaining>=0&&remaining<=lead){if(owner.speakNavigation("Tra "+Math.max(50,Math.round(remaining/50)*50)+" metri, prossima fermata: "+route.stops[stopIndex]+".",true))stopStages.put(stopIndex,1);}
-            else if(stage==1&&remaining<=65&&remaining>=8&&speed>2){if(owner.speakNavigation("Fermata in arrivo: "+route.stops[stopIndex]+".",true))stopStages.put(stopIndex,2);}
-        }
-        if(voice&&turnVoice&&hit.distance<65){for(int i=0;i<route.turns.size();i++){NativeRoute.Turn t=route.turns.get(i);if(!route.covered(along,t.at)||t.at<=along-12||t.at>=along+450)continue;double d=t.at-along,lead=Math.max(150,Math.min(350,Math.max(speed,6)*18));int stage=turnStages.getOrDefault(i,0);
-            if(stage==0&&d<=lead){if(owner.speakNavigation("Tra circa "+Math.round(Math.max(0,d))+" metri, "+t.text,false))turnStages.put(i,1);}
-            else if(stage==1&&d<=Math.max(20,speed*3)){if(owner.speakNavigation(t.text,false))turnStages.put(i,2);}break;
-        }}
+        announce(speed, hit.distance);
     }
-    void repeat(){if(!voice||!matched)return;NativeRoute.Turn turn=turnVoice?route.nextTurn(along):null;if(turn!=null)owner.speakNavigation("Tra "+Math.round(Math.max(0,turn.at-along))+" metri, "+turn.text,true);else if(stopIndex<route.stops.length)owner.speakNavigation("Prossima fermata: "+route.stops[stopIndex],true);else owner.speakNavigation("Segui il percorso ufficiale.",true);}
+
+    private int nextVoiceTurn(double maxDistance) {
+        for (int i = 0; i < route.turns.size(); i++) {
+            NativeRoute.Turn turn = route.turns.get(i);
+            if (turn.at >= along + maxDistance) break;
+            if (turn.at <= along - 12 || !route.covered(along, turn.at)) continue;
+            if (turn.at <= along && turnStages.getOrDefault(i, 0) == 2) continue;
+            return i;
+        }
+        return -1;
+    }
+
+    private void announce(double speed, double deviation) {
+        if (!voice) return;
+        int index = turnVoice && deviation < 65 ? nextVoiceTurn(450) : -1;
+        NativeRoute.Turn turn = index < 0 ? null : route.turns.get(index);
+        double distance = turn == null ? Double.POSITIVE_INFINITY : turn.at - along;
+        double lead = Math.max(150, Math.min(350, Math.max(speed, 6) * 18));
+        double near = Math.max(20, speed * 3);
+        double stopLead = Math.max(140, Math.min(400, Math.max(speed, 6) * 22));
+        double remaining = stopIndex < route.stops.length ? route.offsets[stopIndex] - along : Double.POSITIVE_INFINITY;
+        int stopStage = stopStages.getOrDefault(stopIndex, 0);
+
+        boolean stopFollowsChain = false;
+        if (turn != null && distance >= 0 && turnStages.getOrDefault(index, 0) == 0) {
+            NativeRoute.Continuation continuation = route.continuation(index, along, stopIndex);
+            if (continuation != null) {
+                Map<Integer, Integer> stages = continuation.isStop ? stopStages : turnStages;
+                if (stages.getOrDefault(continuation.index, 0) == 0) {
+                    stopFollowsChain = continuation.isStop;
+                    double chainLead = continuation.isStop ? Math.max(lead, stopLead - (remaining - distance)) : lead;
+                    if (distance <= chainLead && owner.speakNavigation(
+                            NativeRoute.voiceMessage(turn.text, distance > near ? distance : null, continuation),
+                            continuation.isStop)) {
+                        turnStages.put(index, distance <= near ? 2 : 1);
+                        stages.put(continuation.index, 1);
+                        if (continuation.isStop) chainedStopAfter = turn.at;
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (stopIndex < route.stops.length && deviation < 100 && remaining >= 0) {
+            if (stopStage == 0 && remaining <= stopLead && !stopFollowsChain && !owner.navigationSpeaking()) {
+                if (owner.speakNavigation("Tra " + Math.max(50, Math.round(remaining / 50) * 50)
+                        + " metri, prossima fermata: " + route.stops[stopIndex] + ".", true)) {
+                    stopStages.put(stopIndex, 1);
+                    return;
+                }
+            } else if (stopStage == 1 && remaining <= 65 && remaining >= 8 && speed > 2 && along >= chainedStopAfter) {
+                if (owner.speakNavigation("Fermata in arrivo: " + route.stops[stopIndex] + ".", true)) {
+                    stopStages.put(stopIndex, 2);
+                    return;
+                }
+            }
+        }
+        if (turn == null) return;
+        int stage = turnStages.getOrDefault(index, 0);
+        if (stage < 2 && distance <= near) {
+            if (owner.speakNavigation(NativeRoute.voiceMessage(turn.text, null, null), false)) turnStages.put(index, 2);
+        } else if (stage == 0 && distance <= lead) {
+            if (owner.speakNavigation(NativeRoute.voiceMessage(turn.text, distance, null), false)) turnStages.put(index, 1);
+        }
+    }
+
+    void repeat() {
+        if (!voice || !matched) return;
+        int index = turnVoice ? nextVoiceTurn(Double.POSITIVE_INFINITY) : -1;
+        double remaining = stopIndex < route.stops.length ? route.offsets[stopIndex] - along : Double.POSITIVE_INFINITY;
+        if (index >= 0 && (remaining < 0 || route.turns.get(index).at - along < remaining)) {
+            NativeRoute.Turn turn = route.turns.get(index);
+            double distance = turn.at - along;
+            owner.speakNavigation(NativeRoute.voiceMessage(turn.text, distance > 20 ? distance : null,
+                    route.continuation(index, along, stopIndex)), true);
+        } else if (stopIndex < route.stops.length) {
+            owner.speakNavigation("Prossima fermata: " + route.stops[stopIndex], true);
+        } else {
+            owner.speakNavigation("Segui il percorso ufficiale.", true);
+        }
+    }
     @Override public void onProviderDisabled(String provider){matched=false;owner.stopNativeSpeech();screen.message("Segnale GPS non disponibile");}
     @Override public void onProviderEnabled(String provider){}
     @Override public void onStatusChanged(String provider,int status,Bundle extras){}
 }
+
