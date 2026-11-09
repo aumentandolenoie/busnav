@@ -98,7 +98,37 @@ import static org.junit.Assert.*;
         return new NativeRoute(route);
     }
 
+    @Test public void basemapLoadsWithOfficialNavigationLayers() throws Exception {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), MainActivity.class);
+        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(intent)) {
+            scenario.onActivity(activity -> activity.previewMap.show(
+                    new double[][]{{45.4064,11.8768},{45.4084,11.8768}},
+                    new double[][]{{45.4084,11.8768}}, new String[]{"Fermata di prova"}));
+            java.util.concurrent.atomic.AtomicBoolean ready = new java.util.concurrent.atomic.AtomicBoolean();
+            for (int i = 0; i < 160 && !ready.get(); i++) {
+                scenario.onActivity(activity -> {
+                    if (activity.previewMap.map == null) return;
+                    org.maplibre.android.maps.Style style = activity.previewMap.map.getStyle();
+                    ready.set(style != null && style.getLayer("gpx-line") != null);
+                });
+                if (!ready.get()) Thread.sleep(100);
+            }
+            assertTrue("Official route layers must be available", ready.get());
+            scenario.onActivity(activity -> {
+                org.maplibre.android.maps.Style style = activity.previewMap.map.getStyle();
+                assertNotNull(style.getLayer("stop-dots"));
+                assertNotNull(style.getLayer("gps-dot"));
+                if (style.getSource("openmaptiles") != null) {
+                    assertTrue(style.getLayer("building-3d") instanceof org.maplibre.android.style.layers.FillExtrusionLayer);
+                    assertTrue(style.getLayer("poi_r20") instanceof org.maplibre.android.style.layers.SymbolLayer);
+                    android.util.Log.i("LineaPilotMap", "OpenFreeMap style loaded with 3D buildings, POIs and GPX overlays");
+                } else {
+                    assertNotNull("Offline style must fall back to raster", style.getSource("osm"));
+                    android.util.Log.i("LineaPilotMap", "Raster fallback loaded with GPX overlays");
+                }
+            });
+        }
+    }
+
     private void collect(View root,List<View> out){if(root.getTag()!=null&&root.getTag().toString().startsWith("nav-"))out.add(root);if(root instanceof ViewGroup){ViewGroup group=(ViewGroup)root;for(int i=0;i<group.getChildCount();i++)collect(group.getChildAt(i),out);}}
 }
-
-

@@ -50,7 +50,7 @@ final class DriverView extends FrameLayout {
     void location(Location p,boolean reliable,double along){lastFix=p;nativeMap.location(p.getLatitude(),p.getLongitude());if(!following||nativeMap.map==null)return;
         if(reliable){double[] a=session.tracker.coordinate(along),b=session.tracker.coordinate(along+40);double r=Math.PI/180,d=(b[1]-a[1])*r;if(GPXTracker.metres(a,b)>10)heading=Math.atan2(Math.sin(d)*Math.cos(b[0]*r),Math.cos(a[0]*r)*Math.sin(b[0]*r)-Math.sin(a[0]*r)*Math.cos(b[0]*r)*Math.cos(d))/r;}
         else if(p.hasBearing()&&p.getSpeed()>3)heading=p.getBearing();
-        nativeMap.map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(p.getLatitude(),p.getLongitude())).zoom(16.5).tilt(50).bearing(heading).build()));
+        nativeMap.map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(p.getLatitude(),p.getLongitude())).zoom(17).tilt(55).bearing(heading).build()));
     }
     private String metres(double value){return value<1000?((int)Math.max(0,value)/10*10)+" m":String.format(Locale.ITALY,"%.1f km",value/1000);}
     private LinearLayout column(Context c){LinearLayout v=new LinearLayout(c);v.setOrientation(LinearLayout.VERTICAL);return v;}
@@ -62,4 +62,3 @@ final class DriverView extends FrameLayout {
     private int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     private static final class BoundedScroll extends ScrollView {int limit=400;BoundedScroll(Context c){super(c);setFillViewport(false);} @Override protected void onMeasure(int w,int h){super.onMeasure(w,MeasureSpec.makeMeasureSpec(limit,MeasureSpec.AT_MOST));}}
 }
-
