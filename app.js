@@ -426,6 +426,33 @@ const ACADEMY_DOCUMENTS={
 };
 const sortIt=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true,sensitivity:'base'});
 function academyGroupName(r){return String(r.line||'Altri percorsi').trim();}
+// These Academy files share the same ordered coordinates, service evidence
+// and stop proposals. Keep the source IDs and group only the picker options.
+const ACADEMY_ROUTE_ALIASES=new Map([[2,3],[55,56],[76,75],[103,101],[110,109],[208,209]]);
+function academyRouteChoices(routes,query){
+ const normalize=value=>String(value??'').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase('it');
+ const groups=new Map(),titles=new Map();
+ for(const route of routes){
+  const id=ACADEMY_ROUTE_ALIASES.get(route.id)??route.id;
+  if(!groups.has(id))groups.set(id,[]);
+  groups.get(id).push(route);
+  if(id!==route.id)continue;
+  const title=normalize(route.name);
+  if(!titles.has(title))titles.set(title,[]);
+  titles.get(title).push(route);
+ }
+ const choices=[];
+ for(const [id,group] of groups){
+  const route=group.find(r=>r.id===id)??group[0];
+  if(query&&!group.some(r=>normalize([r.name,r.variant,r.filename].join(' ')).includes(query)))continue;
+  const homonyms=titles.get(normalize(route.name))??[];
+  const code=String(route.variant??'').trim();
+  const distinctCode=code&&homonyms.filter(r=>normalize(r.variant)===normalize(code)).length===1;
+  const label=homonyms.length<=1?route.name:route.name+(distinctCode?' · cod. '+code:' · GPX '+route.id);
+  choices.push([String(route.id),label]);
+ }
+ return choices.sort((a,b)=>sortIt(a[1],b[1]));
+}
 // XMLHttpRequest is supported by WKURLSchemeHandler for bundled JSON.
 async function readAcademyJSON(path){
  if(nativeMode)return new Promise((resolve,reject)=>{
@@ -453,7 +480,7 @@ function filterAcademy(){
  if(!category){
   setOptions($('academyLine'),[],'Scegli prima la categoria…');
   setOptions($('academyRoute'),[],'Scegli prima la linea…');
-  $('academyCount').textContent=academy.length+' percorsi GPX disponibili · seleziona una categoria';
+  $('academyCount').textContent=academy.filter(r=>!ACADEMY_ROUTE_ALIASES.has(r.id)).length+' percorsi GPX disponibili · seleziona una categoria';
   onAcademySelected();return;
  }
  if(ACADEMY_DOCUMENTS[category]){
@@ -462,7 +489,7 @@ function filterAcademy(){
   if(groups.includes(previousLine))$('academyLine').value=previousLine;
   filterAcademyRoutes();return;
  }
- const paths=academy.filter(r=>r.category===category);
+ const paths=academy.filter(r=>r.category===category&&!ACADEMY_ROUTE_ALIASES.has(r.id));
  const groups=[...new Set(paths.map(academyGroupName))].sort(sortIt);
  setOptions($('academyLine'),groups.map(g=>[g,g+' ('+paths.filter(r=>academyGroupName(r)===g).length+')']),'Scegli linea…');
  if(groups.includes(previousLine))$('academyLine').value=previousLine;
@@ -471,7 +498,8 @@ function filterAcademy(){
 function filterAcademyRoutes(){
  const cat=$('academyCategory').value,line=$('academyLine').value;
  const previous=$('academyRoute').value;
- if(!line){setOptions($('academyRoute'),[],'Scegli prima la linea…');$('academyCount').textContent=academy.filter(r=>r.category===cat).length+' percorsi nella categoria';onAcademySelected();return;}
+ const paths=academy.filter(r=>r.category===cat);
+ if(!line){setOptions($('academyRoute'),[],'Scegli prima la linea…');$('academyCount').textContent=paths.filter(r=>!ACADEMY_ROUTE_ALIASES.has(r.id)).length+' percorsi nella categoria';onAcademySelected();return;}
  if(ACADEMY_DOCUMENTS[cat]){
   const docs=ACADEMY_DOCUMENTS[cat][line]||[];
   setOptions($('academyRoute'),docs.map(d=>[d,d]),'Scegli documento…');
@@ -479,11 +507,12 @@ function filterAcademyRoutes(){
   $('academyCount').textContent=docs.length+' documento/i PDF · non sono GPX';
   onAcademySelected();return;
  }
- const q=$('academySearch').value.trim().toLocaleLowerCase('it');
- const matches=academy.filter(r=>r.category===cat&&academyGroupName(r)===line&&(!q||[r.name,r.variant,r.filename].join(' ').toLocaleLowerCase('it').includes(q))).sort((a,b)=>sortIt(a.name,b.name));
- setOptions($('academyRoute'),matches.map(r=>[String(r.id),r.name]),'Scegli percorso…');
- if(matches.some(r=>String(r.id)===previous))$('academyRoute').value=previous;
- $('academyCount').textContent=matches.length+' percorsi trovati in '+cat+' / '+line+' (nessun limite ai risultati)';
+ const q=$('academySearch').value.normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase('it');
+ const choices=academyRouteChoices(paths.filter(r=>academyGroupName(r)===line),q);
+ setOptions($('academyRoute'),choices,'Scegli percorso…');
+ const selected=String(ACADEMY_ROUTE_ALIASES.get(Number(previous))??previous);
+ if(choices.some(([id])=>id===selected))$('academyRoute').value=selected;
+ $('academyCount').textContent=choices.length+' percorsi trovati in '+cat+' / '+line+' (nessun limite ai risultati)';
  onAcademySelected();
 }
 let academyGtfsMatches=new Map();

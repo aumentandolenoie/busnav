@@ -108,3 +108,34 @@ test('page-attributed Academy line aliases participate in GTFS matching',()=>{
  assert.equal(api({category:'Extraurbano',line:'Deviazioni mercatali',variant:'597',name:'597',_evidence:evidence.routes[1]},{route_short_name:'E071'}),true);
  assert.ok(evidence.routes[1].shiftMatches.some(r=>r.page>0&&r.document&&r.line==='E071'));
 });
+
+test('Academy selection groups only confirmed duplicate files and keeps homonymous variants',()=>{
+ const js=fs.readFileSync('app.js','utf8');
+ const aliases=js.match(/const ACADEMY_ROUTE_ALIASES=new Map\(.*\);/)[0];
+ const api=new Function(aliases+'\nconst sortIt=(a,b)=>a.localeCompare(b,"it",{numeric:true});\n'+
+  appFunction('academyRouteChoices')+'\nreturn {academyRouteChoices,ACADEMY_ROUTE_ALIASES};')();
+ const evidence=JSON.parse(fs.readFileSync('academy-evidence.json')).routes;
+ const supplemental=JSON.parse(fs.readFileSync('academy-supplemental-routes.json'));
+ const routes=[...catalog,...supplemental],byId=new Map(routes.map(r=>[r.id,r]));
+ assert.equal(byId.size,789);
+ for(const [alias,id] of api.ACADEMY_ROUTE_ALIASES){
+  const a=byId.get(alias),b=byId.get(id);
+  assert.deepEqual([a.category,a.line.trim(),a.name,a.points],[b.category,b.line.trim(),b.name,b.points]);
+  assert.ok(!a.variant||!b.variant||a.variant===b.variant);
+  assert.deepEqual(evidence[alias],evidence[id]);
+ }
+ const groups=new Map();
+ for(const route of routes){
+  const key=JSON.stringify([route.category,route.line.trim()]);
+  if(!groups.has(key))groups.set(key,[]);
+  groups.get(key).push(route);
+ }
+ const total=Array.from(groups.values(),group=>api.academyRouteChoices(group,'').length).reduce((a,b)=>a+b,0);
+ assert.equal(total,783);
+ const choices=(ids,query='')=>api.academyRouteChoices(ids.map(id=>byId.get(id)),query);
+ assert.deepEqual(choices([2,3],'bojon(1)').map(([id])=>id),['3']);
+ assert.deepEqual(choices([49,54]).map(([,name])=>name.split(' · ')[1]),['cod. 670','cod. 1078']);
+ assert.deepEqual(choices([195,196]).map(([,name])=>name.split(' · ')[1]),['cod. 994','cod. 999']);
+ assert.deepEqual(choices([106,107]).map(([,name])=>name.split(' · ')[1]),['GPX 106','GPX 107']);
+ assert.equal(choices([172,176]).length,2);
+});
