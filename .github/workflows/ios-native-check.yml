@@ -22,6 +22,7 @@ jobs:
           (cd ios && xcodegen generate)
       - name: Check native touch targets and safe areas on iOS Simulator
         run: |
+          mkdir -p build
           DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c "import sys,json; d=json.load(sys.stdin); print(next(v['udid'] for vs in d['devices'].values() for v in vs if v['name'].startswith('iPhone')))")
           xcodebuild -project ios/LineaPilot.xcodeproj -scheme LineaPilot -destination "platform=iOS Simulator,id=$DEVICE_ID" -derivedDataPath build/layout-tests -resultBundlePath build/navigation-layout.xcresult test CODE_SIGNING_ALLOWED=NO > build/layout-tests.log 2>&1 || { tail -n 140 build/layout-tests.log; exit 1; }
       - name: Save native layout results without Actions artifact storage
