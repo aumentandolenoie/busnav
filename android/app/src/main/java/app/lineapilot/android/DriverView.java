@@ -101,7 +101,8 @@ final class DriverView extends FrameLayout {
 
     void message(String text){status.setText(text);}
     void progress(double along,int stop,boolean reliable,double deviation){
-        int limit = reliable && deviation < 45 ? session.route.speedLimit(along) : 0;
+        int limit = reliable && lastFix != null && lastFix.hasAccuracy()
+                ? session.route.speedLimit(along,lastFix.getAccuracy(),deviation) : 0;
         speedSign.setVisibility(limit > 0 ? VISIBLE : INVISIBLE);
         speedSign.setText(limit > 0 ? Integer.toString(limit) : "");
         speedSign.setContentDescription(limit > 0 ? "Limite di velocità " + limit + " chilometri orari" : null);

@@ -234,7 +234,9 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     func location(_ location: CLLocation) { fix = location; if simulated { demoMarker.coordinate = location.coordinate; demoMarker.title = "Posizione simulata"; if !map.annotations.contains(where: { $0 === demoMarker }) { map.addAnnotation(demoMarker) } }; updateCamera() }
     func message(_ message: String) { status.text = message }
     func update(along:Double,deviation:Double,stop:Int,reliable:Bool) {
-        let limit = reliable && deviation < 45 ? route.speedLimit(at: along) : nil
+        let limit = reliable ? fix.flatMap {
+            route.speedLimit(at: along, accuracy: $0.horizontalAccuracy, deviation: deviation)
+        } : nil
         speedSign.text = limit.map { String($0) }
         speedSign.accessibilityLabel = limit.map { "Limite di velocità \($0) chilometri orari" }
         speedSign.isHidden = limit == nil

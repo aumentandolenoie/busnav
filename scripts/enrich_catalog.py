@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Prepare all official routes with bounded traces, without writing GPX geometry."""
 import argparse
-import hashlib
 import json
 import pathlib
 from datetime import datetime, timezone
@@ -23,8 +22,8 @@ def main():
     catalog = road.load_catalog()
     out = ROOT / 'road-guidance'
     out.mkdir(exist_ok=True)
-    report = {'validatorSHA256': hashlib.sha256((ROOT/'scripts/enrich_road_guidance.py').read_bytes()).hexdigest(), 'generatedAt': datetime.now(timezone.utc).isoformat(),
-              'gpxSHA256': road.catalog_digest(), 'routes': []}
+    report = {'validatorSHA256': road_safety.validator_digest(), 'generatedAt': datetime.now(timezone.utc).isoformat(),
+              'speedLimitPolicy': road_safety.SPEED_LIMIT_POLICY, 'gpxSHA256': road.catalog_digest(), 'routes': []}
     for index, route in enumerate(catalog):
         target = out / (str(route['id'])+'.json')
         target.unlink(missing_ok=True)
@@ -50,6 +49,7 @@ def main():
             for camera in cameras:
                 safety_stats[camera['kind']] += 1
             data['generatedAt'] = report['generatedAt']
+            data['speedLimitPolicy'] = road_safety.SPEED_LIMIT_POLICY
             target.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':'))+'\n')
             complete=data['coverage']['complete']
             row.update(status='validated' if complete else 'partial',turns=len(data['turns']),coverage=data['coverage'],solution=data['solution'])

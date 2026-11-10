@@ -252,12 +252,31 @@ class AcademyRoadTests(unittest.TestCase):
                 self.assertEqual([limit for _,_,limit in data["speedLimits"]], expected)
                 self.assertEqual(points, original)
 
+    def test_speed_limit_does_not_follow_a_nearby_parallel_way(self):
+        import road_safety
+        points = [[45.0,11.0],[45.001,11.0],[45.002,11.0]]
+        # Six metres is acceptable for the maneuver trace, but can put its
+        # speed annotation on the wrong road.
+        trace = [[lat, lon + .00008] for lat, lon in points]
+        shape = encode_polyline6(trace)
+        catalog = road_safety.index_catalog({"limits":{"71":90}, "cameras":[]})
+        response = {"trip":{"language":"it-IT","legs":[{"shape":shape,"maneuvers":[]}]},
+                    "_edgeAttributes":{"shape":shape,"edges":[
+                        {"way_id":71,"begin_shape_index":0,"end_shape_index":2}]}}
+        data = module.convert({"id":"parallel","points":points}, response, allow_empty=True, safety=catalog)
+        self.assertEqual(data["speedLimits"], [])
+
     def test_numeric_limits_accept_units_and_descriptive_tags_but_not_restrictions(self):
         from road_safety import explicit_speed
         self.assertEqual(explicit_speed({"maxspeed":"50 km/h","maxspeed:type":"sign"}), 50)
-        for tags in [{"maxspeed":"IT:urban"}, {"maxspeed":"50","maxspeed:forward":"30"},
-                     {"maxspeed":"50","maxspeed:bus":"30"}, {"maxspeed":"50","maxspeed:variable":"yes"},
-                     {"maxspeed":"50","maxspeed:conditional":"30 @ (Mo-Fr)"}]:
+        self.assertEqual(explicit_speed({"maxspeed":"90","source:maxspeed":"sign"}), 90)
+        self.assertEqual(explicit_speed({"maxspeed":"30","source:maxspeed":"markings"}), 30)
+        for tags in [{"maxspeed":"90"}, {"maxspeed":"90","source:maxspeed":"IT:rural"},
+                     {"maxspeed":"90","maxspeed:type":"IT:rural"},
+                     {"maxspeed":"90","source:maxspeed":"sign","maxspeed:type":"IT:rural"},
+                     {"maxspeed":"IT:urban"}, {"maxspeed":"50","source:maxspeed":"sign","maxspeed:forward":"30"},
+                     {"maxspeed":"50","source:maxspeed":"sign","maxspeed:bus":"30"}, {"maxspeed":"50","source:maxspeed":"sign","maxspeed:variable":"yes"},
+                     {"maxspeed":"50","source:maxspeed":"sign","maxspeed:conditional":"30 @ (Mo-Fr)"}]:
             self.assertIsNone(explicit_speed(tags))
 
     def test_never_simplifies_gpx_to_meet_api_point_limit(self):

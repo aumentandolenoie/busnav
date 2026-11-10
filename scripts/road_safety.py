@@ -1,16 +1,32 @@
 """Extract explicitly mapped limits and directional fixed enforcement from OSM."""
 import argparse
 import bisect
+import hashlib
 import json
 import re
 from collections import defaultdict
 from pathlib import Path
 
 
+SPEED_LIMIT_POLICY = 2
+
+
+def validator_digest():
+    scripts = Path(__file__).resolve().parent
+    digest = hashlib.sha256()
+    for name in ("enrich_road_guidance.py", "road_safety.py", "enrich_catalog.py"):
+        digest.update(name.encode() + b"\0" + (scripts / name).read_bytes() + b"\0")
+    return digest.hexdigest()
+
+
 def explicit_speed(tags):
-    """Return the mapped km/h value only for an unconditional road-wide limit."""
+    """Require positive evidence of an unconditional, signposted road limit."""
     metadata = {"maxspeed:source", "maxspeed:type", "maxspeed:reason"}
     if any(key.startswith("maxspeed:") and key not in metadata for key in tags):
+        return None
+    sources = {tags[key].strip().lower() for key in ("source:maxspeed", "maxspeed:source", "maxspeed:type")
+               if tags.get(key, "").strip()}
+    if not sources or not sources <= {"sign", "markings"}:
         return None
     match = re.fullmatch(r"([0-9]{1,3})(?:\s+km/h)?", tags.get("maxspeed", "").strip())
     if not match:
@@ -56,7 +72,7 @@ def extract(pbf):
             tags = way.tags
             if not tags.get("highway"):
                 return
-            value = explicit_speed({tag.k: tag.v for tag in tags if tag.k.startswith("maxspeed")})
+            value = explicit_speed({tag.k: tag.v for tag in tags if tag.k.startswith("maxspeed") or tag.k == "source:maxspeed"})
             if value is not None:
                 limits[str(way.id)] = value
             for node in way.nodes:
@@ -155,8 +171,12 @@ def annotate(catalog, attributes, matched, projected, official, distances, refer
                 shape, shape_dist, reference, reference_progress, begin, finish):
             continue
         ranges.append((begin, finish))
-        if str(way) in limits:
-            segments.append([begin, finish, limits[str(way)]])
+        # A path good enough for voice or camera alerts can still be on a
+        # parallel road with a different limit. Require a closer match for signs.
+        if str(way) in limits and max(e[0] for e in projected[start:end+1]) <= 4:
+            if (all(road.project(p, shape, shape_dist)[0] <= 4 for p in road.sampled(core, 4))
+                    and all(road.project(p, core, core_dist)[0] <= 4 for p in road.sampled(shape, 4))):
+                segments.append([begin, finish, limits[str(way)]])
         trusted[way].append((begin, finish, shape, shape_dist))
         for camera in by_way.get(way, ()):
             cameras[camera["id"]] = camera

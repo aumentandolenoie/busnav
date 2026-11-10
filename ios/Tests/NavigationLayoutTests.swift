@@ -28,7 +28,9 @@ import MapKit
                 drive.didMove(toParent:root)
                 root.setOverrideTraitCollection(UITraitCollection(preferredContentSizeCategory:category),forChild:drive)
                 drive.message("GPS in verifica: attendere una posizione accurata prima degli annunci vocali.")
-                drive.update(along:0,deviation:0,stop:0,reliable:true)
+                drive.location(CLLocation(coordinate:CLLocationCoordinate2D(latitude:45,longitude:11.0003),
+                                          altitude:0,horizontalAccuracy:5,verticalAccuracy:5,timestamp:Date()))
+                drive.update(along:25,deviation:0,stop:0,reliable:true)
                 root.view.setNeedsLayout(); root.view.layoutIfNeeded(); drive.view.layoutIfNeeded()
                 let safe = drive.view.safeAreaLayoutGuide.layoutFrame
                 if !landscape { XCTAssertGreaterThanOrEqual(safe.minY,62) }
@@ -59,15 +61,30 @@ import MapKit
                 let attachment = XCTAttachment(image:image); attachment.name = "Navigation-\(Int(size.width))-\(category.rawValue)"; attachment.lifetime = .keepAlways; add(attachment)
                 drive.update(along:250,deviation:0,stop:0,reliable:true)
                 XCTAssertTrue(sign.isHidden)
-                drive.update(along:0,deviation:50,stop:0,reliable:true)
+                drive.update(along:25,deviation:50,stop:0,reliable:true)
                 XCTAssertTrue(sign.isHidden)
-                drive.update(along:0,deviation:0,stop:0,reliable:false)
+                drive.update(along:25,deviation:0,stop:0,reliable:false)
                 XCTAssertTrue(sign.isHidden)
                 window.isHidden = true
                 drive.willMove(toParent:nil); drive.view.removeFromSuperview(); drive.removeFromParent()
             }
         }
     }
+    func testSpeedLimitRequiresAnUnambiguousGpsRange() throws {
+        let payload: [String: Any] = [
+            "points":[[45.0,11.0],[45.0,11.01]], "offsets":[], "stops":[], "turns":[],
+            "speedLimits":[[0,100,90],[100,150,50],[150,200,50],[210,280,50],[225,230,90]]
+        ]
+        let route = try JSONDecoder().decode(NativeRoute.self,from:JSONSerialization.data(withJSONObject:payload))
+        XCTAssertEqual(route.speedLimit(at:80,accuracy:5,deviation:0),90)
+        XCTAssertNil(route.speedLimit(at:96,accuracy:5,deviation:0))
+        XCTAssertEqual(route.speedLimit(at:150,accuracy:5,deviation:0),50)
+        XCTAssertNil(route.speedLimit(at:205,accuracy:5,deviation:0))
+        XCTAssertNil(route.speedLimit(at:235,accuracy:5,deviation:0))
+        XCTAssertNil(route.speedLimit(at:80,accuracy:16,deviation:0))
+        XCTAssertNil(route.speedLimit(at:80,accuracy:5,deviation:9))
+    }
+
     func testPreparationUsesMapKitAndPreservesGpx() {
         let preview = RoutePreviewView(frame:CGRect(x:0,y:0,width:375,height:280))
         let points = [[45.0,11.0],[45.0,11.01],[45.01,11.01]]

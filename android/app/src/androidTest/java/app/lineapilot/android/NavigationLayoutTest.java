@@ -28,7 +28,12 @@ import static org.junit.Assert.*;
                 if(!mapReady.get())Thread.sleep(100);
             }
             assertTrue("Native map style failed to initialize",mapReady.get());
-            scenario.onActivity(a->a.session.screen.progress(0,0,true,0));
+            scenario.onActivity(a->{
+                android.location.Location fix=new android.location.Location("test");
+                fix.setLatitude(45);fix.setLongitude(11.0003);fix.setAccuracy(5);
+                a.session.screen.location(fix,true,25);
+                a.session.screen.progress(25,0,true,0);
+            });
             androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             scenario.onActivity(a->{
                 assertNotNull(a.session);DriverView screen=a.session.screen;
@@ -43,7 +48,7 @@ import static org.junit.Assert.*;
                 for(Rect other:rectangles)assertFalse("Speed sign overlaps a control",Rect.intersects(signBounds,other));
                 screen.progress(250,0,true,0);
                 assertEquals(View.INVISIBLE,sign.getVisibility());
-                screen.progress(0,0,true,0);
+                screen.progress(25,0,true,0);
                 assertTrue(a.session.screen.nativeMap.mapView instanceof org.maplibre.android.maps.MapView);
             });
             final int[] touch=new int[2];
@@ -115,6 +120,20 @@ import static org.junit.Assert.*;
             });
         }
     }
+    @Test public void speedLimitRequiresAnUnambiguousGpsRange() throws Exception {
+        JSONObject route = new JSONObject("{\"points\":[[45,11],[45,11.01]],\"stops\":[],\"offsets\":[]}");
+        route.put("speedLimits",new JSONArray("[[0,100,90],[100,150,50],[150,200,50],[210,280,50],[225,230,90]]"));
+        route.put("coverage",new JSONObject().put("ranges",new JSONArray("[[0,700]]")));
+        NativeRoute data = new NativeRoute(route);
+        assertEquals(90,data.speedLimit(80,5,0));
+        assertEquals(0,data.speedLimit(96,5,0));
+        assertEquals(50,data.speedLimit(150,5,0));
+        assertEquals(0,data.speedLimit(205,5,0));
+        assertEquals(0,data.speedLimit(235,5,0));
+        assertEquals(0,data.speedLimit(80,16,0));
+        assertEquals(0,data.speedLimit(80,5,9));
+    }
+
     @Test public void voiceChainsTheNextEventInRouteOrder() throws Exception {
         NativeRoute stopFirst = voiceRoute(340, 360, "[[0,700]]");
         NativeRoute.Continuation stop = stopFirst.continuation(0, 100, 0);

@@ -72,7 +72,12 @@ test('road offsets and coverage are normalized to the same distance model as GPS
   validation:{passed:true,maxDeviationM:5,p95DeviationM:3},turns:[{at:40045,kind:'turn',side:'destra',text:'Svolta a destra'}],
   coverage:{complete:true,totalM:sourceTotal,coveredM:sourceTotal,percent:100,ranges:[[0,sourceTotal]],gaps:[]}};
  assert.equal(api.validRoadGuidance(data,chosen,[0,total]),true);
+ data.speedLimits=[[0,sourceTotal,90]];
+ assert.deepEqual(api.normalizeRoadGuidance(data,total).speedLimits,[]);
+ data.speedLimitPolicy=2;
+ data.speedLimits=[[40045,sourceTotal,50]];
  const normalized=api.normalizeRoadGuidance(data,total);
+ assert.deepEqual(normalized.speedLimits,[[40000,total,50]]);
  assert.equal(normalized.turns[0].at,40000);assert.equal(normalized.coverage.ranges[0][1],total);
  assert.equal(normalized.coverage.coveredM,total);
 });

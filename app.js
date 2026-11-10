@@ -223,7 +223,7 @@ function normalizeRoadGuidance(data,total){
  const source=data.coverage||{complete:true,percent:100,ranges:[[0,sourceTotal]],gaps:[]};
  const coverage={...source,totalM:total,coveredM:(source.coveredM??sourceTotal)*scale,
   ranges:source.complete?[[0,total]]:source.ranges.map(r=>r.map(at)),gaps:(source.gaps||[]).map(r=>r.map(at))};
- const speedLimits=(Array.isArray(data.speedLimits)?data.speedLimits:[]).filter(r=>
+ const speedLimits=(data.speedLimitPolicy===2&&Array.isArray(data.speedLimits)?data.speedLimits:[]).filter(r=>
   Array.isArray(r)&&r.length===3&&r.every(Number.isFinite)&&r[0]>=0&&r[0]<r[1]&&r[1]<=sourceTotal+1&&
   Number.isInteger(r[2])&&r[2]>=5&&r[2]<=130).map(([a,b,k])=>[at(a),at(b),k]);
  const roadCameras=(Array.isArray(data.roadCameras)?data.roadCameras:[]).filter(c=>

@@ -65,14 +65,24 @@ struct NativeRoute: Decodable {
     let speedLimits: [[Double]]?
     let roadCameras: [Camera]?
 
-    func speedLimit(at along: Double) -> Int? {
-        guard supportsGuidance(at: along) else { return nil }
-        let values = Set((speedLimits ?? []).compactMap { segment -> Int? in
-            guard segment.count == 3, segment[0] <= along, along < segment[1],
-                  (5...130).contains(segment[2]), segment[2].rounded() == segment[2] else { return nil }
-            return Int(segment[2])
-        })
-        return values.count == 1 ? values.first : nil
+    func speedLimit(at along: Double, accuracy: Double, deviation: Double) -> Int? {
+        guard along.isFinite, (0...15).contains(accuracy), (0...8).contains(deviation) else { return nil }
+        let radius = max(8, accuracy + deviation)
+        let lower = along - radius, upper = along + radius
+        guard supportsGuidance(at: lower, maneuver: upper) else { return nil }
+
+        let candidates = (speedLimits ?? []).filter { row in
+            row.count == 3 && row.allSatisfy(\.isFinite) && row[0] >= 0 &&
+                row[0] < row[1] && row[0] <= upper && row[1] > lower &&
+                (5...130).contains(row[2]) && row[2].rounded() == row[2]
+        }.sorted { $0[0] < $1[0] }
+        guard let limit = candidates.first.map({ $0[2] }) else { return nil }
+        var coveredThrough = lower
+        for row in candidates {
+            guard row[2] == limit, row[0] <= coveredThrough else { return nil }
+            coveredThrough = max(coveredThrough, row[1])
+        }
+        return coveredThrough > upper ? Int(limit) : nil
     }
 
     func nextCamera(at along: Double, within distance: Double, excluding used: Set<Int> = []) -> Int? {

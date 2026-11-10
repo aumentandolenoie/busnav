@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reuse a recent, immutable-GPX-compatible release bundle for native-only fixes."""
 import enrich_road_guidance as road
-import hashlib
+import road_safety
 import io
 import json
 import os
@@ -21,8 +21,7 @@ def main():
     repo = os.environ['GITHUB_REPOSITORY']
     root = Path(__file__).resolve().parent.parent
     catalog = road.load_catalog()
-    legacy_validator = 'b3aa6a071569f084b2cf6e0e569af409619f22d1341f5aceb75b956e662072f2'
-    validator = hashlib.sha256((root/'scripts/enrich_road_guidance.py').read_bytes()).hexdigest()
+    validator = road_safety.validator_digest()
     digest = road.catalog_digest()
     class SafeRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, request, response, code, message, headers, newurl):
@@ -50,7 +49,7 @@ def main():
                     (root/'build').mkdir(exist_ok=True)
                     (root/'build/road-guidance-before.json').write_text(json.dumps({'sourceRelease':release['tag_name'],**summarize(samples)},ensure_ascii=False,indent=2)+'\n')
                 age = datetime.now(timezone.utc)-datetime.fromisoformat(coverage['generatedAt'])
-                if coverage.get('validatorSHA256',legacy_validator) != validator or coverage['gpxSHA256'] != digest or age.total_seconds() < 0 or age.days >= 7 or not coverage['validated']:
+                if coverage.get('validatorSHA256') != validator or coverage.get('speedLimitPolicy') != road_safety.SPEED_LIMIT_POLICY or coverage['gpxSHA256'] != digest or age.total_seconds() < 0 or age.days >= 7 or not coverage['validated']:
                     SEEN_INCOMPATIBLE.add(asset['id'])
                     continue
                 if len(coverage.get('routes',[])) != len(catalog): continue
