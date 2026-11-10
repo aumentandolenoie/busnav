@@ -12,6 +12,7 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+        excludes: [Info.plist]
       - path: Web
         type: folder
         buildPhase: resources
@@ -19,12 +20,11 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.lineapilot.native
         TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_FILE: Sources/Info.plist
         IPHONEOS_DEPLOYMENT_TARGET: "16.0"
         CODE_SIGN_STYLE: Manual
         ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-    info:
-      path: Sources/Info.plist
 
   LineaPilotLayoutTests:
     type: bundle.unit-test
