@@ -48,8 +48,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="ios-preview-${GITHUB_SHA:0:12}"
+          git fetch origin main
+          git diff --exit-code "$GITHUB_SHA" origin/main -- . ':(exclude)reports/**'
           zip -qr navigation-data.zip road-guidance
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target "$GITHUB_SHA" --title "LineaPilot · $TAG" --notes "Build in preparazione. GPX Academy intatti. Vedi coverage.json per le istruzioni stradali disponibili."
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target main --title "LineaPilot · $TAG" --notes "Build in preparazione. GPX Academy intatti. Vedi coverage.json per le istruzioni stradali disponibili."
           gh release upload "$TAG" navigation-data.zip road-guidance/coverage.json --clobber
       - name: Valhalla diagnostic logs
         if: failure() && steps.reuse.outputs.reused != 'true'

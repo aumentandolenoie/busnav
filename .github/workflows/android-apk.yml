@@ -123,11 +123,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="android-preview-$(git rev-parse --short=12 HEAD)"
+          git fetch origin main
+          git diff --exit-code "$GITHUB_SHA" origin/main -- . ':(exclude)reports/**'
           cp android/app/build/outputs/apk/debug/app-debug.apk LineaPilot-debug.apk
           gh release create "$TAG" LineaPilot-debug.apk build/android-stop-coverage.csv build/android-native-navigation.png build/android-native-large-text.png \
             --title "LineaPilot Android APK - $TAG" \
             --notes "APK con anteprima e navigazione native MapLibre/OSM, GPS e voce Android nativi, GPX ufficiali immutati e copertura vocale identica alla build iOS. Test nativi e controlli di layout su emulatore Android eseguiti. Se non è configurata una chiave Android stabile, serve disinstallare la precedente build per installare la nuova. Installazione sempre manuale. GPX Academy obbligatori e immutati." \
-            --prerelease --target "$GITHUB_SHA"
+            --prerelease --target main
 
       - name: Preserve native Android layout previews
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
