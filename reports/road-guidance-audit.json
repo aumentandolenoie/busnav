@@ -1,6 +1,6 @@
 {
   "before": {
-    "sourceRelease": "ios-preview-d0d3200f3422",
+    "sourceRelease": "ios-preview-95ea13e8e49c",
     "routes": 789,
     "maneuvers": 19953,
     "roundaboutExitHistogram": {
@@ -1631,10 +1631,10 @@
   },
   "after": {
     "routes": 789,
-    "maneuvers": 19953,
+    "maneuvers": 19950,
     "roundaboutExitHistogram": {
-      "1": 3432,
-      "2": 5642,
+      "1": 3431,
+      "2": 5643,
       "3": 1588,
       "4": 317,
       "5": 24,
@@ -1642,7 +1642,7 @@
       "9": 4
     },
     "roundaboutsWithoutVerifiedNumber": 369,
-    "verifiedNumberChecks": 11326,
+    "verifiedNumberChecks": 11328,
     "recovery": {
       "local-trace-rejected": 167,
       "recovered": 518,

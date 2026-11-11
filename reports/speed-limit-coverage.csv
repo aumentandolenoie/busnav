@@ -1,0 +1,790 @@
+gpx,categoria,percorso,km,km_con_limite,percentuale,km_cartello,km_mappato,km_legale
+404,Extraurbano,999 | Carmignano - San Pietro In Gù,3.89,0.0,0.0,0.0,0.0,0.0
+407,Extraurbano,999 | San Pietro In Gù - Carmignano,2.99,0.0,0.0,0.0,0.0,0.0
+488,Extraurbano,999 | Bojon - Lova,3.79,0.0,0.0,0.0,0.0,0.0
+489,Extraurbano,999 | Lova - Bojon,3.8,0.0,0.0,0.0,0.0,0.0
+771,Urbano,24H | Ferrovia - Capolinea Nord Tram,4.02,0.0,0.0,0.0,0.0,0.0
+595,Urbano,4A | Ferrovia - Capolinea Nord Tram,3.97,0.03,0.9,0.03,0.0,0.0
+490,Extraurbano,999 | Lova - Campagna Lupia - Bojon,7.14,0.16,2.2,0.0,0.16,0.0
+47,Extraurbano,999 | Bagnoli - Pegolotte Chiesa,14.28,0.57,4.0,0.0,0.57,0.0
+598,Urbano,4B | Ferrovia - Zona Ind. Bragni via Giotto,11.01,0.46,4.2,0.0,0.03,0.43
+427,Extraurbano,339 | Vò - Valnogaredo - Este,21.59,0.99,4.6,0.84,0.15,0.0
+597,Urbano,4B | Ferrovia - Bragni via Giotto,9.14,0.46,5.0,0.0,0.03,0.43
+429,Extraurbano,838 | Este - Cinto - Valnogaredo - Vò,21.7,1.1,5.1,0.84,0.26,0.0
+335,Extraurbano,22 Monseli-Pernumia-Agna via vanzo,25.55,1.63,6.4,0.16,1.0,0.47
+46,Extraurbano,999 | Agna - Pegolotte Chiesa,7.56,0.57,7.6,0.0,0.57,0.0
+606,Urbano,4K | Bragni - Ferrovia,8.4,0.65,7.7,0.04,0.26,0.35
+115,Extraurbano,1092 | Monselice - Pernumia - Vanzo - Tribano,12.15,0.97,8.0,0.0,0.49,0.47
+596,Urbano,4B | Capolinea Nord Tram - Bragni,4.93,0.46,9.3,0.02,0.01,0.43
+593,Urbano,4A | Bragni - Capolinea Nord Tram,4.02,0.38,9.4,0.0,0.03,0.35
+507,Extraurbano,281 | Padova - Piazzola Ist. - Carmignano,34.57,3.48,10.1,0.0,3.48,0.0
+738,Urbano,19B | Ferrovia - Saletto,9.97,1.02,10.3,0.49,0.02,0.52
+95,Extraurbano,Dev. partite a Chioggia A/R,2.67,0.27,10.3,0.0,0.27,0.0
+19,Extraurbano,281 Padova-PiazzolaIst.-Carmignano,34.6,3.73,10.8,0.0,3.73,0.0
+519,Extraurbano,875 | Padova - Vaccarino - Piazzola Ist. - Carmignano,35.69,4.25,11.9,0.65,3.48,0.13
+264,Extraurbano,999 | Vò - Carbonara,5.27,0.64,12.1,0.0,0.64,0.0
+743,Urbano,19F | Saletto - Ferrovia,10.11,1.22,12.1,0.49,0.23,0.51
+349,Extraurbano,38 | Agna - Cristo - Arre,6.94,0.86,12.4,0.0,0.86,0.0
+504,Extraurbano,225 | Padova - Piazzola - Carmignano,34.26,4.26,12.4,0.0,3.48,0.79
+18,Extraurbano,225 | Padova - Piazzola - Carmignano,34.22,4.75,13.9,0.0,3.96,0.79
+715,Urbano,15LD | Villatora - Giardini via Belzoni,10.04,1.4,14.0,0.0,1.08,0.32
+348,Extraurbano,27 | Arre - Cristo - Agna,6.24,0.88,14.1,0.0,0.88,0.0
+505,Extraurbano,263 Padova-PiazzolaIst-Carmignano-Cittadella,44.36,6.26,14.1,0.0,6.26,0.0
+714,Urbano,15LA | Villatora - Ferrovia via Belzoni,9.62,1.38,14.4,0.0,1.07,0.32
+718,Urbano,15O | Villatora - Codalunga via Belzoni,11.27,1.64,14.5,0.0,1.32,0.32
+746,Urbano,19I | Saletto - Pontecorvo,12.94,1.88,14.6,0.48,0.82,0.58
+547,Extraurbano,999 | Vò - Cinto Euganeo,7.58,1.13,14.8,1.13,0.0,0.0
+514,Extraurbano,555 | Carmignano - Piazzola Ist. - Padova,34.18,5.15,15.1,1.0,4.11,0.04
+104,Extraurbano,371 | Monselice - Ist. Cattaneo,1.07,0.16,15.3,0.04,0.0,0.13
+112,Extraurbano,999 | Monselice - Ist. Cattaneo DIRETTA,1.07,0.16,15.3,0.04,0.0,0.13
+518,Extraurbano,654 | Padova - Piazzola Sul Brenta,20.15,3.09,15.4,0.0,3.09,0.0
+711,Urbano,15J | Codalunga Liceo - Villatora via Belzoni,10.72,1.65,15.4,0.0,1.39,0.26
+109,Extraurbano,994 | Ist. Cattaneo - Monselice,1.14,0.18,15.5,0.04,0.0,0.13
+110,Extraurbano,994 | Ist. Cattaneo - Monselice,1.14,0.18,15.5,0.04,0.0,0.13
+360,Extraurbano,142 | Padova - Fiumicello - Borgoricco,18.93,2.96,15.7,0.0,0.77,2.2
+111,Extraurbano,999 | Ist. Cattaneo - Monselice [DIRETTA],1.09,0.18,16.1,0.04,0.0,0.13
+228,Extraurbano,1057 | Valbona - Vò,16.45,2.65,16.1,1.3,0.0,1.35
+45,Extraurbano,999CavarzereRottanovaDiretto,7.42,1.2,16.2,0.6,0.6,0.0
+717,Urbano,15O | Granze - Codalunga via Belzoni,12.04,1.97,16.3,0.18,1.32,0.47
+121,Extraurbano,688 | Monselice - Pozzonovo via SS16,18.15,2.98,16.4,0.0,2.51,0.47
+763,Urbano,22LE | Codalunga - Ist. Severi,3.72,0.61,16.5,0.0,0.0,0.61
+712,Urbano,15J | Ferrovia - Villatora via Belzoni,9.77,1.62,16.6,0.0,1.42,0.2
+685,Urbano,13A | Borgomagno - Altichiero,6.57,1.09,16.7,0.31,0.78,0.0
+605,Urbano,4K | Bragni - Ferrovia via Belvedere,9.53,1.61,16.9,0.0,0.61,1.0
+739,Urbano,19D | Saletto - Capolinea Nord Tram,5.89,0.99,16.9,0.49,0.0,0.51
+20,Extraurbano,289Padova-PiazzolaIst.-Carmignano-CittadellaP.taTreviso,45.02,7.84,17.4,0.0,7.84,0.0
+620,Urbano,"6H | Ferrovia - Ist. Duca Degli Abruzzi (via Tommaseo, via B. Pellegrino, via Cave)",6.34,1.12,17.6,0.25,0.87,0.0
+359,Extraurbano,142 PadovaFiumicelloBorgoriccocap.v.leindustrie,19.64,3.47,17.7,0.0,1.27,2.2
+713,Urbano,15LA | Granze - Ferrovia via Belzoni,10.46,1.85,17.7,0.18,1.19,0.49
+737,Urbano,19B | Capolinea Nord Tram - Saletto,5.78,1.02,17.7,0.5,0.0,0.52
+120,Extraurbano,688 | Monselice - Pozzonovo (via Rovigana),18.7,3.37,18.0,0.0,2.89,0.47
+28,Extraurbano,776 | Padova - Borgoricco - Trebaseleghe,35.31,6.4,18.1,1.28,0.77,4.35
+516,Extraurbano,594 | Carmignano - Piazzola - Padova,33.87,6.23,18.4,1.24,4.17,0.82
+692,Urbano,13LG | Altichiero - Ferrovia via Giotto,7.51,1.38,18.4,0.3,1.09,0.0
+515,Extraurbano,594 | Carmignano - Piazzola - Padova (No Presina),33.66,6.23,18.5,1.24,4.16,0.82
+364,Extraurbano,560 | Borgoricco - Fiumicello - Padova,16.76,3.11,18.6,0.0,1.0,2.12
+211,Extraurbano,354 | Padova - Ferrovia - Ist. via cave,5.61,1.05,18.7,0.29,0.76,0.0
+116,Extraurbano,445 | Pozzonovo - Pernumia - Monselice,18.07,3.42,18.9,0.0,2.95,0.47
+625,Urbano,6L | Terranegra - Ferrovia,5.1,0.97,19.1,0.0,0.91,0.06
+27,Extraurbano,572 | Trebaseleghe - Borgoricco - Padova,32.93,6.31,19.2,1.28,0.96,4.06
+369,Extraurbano,776 | Padova - Borgoricco - Trebaseleghe,36.0,6.97,19.3,1.28,1.35,4.33
+260,Extraurbano,999 | Cervarese - via Sacchette - Bastia,6.61,1.28,19.4,0.84,0.03,0.41
+726,Urbano,16G | Ferrovia - Plebiscito,3.64,0.71,19.5,0.21,0.5,0.0
+24,Extraurbano,622 Piazzola Padova,19.53,3.87,19.8,0.69,3.15,0.04
+690,Urbano,13C | Via Boccaccio - Limena,19.36,3.91,20.2,0.55,2.97,0.39
+600,Urbano,4C | Ferrovia - Cadoneghe via Giotto,8.54,1.73,20.3,0.0,0.24,1.5
+362,Extraurbano,366 | Ferrovia - Ist. Severi,4.09,0.84,20.6,0.0,0.0,0.84
+366,Extraurbano,572 | Trebaseleghe - Borgoricco - Padova,33.61,6.93,20.6,1.28,1.52,4.13
+221,Extraurbano,837 | Padova - Castelnuovo - Vo,30.92,6.39,20.7,0.99,1.62,3.79
+689,Urbano,13B | Limena - Via Boccaccio,19.32,3.99,20.7,0.53,3.12,0.34
+716,Urbano,15N | Ferrovia - Via Messico Rotonda C.so Spagna,10.51,2.21,21.1,0.07,1.55,0.59
+631,Urbano,6M | Ferrovia - Via Boccaccio,5.47,1.16,21.2,0.0,1.09,0.07
+129,Extraurbano,862 | Este - Badia Polesine Istituiti,26.57,5.72,21.5,0.0,4.58,1.13
+611,Urbano,6A | Terranegra - Lagrange via Cave,11.87,2.56,21.6,0.04,2.45,0.07
+684,Urbano,13 | Querini - Giotto,6.21,1.35,21.7,0.26,1.09,0.0
+623,Urbano,6H | Via Guardi - Ist. Duca Degli Abruzzi,8.8,1.92,21.8,0.25,1.68,0.0
+126,Extraurbano,326 | Badia Polesine - Badia Polesine Ist. - Este,27.33,6.0,22.0,0.0,4.87,1.13
+615,Urbano,6C | Lagrange - Terranegra via Cave,10.79,2.38,22.0,0.04,2.27,0.07
+646,Urbano,9B | Ferrovia - Piazza Caduti Della Resistenza,4.62,1.02,22.1,0.19,0.64,0.19
+621,Urbano,"6H | Ferrovia - Ist. Duca Degli Abruzzi - Via Lagrange (via B. Pellegrino, via Cave)",7.67,1.71,22.2,0.23,1.48,0.0
+23,Extraurbano,529Term.Cittadella-Carmignano-Padova,46.01,10.24,22.3,1.0,8.42,0.82
+618,Urbano,6E | Lagrange - Ferrovia via Cave,6.34,1.42,22.5,0.04,1.38,0.0
+216,Extraurbano,532 | Vò - Castelnuovo - Padova,30.98,6.99,22.6,1.36,1.8,3.83
+782,Urbano,88D | Capolinea Sud Tram - Albignasego via San Tommaso,5.42,1.25,23.0,0.0,0.0,1.25
+484,Extraurbano,892 | Padova - Vigonovo - Celeseo - Bojon - Campagna Lupia - Lova,36.73,8.55,23.3,1.44,5.74,1.37
+517,Extraurbano,910 | Piazzola Sul Brenta - Padova,19.12,4.45,23.3,0.93,3.49,0.04
+703,Urbano,15C | Largo Debussy - Villatora,15.15,3.53,23.3,0.0,2.88,0.64
+210,Extraurbano,1287 | Ferrovia - Ist. Duca degli Abruzzi via cave,6.63,1.55,23.4,0.29,1.26,0.0
+506,Extraurbano,263 | Padova - Piazzola - Carmignano - Cittadella,43.74,10.27,23.5,0.0,9.49,0.79
+510,Extraurbano,495 | Cittadella - Carmignano - Piazzola Ist. - Padova,45.26,10.7,23.6,1.24,9.42,0.04
+25,Extraurbano,622PiazzolaSBPadova(prov.daPDvillafranca),20.63,4.89,23.7,1.34,3.39,0.17
+613,Urbano,6B | Terranegra - Lagrange via Sorio,11.65,2.77,23.7,0.19,2.33,0.24
+671,Urbano,11LD | Taggì - Largo Europa,7.79,1.84,23.7,0.22,0.71,0.92
+687,Urbano,13A | Via Boccaccio - Altichiero,14.2,3.38,23.8,0.43,2.56,0.39
+231,Extraurbano,804 | Padova - Valbona,44.1,10.53,23.9,2.76,2.56,5.22
+681,Urbano,12C | Ferrovia - Selvazzano,12.51,3.0,24.0,0.4,1.68,0.92
+229,Extraurbano,567 | Valbona - Padova,44.12,10.76,24.4,2.72,2.76,5.28
+702,Urbano,15B | Largo Debussy - Granze,15.98,3.91,24.4,0.18,2.92,0.8
+381,Extraurbano,260 Padova - Cavino - Onara Cittadella dev. a Sant'Anna Morosina,45.21,11.08,24.5,3.55,4.73,2.79
+750,Urbano,21 | Ferrovia - Ponterotto,9.65,2.37,24.5,0.35,1.9,0.12
+336,Extraurbano,275 | Este - Monselice - Pernumia - Conselve,21.17,5.21,24.6,1.05,4.16,0.0
+744,Urbano,19F | Tavo - Ferrovia,13.31,3.28,24.6,2.21,0.23,0.84
+765,Urbano,22LF | Curiel - Codalunga - Giotto - Ferrovia,3.17,0.78,24.6,0.0,0.23,0.55
+601,Urbano,4D | Cadoneghe - Terranegra,13.59,3.36,24.7,0.0,1.55,1.81
+614,Urbano,6B | Via Boccaccio - Lagrange via Sorio,12.04,2.98,24.7,0.17,2.57,0.24
+742,Urbano,19E | Ferrovia - Tavo (via Tommaseo),12.37,3.06,24.8,2.21,0.0,0.85
+220,Extraurbano,831 | Padova - Vò,27.68,6.9,24.9,0.49,2.52,3.89
+382,Extraurbano,260 | Padova - Cavino - Onara - Cittadella P. Treviso,45.63,11.35,24.9,3.56,5.44,2.35
+485,Extraurbano,902 | Lova - Campagna Lupia - Bojon - Celeseo - Vigonovo - Padova,37.23,9.31,25.0,1.4,6.12,1.79
+686,Urbano,13A | Prato Della Valle - Altichiero,8.96,2.25,25.1,0.43,1.83,0.0
+669,Urbano,11LA | Taggì - Via Giotto,7.56,1.91,25.2,0.29,0.67,0.94
+509,Extraurbano,485 | Terminal Cittadella - Carmignano - Vaccarino - Padova,47.54,12.03,25.3,1.89,9.97,0.17
+783,Urbano,88E | Albignasego - Ferrovia via Ospedale,10.19,2.58,25.3,0.0,1.09,1.49
+508,Extraurbano,485 | Piazzola Ist. - Tremignon - Vaccarino - Padova,20.58,5.23,25.4,1.57,3.49,0.17
+710,Urbano,15E | Largo Debussy - Valli,13.87,3.53,25.4,0.0,2.89,0.64
+677,Urbano,12A | Selvazzano - Ferrovia via San Domenico,13.67,3.52,25.7,0.45,2.14,0.93
+604,Urbano,4H | Cadoneghe - Ospedale,11.06,2.87,25.9,0.0,1.1,1.77
+333,Extraurbano,1186 | Conselve - Pernumia - Monselice - Este,21.48,5.61,26.1,0.96,4.65,0.0
+513,Extraurbano,529 | Terminal Cittadella - Carmignano - Padova,46.11,12.04,26.1,1.24,9.97,0.82
+622,Urbano,6H | Ferrovia - Ist. Duca Degli Abruzzi via Cave,6.02,1.57,26.1,0.04,1.53,0.0
+21,Extraurbano,485 | Terminal Cittadella - Carmignano - Vaccarino - Padova,47.48,12.46,26.2,1.89,10.4,0.17
+97,Extraurbano,1045 | Montegrotto IV Novembre - Torreglia - Arquà P. - Este,25.68,6.77,26.3,0.81,1.25,4.71
+603,Urbano,4G | Cadoneghe - Pontecorvo,11.78,3.12,26.5,0.0,1.22,1.89
+607,Urbano,4K | Cadoneghe - Ferrovia,9.14,2.45,26.8,0.0,0.62,1.83
+688,Urbano,13B | Altichiero - Via Boccaccio,14.17,3.79,26.8,0.41,3.11,0.27
+678,Urbano,12A | Selvazzano - Ferrovia,13.07,3.51,26.9,0.45,2.14,0.92
+749,Urbano,21 | Ponterotto - Ferrovia,8.3,2.23,26.9,0.21,1.87,0.15
+358,Extraurbano,141 | Padova - S. Andrea - S. Michele - Borgoricco,22.71,6.12,27.0,0.2,1.14,4.78
+483,Extraurbano,868 | Padova - Vigonovo - Celeseo - S. Angelo - Bojon,29.67,8.02,27.0,1.49,5.17,1.36
+370,Extraurbano,777 | Padova - Fiumicello - San Michele - Borgoricco - Trebaseleghe,40.24,10.89,27.1,2.61,1.72,6.57
+624,Urbano,6L | Ospedale - Ferrovia,1.92,0.52,27.1,0.0,0.46,0.06
+435,Extraurbano,999 | Sossano - Vò,15.05,4.09,27.2,0.0,3.44,0.66
+29,Extraurbano,777 PadovaS.MicheleBorgoriccoTrebaselighe,39.59,10.88,27.5,3.02,1.17,6.69
+387,Extraurbano,42 | Padova - Tavo - Molini - Arsego,21.15,5.82,27.5,4.07,0.36,1.39
+680,Urbano,12B | Ferrovia - Tencarola,9.69,2.67,27.6,0.23,1.68,0.75
+651,Urbano,9LA | Piazza Caduti Della Resistenza - Ferrovia,4.36,1.21,27.7,0.15,0.87,0.19
+34,Extraurbano,23 | Pegolotte Chiesa - Rottanova - Agna,16.43,4.59,27.9,0.55,4.04,0.0
+709,Urbano,15D | Villatora - Largo Debussy,16.32,4.58,28.0,0.0,3.72,0.86
+102,Extraurbano,335 | Bar Gaffo - Torreglia - Este,26.34,7.4,28.1,0.81,1.28,5.32
+612,Urbano,6B | Ferrovia - Lagrange via Sorio,6.55,1.84,28.1,0.13,1.53,0.18
+2,Extraurbano,868 | Padova - Vigonovo - Celeseo - S. Angelo - Bojon,30.08,8.49,28.2,1.47,5.65,1.36
+3,Extraurbano,868 | Padova - Vigonovo - Celeseo - S. Angelo - Bojon,30.08,8.49,28.2,1.47,5.65,1.36
+667,Urbano,11C | Via Giotto - Taggì,7.93,2.23,28.2,0.35,0.87,1.01
+7,Extraurbano,750 | Padova - Noventa P. - Strà,14.47,4.09,28.2,0.07,2.71,1.3
+314,Extraurbano,?? | Terminal Cittadella - Villa Del Conte,15.2,4.35,28.6,0.0,4.3,0.05
+644,Urbano,9B IppodromoP.zzaCadutidellaResistenza,11.28,3.22,28.6,0.58,1.95,0.69
+788,,,46.77,13.36,28.6,3.55,5.95,3.85
+630,Urbano,"6LE | Lagrange - Codalunga Liceo (via Cave, via Bronzetti, via Sarpi)",6.35,1.82,28.7,0.3,1.52,0.0
+218,Extraurbano,617 | Vò - Padova,27.69,7.98,28.8,1.35,2.71,3.93
+766,Urbano,22LG | Prato Della Valle - Via Bajardi,5.26,1.52,28.8,0.12,1.03,0.37
+764,Urbano,22LE | Prato Della Valle - Ist. Severi,6.12,1.77,29.0,0.12,1.04,0.61
+637,Urbano,"7E | Ferrovia - Granze (via Spagna, Via Ricerca Scientifica, Via Belgio)",15.67,4.56,29.1,0.18,3.53,0.85
+705,Urbano,15D | Granze - Largo Debussy,17.09,4.98,29.1,0.18,3.76,1.03
+770,Urbano,24E | Mandriola - Plebiscito,13.46,3.92,29.1,0.44,1.68,1.81
+22,Extraurbano,496 Cittadella - Carmignano - Villafranca - Padova,50.03,14.6,29.2,1.63,12.14,0.82
+617,Urbano,"6E | Ist. Duca Degli Abruzzi - Ferrovia (via Cave, C.so Milano)",6.63,1.94,29.2,0.04,1.9,0.0
+628,Urbano,"6LD | Lagrange - Ferrovia (via Cave, via Bronzetti, via Sarpi)",6.79,1.99,29.3,0.3,1.69,0.0
+767,Urbano,24A | Capolinea Nord Tram - Mandriola,15.89,4.66,29.3,0.26,2.45,1.95
+616,Urbano,6D | Lagrange - Terranegra via Sorio,10.85,3.19,29.4,0.19,2.72,0.29
+223,Extraurbano,999 | Padova - Ist. Duca Degli Abbruzzi,6.55,1.93,29.5,0.4,1.53,0.0
+354,Extraurbano,1026 | Ist. Severi - Padova,3.28,0.97,29.6,0.0,0.47,0.5
+367,Extraurbano,573 | Trebaseleghe - Borgoricco - San Michele - Fiumicello - Padova,37.89,11.23,29.6,3.02,1.95,6.25
+747,Urbano,21 Ferrovia Villaguattera,10.73,3.19,29.7,1.11,1.8,0.29
+379,Extraurbano,Cittadella - Onara - Arsego - Cavino - Ist. Severi - Padova,47.75,14.24,29.8,3.55,7.2,3.48
+402,Extraurbano,914 | Padova - Villafranca - Tremignon - Piazzola,21.34,6.36,29.8,1.25,3.95,1.16
+647,Urbano,9B | Via Ippodromo - Piazza Caduti Della Resistenza,11.48,3.43,29.9,0.47,2.15,0.81
+368,Extraurbano,608 BorgoriccoS.AndreaS.MichelePadova,20.29,6.1,30.0,0.25,1.17,4.67
+373,Extraurbano,999 | Padova - S. Andrea Diretta,12.14,3.64,30.0,0.0,2.31,1.33
+691,Urbano,13G | Limena - Voltabarozzo,18.33,5.53,30.2,0.95,3.1,1.48
+0,Extraurbano,523 | Bojon - S. Angelo - Celeseo - Vigonovo - Padova,30.56,9.25,30.3,1.4,6.07,1.79
+511,Extraurbano,496 | Cittadella - Carmignano - Villafranca - Padova,50.16,15.18,30.3,1.87,12.49,0.82
+101,Extraurbano,335 Da Padova a Este via Arquà Petrarca,42.18,12.86,30.5,0.81,5.34,6.71
+103,Extraurbano,335 Da Padova a Este via Arquà Petrarca,42.18,12.86,30.5,0.81,5.34,6.71
+212,Extraurbano,354 | Padova - Ist. Via Cave,5.64,1.73,30.6,0.4,1.33,0.0
+230,Extraurbano,802 | Padova - Montemerlo - Valbona,48.39,14.81,30.6,2.75,3.41,8.65
+512,Extraurbano,495 | Terminal Cittadella - Carmignano - Villafranca - Padova,51.32,15.68,30.6,1.87,12.99,0.82
+707,Urbano,15D | Valli - Largo Debussy,14.95,4.59,30.7,0.0,3.73,0.86
+768,Urbano,24A | Plebiscito - Mandriola,14.15,4.34,30.7,0.21,2.17,1.96
+772,Urbano,25 | Ferrovia - Zona Ind. Nord - Ferrovia,12.14,3.74,30.8,0.0,1.77,1.97
+33,Extraurbano,111 | Cavarzere - Agna - Bagnoli,28.84,8.92,30.9,3.15,5.53,0.24
+479,Extraurbano,523 | Bojon - S. Angelo - Celeseo - Vigonovo - Padova,30.18,9.33,30.9,1.4,6.14,1.79
+503,Extraurbano,1128 | Piazzola - Istituti - Padova,27.59,8.51,30.9,1.17,6.87,0.46
+86,Extraurbano,Giro in bici da corsa,3.94,1.22,30.9,0.0,0.75,0.47
+498,Extraurbano,750 | Padova - Noventa P. - Strà,14.08,4.37,31.0,0.07,2.99,1.3
+388,Extraurbano,815 | Padova - Busiago - Villa Del Conte,30.64,9.54,31.1,4.46,2.64,2.44
+433,Extraurbano,735 | Este - Lozzo - Sossano,28.99,9.03,31.1,0.62,5.72,2.69
+632,Urbano,6N | Largo Europa - Ist. Scalcerle via Cave,4.6,1.43,31.1,0.04,1.39,0.0
+636,Urbano,"7D | Ferrovia - C.so Stati Uniti (via Spagna, Via Ricerca Scientifica, Via Belgio)",12.46,3.88,31.1,0.0,2.67,1.21
+396,Extraurbano,630 | Piazzola - Tremignon -Villafranca- Padova,21.02,6.56,31.2,1.41,3.95,1.2
+679,Urbano,12A | Tencarola - Ferrovia,10.3,3.22,31.2,0.27,2.14,0.8
+740,Urbano,19D | Tavo - Capolinea Nord Tram,8.9,2.77,31.2,1.94,0.0,0.84
+635,Urbano,7C | Ferrovia - Granze,12.1,3.79,31.3,0.18,2.72,0.88
+762,Urbano,22LA | Torre - Prato Della Valle,9.96,3.13,31.4,0.11,1.68,1.33
+748,Urbano,21 Villaguattera Ferrovia,10.39,3.27,31.5,1.11,1.87,0.28
+745,Urbano,19H | Saletto - Roncajette,20.94,6.61,31.6,0.91,1.58,4.12
+634,Urbano,7A | Spagna fr MTCC - C.so Stati Uniti - Porche - Ferrovia,13.01,4.12,31.7,0.0,2.21,1.9
+662,Urbano,11 | Taggì - Ist. Duca Degli Abruzzi,14.1,4.47,31.7,0.43,2.64,1.41
+735,Urbano,16LI | Plebiscito - Pontecorvo,6.95,2.21,31.8,0.33,1.86,0.03
+361,Extraurbano,142 | Padova - Fiumicello - Borgoricco (deviata S. Michele B.),23.17,7.39,31.9,1.74,1.14,4.52
+704,Urbano,15D | Granze - Largo Debussy via Plebiscito,18.36,5.85,31.9,0.4,4.46,0.99
+769,Urbano,24E | Mandriola - Plebiscito via Riviere,12.83,4.09,31.9,0.55,1.82,1.71
+520,Extraurbano,999 Carmignano Piazzola Diretto,14.9,4.77,32.0,3.39,1.38,0.0
+649,Urbano,9G | Ist. Severi - Ferrovia via Goldoni,3.79,1.22,32.0,0.19,0.53,0.5
+757,Urbano,22E | Ist. Severi - Ferrovia,3.79,1.22,32.0,0.19,0.53,0.5
+10,Extraurbano,750 Padova - Noventa Padovana - Strà,13.88,4.45,32.1,0.07,3.09,1.29
+480,Extraurbano,524 | Bojon - Celeseo - Ist. Marconi - Padova,30.59,9.82,32.1,2.0,5.43,2.39
+583,Colli,TL | Padova - Torreglia - Luvignano,25.54,8.2,32.1,0.41,7.04,0.75
+638,Urbano,7F | Ferrovia - C.so Stati Uniti,10.83,3.48,32.1,0.0,2.73,0.75
+235,Extraurbano,1077 | Padova - Tencarola - Liceo Galilei,9.96,3.2,32.2,0.32,1.54,1.34
+415,Extraurbano,822 | Padova - Villanova,17.27,5.56,32.2,0.17,3.54,1.84
+577,Colli,T | Padova - Abano Previtali,16.99,5.47,32.2,0.3,4.43,0.75
+776,Urbano,43D | Mandriola - Ferrovia,9.99,3.22,32.2,0.23,1.18,1.81
+143,Extraurbano,384 | Este - Vighizzolo - Lendinara,28.88,9.45,32.7,0.41,7.35,1.69
+323,Extraurbano,605 | Villaguattera - Bosco Di Rubano Interna - Padova,16.74,5.49,32.8,1.48,3.55,0.46
+643,Urbano,9A | Piazza Caduti Della Resistenza - Via Ippodromo,11.27,3.7,32.8,0.4,2.33,0.96
+414,Extraurbano,543 | Villanova - Padova,17.45,5.78,33.1,0.52,3.19,2.07
+775,Urbano,43B | Ferrovia - Mandriola,10.45,3.48,33.3,0.0,1.53,1.96
+497,Extraurbano,750 Padova Strà deviazione lavori/ sagra del folpo,14.3,4.77,33.4,0.07,2.31,2.4
+582,Colli,TL | Luvignano - Torreglia - Padova,25.36,8.52,33.6,0.27,7.49,0.75
+98,Extraurbano,1049 | Este - Arquà P. - Galzignano - Montegrotto (via Galzignano Case Nuove),29.39,9.86,33.6,0.81,3.7,5.35
+322,Extraurbano,510 | Villaguattera - Rubano - Padova,15.19,5.12,33.7,0.67,4.12,0.33
+141,Extraurbano,332 | Lendinara - Vighizzolo - Este,29.0,9.79,33.8,0.41,7.69,1.69
+142,Extraurbano,332 | Lendinara - Vighizzolo - Este,28.86,9.75,33.8,0.41,7.65,1.69
+672,Urbano,11LE | Taggì - Ist. Marconi via San Micheli,11.08,3.74,33.8,0.37,2.4,0.97
+706,Urbano,15D | Valli - Largo Debussy via Plebiscito,16.22,5.48,33.8,0.21,4.41,0.86
+639,Urbano,7A | Saonara - Ferrovia,11.9,4.03,33.9,0.36,1.95,1.73
+627,Urbano,"6LD | Ist. Scalcerle/Natta - Ferrovia (via Cave, via Bronzetti, via Sarpi)",5.77,1.96,34.0,0.3,1.66,0.0
+741,Urbano,19E | Capolinea Nord Tram - Tavo,9.04,3.08,34.0,2.23,0.0,0.85
+283,Extraurbano,660 |  Padova - Pieve C.,18.54,6.31,34.1,0.0,6.31,0.0
+398,Extraurbano,630 | Villafranca - Padova,12.67,4.32,34.1,1.31,1.8,1.21
+471,Extraurbano,294 | Padova - Due Carrare,19.02,6.49,34.1,0.78,1.74,3.97
+575,Colli,MLA Padova-Neroniana-Montegrotto,19.98,6.84,34.2,0.2,5.89,0.75
+391,Extraurbano,Padova - Taggia Z. Industriale,11.28,3.87,34.3,1.27,1.44,1.16
+619,Urbano,6F | Lagrange - Ferrovia via Sorio,6.4,2.2,34.3,0.19,1.79,0.22
+105,Extraurbano,418 | Montegrotto - Galzignano - Monselice,25.12,8.64,34.4,0.85,2.31,5.48
+214,Extraurbano,501 | Noventa Vicentina - Vò - Padova,39.22,13.51,34.4,0.9,7.76,4.84
+443,Extraurbano,30 Mag 2025 07:11:21,23.27,8.04,34.5,1.89,3.74,2.41
+365,Extraurbano,560 | Borgoricco - Fiumicello - Padova (deviata S. Michele B.),21.0,7.27,34.6,1.74,1.38,4.15
+44,Extraurbano,999 Cantarana a Rottanova,14.34,4.96,34.6,0.27,4.6,0.1
+578,Colli,T | Padova - Torreglia,23.57,8.17,34.6,0.41,7.0,0.75
+318,Extraurbano,354 | Villaguattera - Ist. Via Cave - Padova,20.68,7.17,34.7,0.79,5.58,0.79
+673,Urbano,12 | Ferrovia - Caselle,11.56,4.02,34.7,1.6,1.67,0.75
+668,Urbano,11D | Taggì - Via De Lazara,12.7,4.41,34.8,0.53,3.03,0.85
+777,Urbano,88A | Albignasego - Capolinea Sud Tram,2.63,0.92,34.8,0.0,0.0,0.92
+781,Urbano,88C | Circolare Carpanedo via Prato Della Valle,17.48,6.09,34.8,0.0,0.79,5.3
+99,Extraurbano,1049 | Monselice - Arquà P. - Galzignano - Torreglia - Montegrotto,24.78,8.63,34.8,0.85,2.31,5.48
+356,Extraurbano,1026 | Ist. Marchesi/Boaga - Padova,6.83,2.38,34.9,0.19,1.69,0.5
+586,Urbano,U02 Linea Piazze,6.63,2.31,34.9,0.31,1.96,0.04
+363,Extraurbano,366 | Padova - Ist. Severi,3.62,1.27,35.0,0.0,0.93,0.34
+629,Urbano,"6LE | Ist. Scalcerle/Natta - Codalunga Liceo (via Cave, via Bronzetti, via Sarpi)",5.33,1.86,35.0,0.3,1.56,0.0
+641,Urbano,"7LA | Ferrovia - Via Belgio (via Spagna, Via Ricerca Scientifica)",11.72,4.11,35.1,0.0,3.43,0.68
+683,Urbano,12LA | Largo Europa - Lagrange,7.12,2.5,35.1,0.24,1.8,0.46
+418,Extraurbano,999 Codiverno Padova diretta,13.47,4.74,35.2,2.06,2.53,0.15
+579,Colli,T | Torreglia - Padova,24.63,8.69,35.3,0.25,7.69,0.75
+355,Extraurbano,1026 | Ist. Valle - Padova,2.0,0.71,35.4,0.34,0.37,0.0
+325,Extraurbano,843 | Padova - Rubano - Villaguattera (transita per via Adige),14.94,5.3,35.5,0.53,4.45,0.33
+666,Urbano,11C | Via De Lazara - Taggì,12.83,4.55,35.5,0.48,3.06,1.01
+124,Extraurbano,101 | Este - Bresega - Badia Polesine,28.0,9.96,35.6,0.0,8.83,1.13
+207,Extraurbano,1026 | Villa Di Teolo - Padova,18.87,6.75,35.7,1.27,1.8,3.67
+633,Urbano,7A | C.so Stati Uniti - Ferrovia,9.6,3.44,35.9,0.0,1.46,1.98
+161,Extraurbano,410 | Este - Monselice,8.96,3.23,36.0,1.05,2.18,0.0
+752,Urbano,22A | Mandria via Carnia - Torre,16.67,6.0,36.0,0.12,4.17,1.71
+326,Extraurbano,843 | Padova - Rubano - Villaguattera,15.08,5.45,36.1,0.99,4.13,0.33
+357,Extraurbano,1066 | Padova - Mortise - Ist. Marchesi/Boaga,7.36,2.66,36.1,0.0,2.22,0.43
+626,Urbano,"6LD | Ist. Duca Degli Abruzzi - Ferrovia (via Cave, via Bronzetti)",7.08,2.55,36.1,0.3,2.25,0.0
+219,Extraurbano,830 | Padova - Montemerlo - Vò,31.97,11.61,36.3,0.94,3.35,7.32
+576,Colli,T | Abano Previtali - Padova,17.77,6.47,36.4,0.27,5.44,0.75
+6,Extraurbano,589 | Strà - Noventa P. - Padova,14.69,5.37,36.5,0.19,3.44,1.74
+780,Urbano,88B | Ferrovia - Carpanedo,11.44,4.17,36.5,0.11,1.36,2.7
+390,Extraurbano,1121 | Villafranca - Ist. Via Cave - Padova,20.72,7.59,36.6,1.28,4.79,1.53
+460,Extraurbano,29 Bagnoli Abano Ist.,34.72,12.71,36.6,2.06,2.9,7.76
+652,Urbano,10A | Caselle - Ferrovia,7.87,2.9,36.9,0.04,2.65,0.22
+701,Urbano,14K | Ferrovia - Granze via Ospedale.gpx,11.03,4.07,36.9,0.42,1.23,2.41
+128,Extraurbano,327 | Badia Polesine - Bresega - Este,28.26,10.47,37.0,0.0,9.33,1.13
+412,Extraurbano,497 | Zeminiana - Padova,27.75,10.28,37.0,0.52,5.31,4.45
+413,Extraurbano,543 | Codiverno - Padova,15.37,5.68,37.0,0.42,3.23,2.03
+682,Urbano,12E | Ferrovia - Duca Degli Abruzzi,6.97,2.58,37.0,0.24,1.88,0.46
+217,Extraurbano,616 | Vò - Montemerlo - Padova,31.98,11.87,37.1,0.91,3.6,7.36
+410,Extraurbano,439PadovaVillanovaMurelle,19.06,7.09,37.2,1.64,3.49,1.97
+232,Extraurbano,1026 | Saccolongo - Padova,14.41,5.38,37.3,0.15,2.98,2.25
+371,Extraurbano,891 Padova Ist. Valle,1.77,0.66,37.3,0.14,0.52,0.0
+674,Urbano,12A | Caselle - Ferrovia,12.1,4.53,37.5,1.64,2.14,0.75
+417,Extraurbano,852 | Padova - Zeminiana,27.67,10.39,37.6,0.17,5.67,4.56
+648,Urbano,9BA | Ferrovia - Ist. Severi/Curiel via Belzoni,8.94,3.36,37.6,0.29,1.61,1.47
+462,Extraurbano,364 | Padova - Ist. Marconi,2.98,1.12,37.7,0.0,1.06,0.07
+675,Urbano,12A | Lagrange - Ferrovia,7.64,2.88,37.7,0.27,2.14,0.46
+409,Extraurbano,297 PadovaPioncaCodiverno,15.21,5.74,37.8,0.27,3.49,1.98
+222,Extraurbano,909 | Vò - Montemerlo - Padova via Prato Della Valle - Ospedale,33.9,12.9,38.0,1.43,3.77,7.7
+421,Extraurbano,999 | Padova - Bussedo,12.51,4.75,38.0,0.17,2.75,1.84
+399,Extraurbano,656 | Padova - Villafranca - Piazzola,19.3,7.35,38.1,1.3,4.89,1.16
+321,Extraurbano,510 | Villaguattera - Rubano - Padova (transita per Via Adige),15.05,5.74,38.2,1.13,4.29,0.33
+602,Urbano,4F | Cadoneghe - Piovese Park,14.89,5.68,38.2,0.42,1.9,3.36
+656,Urbano,10C | Ferrovia - Caselle,7.72,2.95,38.2,0.04,2.69,0.22
+784,Urbano,88E | Carpanedo - Ferrovia,11.02,4.2,38.2,0.11,1.39,2.7
+156,Extraurbano,1045 | Monselice - Este,9.31,3.57,38.4,0.96,2.61,0.0
+206,Extraurbano,1026 | Montemerlo - Padova,17.14,6.6,38.5,0.05,1.9,4.65
+670,Urbano,11LD | Due Palazzi - Largo Europa,7.71,2.96,38.5,0.29,1.8,0.88
+760,Urbano,22 | Torre - Mandria via Carnia,17.03,6.56,38.5,0.11,4.49,1.96
+100,Extraurbano,335 | Padova - Arquà P. - Este (No Galzignano Case Nuove),42.53,16.41,38.6,0.81,8.07,7.52
+4,Extraurbano,915 | Padova - Vigonovo - Celeseo - S. Angelo - Piove Di Sacco,27.44,10.58,38.6,1.28,5.75,3.55
+496,Extraurbano,589 | Strà - Noventa P. - Padova,14.28,5.52,38.6,0.19,3.59,1.74
+397,Extraurbano,630 | Piazzola - Villafranca - Padova,18.85,7.3,38.7,1.31,4.92,1.07
+481,Extraurbano,597 | Piove Di Sacco - S. Angelo - Celeseo - Vigonovo - Padova,27.86,10.81,38.8,1.4,6.19,3.23
+411,Extraurbano,497 | Zeminiana - Padova via Tangenziale,28.77,11.19,38.9,0.46,7.14,3.59
+106,Extraurbano,506 | Este - Arquà P. - Padova (No Galzignano Case Nuove),41.53,16.21,39.0,0.81,7.89,7.52
+665,Urbano,11C | Sant’Osvaldo - Taggì,11.72,4.58,39.1,0.51,3.06,1.01
+676,Urbano,12A | Park Colli - Ferrovia,6.7,2.63,39.2,0.23,1.93,0.46
+107,Extraurbano,506 | Este - Arquà P. - Padova (No Galzignano Case Nuove),41.45,16.28,39.3,0.81,7.95,7.51
+608,Urbano,4L | Cadoneghe - Roncajette,19.78,7.79,39.4,0.42,1.97,5.4
+9,Extraurbano,589 Da Strà - Nov. Padovana - Padova,14.07,5.55,39.4,0.2,3.62,1.74
+451,Extraurbano,586 Caselle Int. Padova,19.74,7.8,39.5,0.88,4.84,2.08
+785,Urbano,88F | Capolinea Sud Tram - Carpanedo via San Tommaso,6.57,2.59,39.5,0.0,0.05,2.54
+664,Urbano,11B | Via Giotto - Due Palazzi,7.56,3.0,39.7,0.34,1.81,0.86
+1,Extraurbano,597 | Piove Di Sacco - S. Angelo - Celeseo - Vigonovo - Padova,28.24,11.28,39.9,1.4,6.65,3.23
+134,Extraurbano,312 | Badia Polesine - Badia Polesine Ist. - Castelbaldo - Este,38.03,15.18,39.9,0.0,14.9,0.28
+773,Urbano,42A | Via Ippodromo - Voltabrusegana,15.6,6.23,39.9,2.25,2.87,1.1
+416,Extraurbano,852 | Padova - Zeminiana via Tangenziale,29.93,11.98,40.0,2.12,6.53,3.33
+438,Extraurbano,565 | Monteberico - Padova,39.38,15.73,40.0,2.18,7.75,5.81
+5,Extraurbano,362 | Strà - Ist. Cornaro - Padova,17.6,7.04,40.0,0.14,4.99,1.92
+130,Extraurbano,104 | Este - Castelbaldo - Badia Polesine,35.91,14.4,40.1,0.0,14.12,0.28
+26,Extraurbano,656PadovaVillafrancaPiazzola,19.01,7.64,40.2,1.25,5.24,1.16
+437,Extraurbano,434 | Padova - Monteberico,39.29,15.78,40.2,2.2,7.66,5.91
+108,Extraurbano,506 | Este - Arquà Petrarca - Padova.gpx,42.53,17.17,40.4,0.81,8.84,7.51
+122,Extraurbano,999 | Pozzonovo - Tribano DIRETTA,6.02,2.44,40.5,0.0,2.44,0.0
+30,Extraurbano,510 | Villaguattera - Rubano - Padova,15.87,6.43,40.5,2.1,3.14,1.19
+486,Extraurbano,915 | Padova - Vigonovo - Celeseo - S. Angelo - Piove Di Sacco,27.03,10.94,40.5,1.49,5.7,3.76
+392,Extraurbano,205 | Padova - Camisano,21.91,8.91,40.6,1.98,2.26,4.66
+501,Extraurbano,926 | Padova - Ponte Di Brenta - Noventa P. - Strà (via Venezia),11.44,4.65,40.6,0.07,3.46,1.12
+57,Extraurbano,999 | Cantarana - Correzzola,7.34,2.98,40.7,0.0,2.89,0.09
+663,Urbano,11A | Taggì - Sant’Osvaldo,11.23,4.57,40.7,0.4,3.21,0.95
+502,Extraurbano,926 | Padova - Ponte Di Brenta - Noventa P. - Strà,13.18,5.38,40.8,0.07,3.83,1.47
+213,Extraurbano,466 | Padova - Montemerlo - Vo' - Noventa Vicentina.gpx,43.42,17.76,40.9,1.49,8.12,8.15
+394,Extraurbano,521 | Camisano - Padova,21.43,8.76,40.9,1.96,2.16,4.65
+751,Urbano,22A | Giarre - Torre,18.3,7.51,41.0,1.3,3.82,2.39
+87,Extraurbano,"362 Padova - Ist.Gramsci (diretta) tr. via Manzoni, crescini, fanzago",5.26,2.16,41.1,0.0,1.92,0.24
+573,Colli,M | Padova - Turri,20.88,8.63,41.3,0.3,7.58,0.75
+708,Urbano,15D | Via Giotto - Largo Debussy via Plebiscito,5.97,2.47,41.3,0.21,2.25,0.0
+478,Extraurbano,133 | Padova - Ist. Marconi - Saonara - Bojon,28.23,11.69,41.4,1.96,7.01,2.72
+372,Extraurbano,999 | Padova - Ist. Marchesi/Boaga,6.54,2.71,41.5,0.0,2.28,0.43
+574,Colli,M Turri Padova,22.49,9.37,41.6,0.42,8.2,0.75
+542,Extraurbano,4 | Cinto Euganeo - Vò - Abano Ist.,31.89,13.31,41.7,2.78,2.48,8.06
+135,Extraurbano,312 | Badia Polesine - Castelbaldo - Este,36.25,15.17,41.8,0.0,14.88,0.28
+144,Extraurbano,385 | Este - Lendinara,23.47,9.82,41.8,0.41,9.2,0.2
+753,Urbano,22A | Mandria via Monselice - Torre,15.51,6.5,41.9,0.12,4.17,2.21
+215,Extraurbano,502 | Noventa Vicentina - Vò - Montemerlo - Padova,43.51,18.27,42.0,1.36,8.63,8.27
+420,Extraurbano,999 | Caselle - Villanova Diretta,5.28,2.22,42.0,0.0,0.0,2.22
+12,Extraurbano,926 | Padova - Ponte Di Brenta - Noventa P. - Stra.gpx,12.96,5.46,42.1,0.07,3.92,1.47
+8,Extraurbano,362 | Stra - Ist. Cornaro - Padova.gpx,17.04,7.18,42.1,0.33,4.88,1.97
+13,Extraurbano,926 Padova - Ponte Di Brenta - Noventa P. - Stra (via Venezia).gpx,11.23,4.74,42.2,0.07,3.56,1.12
+311,Extraurbano,883 | Padova - Cavino - Villa Del Conte - Cittadella,48.31,20.39,42.2,5.3,9.78,5.31
+445,Extraurbano,230 | Padova - Vigonza - Murelle - Caselle,18.04,7.61,42.2,0.41,5.13,2.07
+448,Extraurbano,586 | Caselle - Murelle - Vigonza - Padova,18.32,7.75,42.3,0.76,4.78,2.21
+774,Urbano,42B | Voltabrusegana - Via Ippodromo,15.12,6.4,42.3,2.0,2.92,1.48
+500,Extraurbano,906 | Strà - Noventa P. - Ponte Di Brenta - Padova,12.91,5.47,42.4,0.04,3.6,1.83
+236,Extraurbano,1079 | Liceo Galilei - Creola,11.86,5.04,42.5,1.61,0.8,2.63
+531,Extraurbano,40 | Piazzola Ist. - Tavo - Arsego,18.12,7.7,42.5,2.25,2.03,3.42
+495,Extraurbano,362 | Strà - Ist. Cornaro - Padova,17.19,7.32,42.6,0.33,5.22,1.77
+425,Extraurbano,304 | Carbonara - Vò - Lozzo - Cinto - Este,23.42,10.0,42.7,2.02,1.54,6.45
+324,Extraurbano,821 | Padova - Bosco Di Rubano Interna - Villaguattera,13.21,5.65,42.8,1.78,3.73,0.14
+48,Extraurbano,999 | Rottanova - Cavarzere,7.96,3.41,42.8,2.86,0.31,0.24
+140,Extraurbano,329 | Lendinara - Este,23.65,10.17,43.0,0.41,9.56,0.2
+88,Extraurbano,362 | Padova - Ist. Gramsci/Cornaro,4.03,1.73,43.0,0.0,1.26,0.47
+151,Extraurbano,999 | Cavazzana - Lendinara DIRETTA,4.07,1.75,43.1,0.0,1.75,0.0
+555,Extraurbano,994 | Liceo Galilei - Abano Ist.,9.68,4.17,43.1,1.74,2.43,0.0
+650,Urbano,9J | Piazza Caduti Della Resistenza - Ferrovia via C.so Milano,3.27,1.41,43.3,0.04,1.19,0.19
+276,Extraurbano,256 | Padova - Terminal Cittadella,32.38,14.04,43.4,0.0,13.22,0.82
+31,Extraurbano,843 | Padova - Rubano - Villaguattera,15.76,6.83,43.4,1.96,3.68,1.19
+11,Extraurbano,906 Stra - Noventa P. - Ponte Di Brenta - Padova.gpx,12.72,5.53,43.5,0.04,3.66,1.83
+304,Extraurbano,257 | Padova - Villa Del Conte - Terminal Cittadella,46.94,20.41,43.5,5.7,9.61,5.11
+585,Colli,TL da  Padova a Luvigliano via Mandria,24.63,10.71,43.5,0.56,8.62,1.53
+303,Extraurbano,257 | Padova - Villa Del Conte - Cittadella,45.73,19.93,43.6,5.63,9.2,5.1
+251,Extraurbano,835 | Padova - Cervarese - Carbonara - Vò,36.12,15.79,43.7,3.73,6.53,5.53
+269,Extraurbano,1026 | Pieve C. - Padova,17.59,7.7,43.8,0.69,6.98,0.04
+529,Extraurbano,1164 | S. Andrea Interna - Borgoricco - Camposampiero,11.25,4.93,43.8,0.38,1.35,3.19
+249,Extraurbano,535 | Vò - Carbonara - Cervarese - Padova,36.53,16.04,43.9,3.41,6.98,5.65
+408,Extraurbano,138 | Padova - Zeminiana - Borgoricco,34.21,15.06,44.0,0.07,10.44,4.55
+441,Extraurbano,1073 | Padova - Noale - Treviso,49.53,21.78,44.0,2.12,14.93,4.74
+758,Urbano,22 | Torre - Mandria via Monselice,15.91,7.01,44.1,0.11,4.51,2.39
+330,Extraurbano,276 | Este - Monselice - Conselve,25.34,11.2,44.2,2.77,8.43,0.0
+761,Urbano,22LA | Curiel - Prato Della Valle,4.49,1.99,44.2,0.11,1.32,0.55
+544,Extraurbano,5 | Vo - Abano Ist.,20.21,8.94,44.3,1.65,2.04,5.25
+82,Extraurbano,999 | Ca’ Bianca - Sottomarina,11.86,5.26,44.3,0.0,2.9,2.36
+755,Urbano,22C | Torre - Giarre,18.55,8.23,44.4,1.3,4.28,2.65
+584,Colli,TL Luvigliano a Padova via Mandria,24.07,10.74,44.6,0.38,8.82,1.53
+278,Extraurbano,270 | Padova - Cittadella P. Treviso,32.53,14.58,44.8,0.21,12.31,2.07
+305,Extraurbano,534 | Cittadella - Villa Del Conte - Cavino - Padova,45.3,20.27,44.8,5.3,9.69,5.28
+472,Extraurbano,570 | Bertipaglia - Padova,14.25,6.38,44.8,0.0,1.82,4.55
+499,Extraurbano,751PadovaIst.CornaoNoventaStrà,17.43,7.84,45.0,0.42,5.2,2.21
+92,Extraurbano,"999 | Padova - Ist. Gramsci/Cornaro (via Manzoni, via Crescini, via Fanzago)",4.56,2.06,45.2,0.0,1.89,0.17
+234,Extraurbano,1076 | Liceo Galieli - Montemerlo - Cervarese - Bastia - Vò,33.55,15.23,45.4,3.06,5.35,6.83
+307,Extraurbano,618 | Cittadella - Villa Del Conte - Padova,42.73,19.41,45.4,5.7,8.99,4.72
+610,Urbano,5D | Voltabrusegana - Ferrovia,9.97,4.53,45.4,1.57,2.04,0.93
+233,Extraurbano,1075 | Vo - Bastia - Cervarese - Montemerlo - Liceo Galilei,33.3,15.14,45.5,3.05,5.33,6.77
+309,Extraurbano,618 | Terminal Cittadella - Villa Del Conte - Padova,43.88,19.97,45.5,5.7,9.27,5.01
+248,Extraurbano,535 | Bastia - Cervarese - Padova,27.68,12.65,45.7,3.58,5.27,3.81
+329,Extraurbano,16 | Este - Agna,40.77,18.62,45.7,4.1,11.37,3.15
+38,Extraurbano,665 | Rottanova - Corezzola - Piove Di Sacco,29.45,13.46,45.7,0.27,9.55,3.63
+440,Extraurbano,1026 | Treviso - Noale - Padova,52.76,24.1,45.7,2.69,16.59,4.83
+725,Urbano,16F | Plebiscito - Roncajette,15.2,6.95,45.8,0.75,2.64,3.57
+149,Extraurbano,877 | Este - Lusia - Cavazzana,26.25,12.07,46.0,0.74,10.02,1.31
+482,Extraurbano,687 | Sant’Angelo - Piove Di Sacco Ist. - Piove Di Sacco,6.82,3.14,46.0,0.0,0.57,2.56
+581,Colli,TD | Torreglia - Padova via Mandria,23.39,10.77,46.0,0.48,8.75,1.53
+308,Extraurbano,618 | Terminal Cittadella - Ist. Girardi - Villa Del Conte - Padova,44.71,20.61,46.1,5.7,9.84,5.07
+133,Extraurbano,312 | Castelbaldo - Este,30.49,14.09,46.2,0.0,13.81,0.28
+530,Extraurbano,999 | Camposampiero - Padova Diretta,18.7,8.64,46.2,0.9,2.56,5.19
+131,Extraurbano,232 | Este - Castelbaldo,30.02,13.9,46.3,0.0,13.62,0.28
+132,Extraurbano,233 | Este - Castelbaldo,30.03,13.9,46.3,0.0,13.61,0.28
+377,Extraurbano,515 | Mirano - Padova,29.55,13.69,46.3,2.99,6.34,4.36
+442,Extraurbano,1073 | Padova - Noale - Treviso via Hub “La Madonnina”,49.36,22.86,46.3,2.08,15.99,4.79
+733,Urbano,16LD | Plebiscito - Piovese Park,10.32,4.79,46.4,0.75,2.57,1.48
+42,Extraurbano,705 | Piove Di Sacco - Correzzola - Rottanova,29.05,13.52,46.5,0.25,9.58,3.69
+422,Extraurbano,1133 | Este - Vo - Rovolon - Bastia - Cervarese,32.87,15.31,46.6,3.51,3.06,8.74
+250,Extraurbano,832 | Padova - Carbonara - Vò,31.17,14.56,46.7,4.07,4.4,6.09
+594,Urbano,4A | Cadoneghe - Capolinea Nord Tram,4.76,2.22,46.7,0.0,0.39,1.83
+150,Extraurbano,887 | Cavazzana - Lusia - Este,26.88,12.57,46.8,0.74,10.53,1.3
+432,Extraurbano,1045 | Campiglia - Ponticelli - Agugliaro - Valbona - Lozzo - Cinto - Este,23.26,10.88,46.8,1.08,4.66,5.14
+609,Urbano,5B | Ferrovia - Voltabrusegana,10.29,4.81,46.8,1.79,2.24,0.78
+14,Extraurbano,1026 Vigonza Peraga Padova,11.44,5.36,46.9,0.63,3.04,1.69
+185,Extraurbano,410 | Pisana - Solesino - Monselice,8.96,4.2,46.9,1.28,2.92,0.0
+376,Extraurbano,408 | Padova - Mirano,29.2,13.7,46.9,2.65,6.73,4.32
+395,Extraurbano,619 | Piazzola - Campodoro - Padova,25.21,11.84,47.0,5.09,2.07,4.68
+204,Extraurbano,1026 | Ist. Duca Degli Abruzzi - Padova,6.96,3.27,47.1,0.26,3.01,0.0
+400,Extraurbano,658 | Padova - Campodoro - Piazzola Ist.,25.67,12.1,47.1,5.09,1.78,5.23
+447,Extraurbano,576 | Noale - Padova,26.41,12.45,47.1,1.83,7.62,3.0
+477,Extraurbano,1279 Da Piove di Sacco a Tombelle,14.98,7.05,47.1,1.41,2.91,2.73
+640,Urbano,7B | Ferrovia - Saonara,12.41,5.86,47.2,0.1,4.74,1.02
+252,Extraurbano,933 | Padova - Cervarese - Rovolon - Carbonara - Vò,40.22,19.02,47.3,4.23,6.5,8.3
+316,Extraurbano,204 | Padova - Lissaro - Camisano,23.14,10.96,47.3,0.93,7.46,2.56
+546,Extraurbano,831 | Abano Ist. - Vo,20.42,9.66,47.3,1.27,2.98,5.41
+558,Colli,A (cod. ALA) Padova a Abano Parco Pescarini,16.21,7.67,47.3,0.45,5.81,1.41
+580,Colli,T | Padova - Torreglia via Mandria,22.66,10.74,47.4,0.67,8.54,1.53
+239,Extraurbano,127 | Padova - Cervarese - Bastia,27.34,12.99,47.5,3.66,5.39,3.94
+254,Extraurbano,899 | Vò - Carbonara - Padova,31.27,14.84,47.5,4.2,4.51,6.13
+453,Extraurbano,1288PadovaJesolo,77.84,37.07,47.6,2.47,33.43,1.17
+262,Extraurbano,999 | Liceo Galilei - Saccolongo,8.71,4.16,47.8,1.37,1.19,1.61
+123,Extraurbano,999 | Pozzonovo - Monselice,5.8,2.78,47.9,1.75,1.03,0.0
+375,Extraurbano,1063 | Padova - Peraga - Vigonza,10.89,5.21,47.9,0.17,3.14,1.91
+532,Extraurbano,651 | Arsego - Busiago - Marsango - Piazzola,13.27,6.36,47.9,0.28,3.82,2.25
+599,Urbano,4C | Capolinea Nord Tram - Cadoneghe,4.33,2.07,47.9,0.04,0.22,1.81
+554,Extraurbano,1065 | Abano Ist. - Rubano - Villafranca - Piazzola,33.82,16.25,48.0,1.64,10.86,3.76
+787,,,14.76,7.08,48.0,1.41,2.88,2.79
+163,Extraurbano,432 | Este - Casale Di Scodosia - Montagnana,26.72,12.88,48.2,0.0,11.96,0.92
+374,Extraurbano,1026 | Vigonza - Peraga - Padova,11.15,5.38,48.2,0.52,2.78,2.07
+49,Extraurbano,670 | Cantarana - Piove Di Sacco (No Pontelongo),19.54,9.43,48.2,0.0,7.14,2.28
+54,Extraurbano,670 | Cantarana - Piove Di Sacco (No Pontelongo),19.54,9.43,48.2,0.0,7.14,2.28
+17,Extraurbano,515 Mirano Padova,30.09,14.55,48.3,3.1,6.93,4.51
+16,Extraurbano,408 Padova a Mirano,29.82,14.43,48.4,2.75,7.25,4.43
+59,Extraurbano,25 | Padova - Agripolis,11.4,5.52,48.4,1.23,1.41,2.88
+331,Extraurbano,331 | Agna - Este,42.3,20.5,48.5,4.04,13.31,3.15
+401,Extraurbano,732 | Padova - Camisano - San Pietro In Gu,35.56,17.35,48.8,3.51,4.65,9.19
+727,Urbano,16G | Piovese Park - Plebiscito,10.13,4.94,48.8,0.66,2.72,1.56
+694,Urbano,14B | Granze - Ferrovia via Riviere,12.05,5.91,49.0,0.44,2.88,2.59
+159,Extraurbano,338 | Montagnana - Casale Di Scodosia - Este,27.22,13.41,49.2,0.0,12.43,0.97
+284,Extraurbano,661 | Terminal Cittadella - Pieve Di Curtarolo,15.06,7.42,49.3,0.0,5.19,2.23
+310,Extraurbano,816 | Padova - Villa Del Conte,31.05,15.31,49.3,5.7,4.7,4.91
+548,Extraurbano,1 | Vo - Bastia - Cervarese - Abano Ist.,38.38,18.93,49.3,3.72,6.69,8.51
+282,Extraurbano,649 | Cittadella - Padova,31.32,15.46,49.4,0.93,12.54,1.99
+393,Extraurbano,516 | San Pietro In Gù - Camisano - Padova,35.02,17.29,49.4,3.55,4.91,8.83
+446,Extraurbano,463 | Padova - Noale,26.01,12.86,49.4,1.63,8.28,2.95
+539,Extraurbano,999 | Arsego - San Giorgio Delle Pertiche,3.21,1.59,49.6,0.0,0.5,1.1
+243,Extraurbano,223 | Padova - Cervarese - Carbonara,31.48,15.72,49.9,3.65,6.45,5.61
+658,Urbano,10D | Caselle - Ponte Di Brenta,14.06,7.01,49.9,0.11,5.21,1.69
+534,Extraurbano,659 | San Giorgio Delle Pertiche - Arsego - Tavo - Piazzola,20.23,10.14,50.1,2.25,2.03,5.86
+51,Extraurbano,220 | Piove Di Sacco - Cantarana,21.05,10.57,50.2,0.0,7.07,3.5
+759,Urbano,22H | Ferrovia - Mandria via Carnia,9.45,4.76,50.4,0.11,4.02,0.63
+77,Extraurbano,664 | Correzzola - Codevigo - Piove Di Sacco,21.75,10.97,50.5,1.12,7.07,2.78
+696,Urbano,14C | Ferrovia - Ponte San Nicolò via Ospedale,8.62,4.36,50.6,0.42,1.44,2.5
+256,Extraurbano,933 | Padova - Rovolon - Carbonara - Vò,35.28,17.87,50.7,5.02,4.17,8.68
+553,Extraurbano,1064 | Piazzola - Villafranca - Rubano- Abano Ist.,33.69,17.08,50.7,2.01,10.52,4.54
+384,Extraurbano,267 | Padova - Marsango - Villa Del Conte - San Giorgio In Bosco - Cittadella,43.22,22.01,50.9,4.84,12.03,5.15
+536,Extraurbano,921 | (P165) Piazzola Ist. - Busiago - Marsango - Arsego - San Giorgio Delle Pertiche,16.94,8.62,50.9,0.28,4.35,3.99
+657,Urbano,10C | Ponte Di Brenta - Caselle,14.05,7.16,50.9,0.08,5.16,1.92
+125,Extraurbano,107 | Este - Badia Polesine dev. ponte Valli Mocenighe 23,34.27,17.49,51.0,0.0,17.21,0.28
+550,Extraurbano,833 | Abano Ist. - Cervarese - Bastia - Vo,38.23,19.48,51.0,3.55,7.14,8.8
+458,Extraurbano,21 | Padova - Olmo - Anguillara - Agna,47.75,24.41,51.1,2.39,8.82,13.2
+543,Extraurbano,5 | Teolo - Abano - Abano Ist.,15.62,7.99,51.1,1.27,1.59,5.13
+224,Extraurbano,999 | Agugliaro - Vò,4.85,2.49,51.3,0.0,1.83,0.66
+181,Extraurbano,999 - Da Montegrotto a Padova diretta,17.55,9.02,51.4,0.94,6.79,1.29
+208,Extraurbano,1057 | Noventa Vicentina - Vò,11.53,5.94,51.5,0.0,5.03,0.91
+209,Extraurbano,1057 | Noventa Vicentina - Vò,11.53,5.94,51.5,0.0,5.03,0.91
+267,Extraurbano,247 | Padova - Montemerlo - Cervarese,23.03,11.85,51.5,0.97,5.32,5.55
+119,Extraurbano,683 | Padova - Pozzonovo,36.2,18.66,51.6,5.03,8.82,4.81
+572,Colli,ATL | Padova - Abano - Torreglia - Luvignano,25.05,12.92,51.6,2.23,9.15,1.54
+645,Urbano,9B | Ferrovia - Piazza Caduti Della Resistenza via C.so Milano,3.45,1.78,51.6,0.04,1.55,0.19
+756,Urbano,22E | Giarre - Ferrovia,11.19,5.8,51.8,1.31,3.69,0.8
+127,Extraurbano,326 | Badia Polesine - Este dev. ponte Valli Mocenighe 23,34.18,17.72,51.9,0.0,17.44,0.28
+113,Extraurbano,999 | Montegrotto - Due Carrare DIRETTA,8.78,4.58,52.1,0.33,2.66,1.59
+55,Extraurbano,670 | Cantarana - Piove Di Sacco,20.64,10.75,52.1,0.0,7.36,3.39
+56,Extraurbano,670 | Cantarana - Piove Di Sacco,20.64,10.75,52.1,0.0,7.36,3.39
+424,Extraurbano,303 | Saccolongo - Fossona - Cervarese - Bastia - Rovolon - Vo - Este,41.58,21.7,52.2,5.9,5.5,10.3
+426,Extraurbano,322 | Vò - Lozzo - Cinto - Este,19.14,9.99,52.2,2.0,1.55,6.45
+450,Extraurbano,999 | Padova - Treponti S. Maria Di Sala,20.1,10.49,52.2,1.53,5.98,2.97
+754,Urbano,22C | Codalunga - Giarre,11.11,5.8,52.2,1.3,3.7,0.81
+778,Urbano,88A | Carpanedo - Capolinea Sud Tram,4.49,2.34,52.2,0.0,0.13,2.21
+147,Extraurbano,333 | Pisana - Solesino - S. Elena - Este (via Deserto),14.72,7.69,52.3,0.0,5.75,1.94
+266,Extraurbano,1116 | Cervarese - Montemerlo - Istituti - Padova,24.3,12.7,52.3,1.04,5.75,5.91
+436,Extraurbano,999 | Vò - Campiglia,10.21,5.35,52.4,0.0,4.69,0.65
+405,Extraurbano,1121 | Padova - Villafranca (via tangenziale),18.54,9.76,52.6,0.0,9.76,0.0
+590,Urbano,3D | Albignasego - Lion - Ferrovia,13.2,6.94,52.6,1.71,3.07,2.16
+697,Urbano,14D | Ponte San Nicolò - Ferrovia via Ospedale,9.08,4.78,52.6,0.33,1.56,2.89
+118,Extraurbano,627 | Pozzonovo - Padova via Riviere,35.55,18.75,52.7,5.15,8.86,4.75
+242,Extraurbano,223 Padova Cervarese Carbonara,31.88,16.81,52.7,3.91,6.86,6.04
+571,Colli,ATL | Luvignano - Torreglia - Abano - Padova,25.12,13.23,52.7,2.11,9.58,1.54
+268,Extraurbano,585 | Cervarese - Montemerlo - Padova,23.05,12.17,52.8,0.84,5.49,5.84
+494,Extraurbano,Piove Di Sacco - Piove Di Sacco Ist. - Celeseo - Vigonovo - Tombelle,14.87,7.84,52.8,1.2,4.09,2.55
+317,Extraurbano,354 | Lissaro - Ist. Via Cave - Padova,19.85,10.5,52.9,0.8,8.12,1.57
+386,Extraurbano,41 | Terminal Cittadella - Marsango - Tavo - Arsego,30.26,16.02,52.9,2.53,8.93,4.56
+306,Extraurbano,606 | Villa Del Conte - Padova,28.68,15.21,53.0,5.42,4.95,4.84
+533,Extraurbano,651 | Arsego - Busiago - Marsango - Piazzola,13.84,7.33,53.0,0.28,3.49,3.56
+476,Extraurbano,715 | Padova - Z.I. - Piove Di Sacco - Correzzola - Rottanova,56.07,29.79,53.1,2.68,16.14,10.97
+428,Extraurbano,827 Este Vò,19.24,10.26,53.3,2.04,1.77,6.46
+723,Urbano,16F | Codalunga - Roncajette,11.74,6.26,53.3,0.53,2.15,3.58
+724,Urbano,16F | Ferrovia - Roncajette,11.62,6.2,53.3,0.46,2.16,3.58
+117,Extraurbano,626 | Pozzonovo - Padova,35.52,19.02,53.5,5.03,9.17,4.82
+434,Extraurbano,930 | Este - Lozzo - Valbona,14.86,7.96,53.5,1.1,1.73,5.13
+459,Extraurbano,227 | Padova - Cartura,19.4,10.38,53.5,1.47,1.72,7.19
+320,Extraurbano,510 | Mestrino - Bosco Di Rubano - Padova,16.13,8.66,53.7,0.3,8.28,0.08
+721,Urbano,16A | Roncajette - Ferrovia,11.78,6.35,53.9,0.45,2.4,3.51
+786,Urbano,F0 | Capolinea Sud Tram - Granze,10.69,5.76,53.9,0.18,5.12,0.46
+562,Colli,A | Padova - Abano Sacro Cuore via Giarre,16.35,8.83,54.0,2.19,5.1,1.54
+15,Extraurbano,1063 Pasova Peraga Vigonza,11.8,6.38,54.1,0.27,4.23,1.88
+62,Extraurbano,641 | Agripolis - Padova,11.13,6.03,54.1,1.52,1.52,2.99
+730,Urbano,16LC | Roncajette - Codalunga,11.92,6.45,54.1,0.44,2.51,3.5
+569,Colli,AT | Padova -  Abano - Torreglia,23.09,12.52,54.2,1.82,9.16,1.54
+779,Urbano,88B | Capolinea Sud Tram - Carpanedo,4.17,2.26,54.2,0.0,0.05,2.21
+338,Extraurbano,410 | Due Carrare - Monselice,10.46,5.69,54.4,0.89,4.8,0.0
+238,Extraurbano,119 | Padova - Cervarese - Rovolon - Barbarano,47.49,25.93,54.6,5.35,10.91,9.67
+570,Colli,AT | Torreglia - Abano - Padova,24.39,13.33,54.6,2.0,9.79,1.53
+80,Extraurbano,999 | Cantarana - Brenta D’Abbà,4.42,2.42,54.6,0.0,2.17,0.24
+227,Extraurbano,999 | Vo - Noventa Vicentina,11.31,6.19,54.7,0.0,5.24,0.95
+699,Urbano,14I | Ferrovia - Piovese Park via Ospedale,5.95,3.25,54.7,0.42,1.28,1.55
+729,Urbano,16LB | Roncajette - Prato Della Valle,9.5,5.2,54.7,0.33,1.36,3.51
+247,Extraurbano,499 | Bastia - Padova via Riviere,23.66,13.0,54.9,4.46,3.63,4.9
+592,Urbano,3F | Lion - Via Orlandini,13.42,7.36,54.9,1.47,4.13,1.76
+431,Extraurbano,999 | Vò - Este,13.33,7.35,55.1,2.04,1.53,3.79
+245,Extraurbano,248 | Padova - Cervarese,21.04,11.64,55.3,2.78,5.36,3.5
+465,Extraurbano,508 | Agna - Bagnoli - Padova,36.73,20.33,55.3,1.47,2.48,16.38
+449,Extraurbano,999 | Padova - Caselle,15.3,8.48,55.4,0.4,5.35,2.73
+661,Urbano,10F | Ponte Di Brenta - Duca Degli Abruzzi,11.66,6.46,55.4,0.16,3.98,2.32
+700,Urbano,14J | Ferrovia - Rio via Ospedale,9.05,5.02,55.4,0.42,2.46,2.14
+302,Extraurbano,256 | Arsego - Villa Del Conte - Terminal Cittadella,25.8,14.32,55.5,1.35,9.26,3.71
+146,Extraurbano,814 | Este - Vighizzolo,9.84,5.47,55.6,0.0,3.98,1.49
+241,Extraurbano,222 | Padova - Carbonara,26.86,14.94,55.6,4.4,4.51,6.03
+246,Extraurbano,498 | Cervarese - Padova via Prato Della Valle/Ospedale,22.92,12.74,55.6,2.78,5.92,4.04
+257,Extraurbano,999 | Abano Ist. - Fossona - Cervarese,18.93,10.57,55.8,2.09,4.09,4.4
+261,Extraurbano,999 | Creola - Liceo Galilei,10.7,5.97,55.8,1.63,1.11,3.23
+423,Extraurbano,242 | Este - Lozzo - Rovolon - Bastia - Cervarese,38.55,21.5,55.8,4.25,5.93,11.32
+695,Urbano,13B | Ponte San Nicolò - Ferrovia via Riviere,10.26,5.72,55.8,0.44,2.45,2.83
+457,Extraurbano,20 | Padova - Bagnoli - Agna,36.68,20.51,55.9,1.47,2.68,16.36
+537,Extraurbano,921 | Piazzola Ist. - Busiago - Marsango - Arsego - San Giorgio Delle Pertiche (P367),16.46,9.21,55.9,0.28,3.55,5.38
+693,Urbano,14A | Ferrovia - Ponte San Nicolò via Riviere,9.41,5.26,55.9,0.53,2.29,2.44
+286,Extraurbano,999 | Pieve Di Curtarolo - Terminal Cittadella,14.08,7.88,56.0,0.0,7.06,0.82
+469,Extraurbano,610 Agna Bagnoli Padova via Riviere,36.74,20.59,56.0,1.48,2.49,16.61
+528,Extraurbano,1164 | S. Andrea Interna - Borgoricco - Camposampiero (deviazione lavori Borgoricco),9.79,5.48,56.0,0.38,0.57,4.52
+455,Extraurbano,17 | Padova - Bagnoli - Agna via Riviere,36.22,20.32,56.1,1.59,2.53,16.21
+728,Urbano,16LB | Ponte San Nicolò - Ferrovia,7.82,4.39,56.2,0.33,1.24,2.83
+273,Extraurbano,121 | Padova - Cittadella - Bassano,48.58,27.34,56.3,1.27,24.0,2.07
+253,Extraurbano,899 | Carbonara - Padova,26.65,15.09,56.6,4.36,4.58,6.15
+43,Extraurbano,706 | Piove Di Sacco - Rottanova,23.11,13.12,56.8,0.94,8.41,3.77
+566,Colli,A | Padova - Abano Configliacchi,17.67,10.07,57.0,2.09,6.46,1.53
+274,Extraurbano,122 | Padova - Cittadella - Centro Studi - Bassano,50.57,28.93,57.2,1.27,25.59,2.07
+383,Extraurbano,267 | Arsego - Marsango - Terminal Cittadella - Cittadella,30.39,17.42,57.3,2.53,10.84,4.05
+468,Extraurbano,570 | Cartura - Padova,18.47,10.61,57.4,1.47,1.78,7.36
+535,Extraurbano,921 | Piazzola Ist. - Busiago - Marsango - Arsego - San Giorgio Delle Pertiche,16.44,9.46,57.6,0.28,3.57,5.6
+170,Extraurbano,1026 | Este - Monselice - Padova,33.06,19.13,57.9,6.08,8.7,4.34
+145,Extraurbano,309 | Vighizzolo - Este,10.26,5.95,58.0,0.0,4.46,1.49
+563,Colli,A | Scuola Alberghiera - Padova,19.03,11.06,58.1,2.11,7.42,1.53
+430,Extraurbano,999 | Este - Komastu - Vò,16.16,9.41,58.2,2.04,3.57,3.8
+587,Urbano,3 | Ferrovia - Lion - Albignasego,13.1,7.62,58.2,1.71,3.67,2.25
+698,Urbano,14D | Rio - Ferrovia via Ospedale,8.77,5.1,58.2,0.33,2.55,2.23
+292,Extraurbano,246 | Padova - Montegaldella - S. Maria Di Veggiano - Cervarese,24.94,14.55,58.3,0.98,9.46,4.1
+296,Extraurbano,583 | Cervarese - Montegaldella - S. Maria Di Veggiano - Padova,24.77,14.45,58.3,0.98,9.19,4.28
+205,Extraurbano,1026 | Ist. Via Cave - Padova,5.95,3.48,58.5,0.26,3.22,0.0
+588,Urbano,3A | Via Orlandini - Lion,13.2,7.71,58.5,1.47,4.57,1.67
+591,Urbano,3D | San Giacomo - Ferrovia,9.43,5.52,58.5,0.9,2.95,1.67
+565,Colli,A Padova Monteortone transita per park. Fidia,21.6,12.66,58.6,3.13,8.13,1.41
+564,Colli,A Monteortone Padova transita per park. Fidia,21.68,12.78,58.9,3.13,8.24,1.41
+265,Extraurbano,999 | Vo - Liceo Galilei,24.24,14.3,59.0,4.74,1.99,7.57
+350,Extraurbano,499 | Casalserugo Alì - Padova via Riviere,10.93,6.47,59.2,0.9,4.13,1.44
+561,Colli,A | Padova - Abano - Monteortone via Giarre,20.59,12.18,59.2,2.19,8.46,1.53
+444,Extraurbano,229PadovaCaselle,15.53,9.2,59.3,0.52,5.58,3.1
+389,Extraurbano,999 | Cittadella - Marsango,13.01,7.74,59.5,0.0,4.8,2.94
+736,Urbano,F0 | Roncajette - Capolinea Nord Tram,15.61,9.28,59.5,0.35,6.42,2.51
+255,Extraurbano,903 | Barbarano - Rovolon - Padova,42.29,25.21,59.6,6.2,9.2,9.81
+464,Extraurbano,503 | Agna - Anguillara - Bagnoli - Padova,44.48,26.52,59.6,2.39,8.05,16.08
+279,Extraurbano,538 | Bassano - Bassano C. Studi - Cittadella - Padova,49.12,29.31,59.7,1.26,25.91,2.14
+148,Extraurbano,678 | Este - S. Elena - Solesino - Pisana,16.57,9.93,59.9,0.05,7.94,1.94
+655,Urbano,10B | Ponte Di Brenta - Sarmeola,13.43,8.05,59.9,0.08,6.48,1.49
+53,Extraurbano,580 | Cantarana - Pontelongo - Padova (No Pontelongo Centro),38.31,23.03,60.1,2.1,11.42,9.51
+559,Colli,A | Garibaldi Eremitani - Abano Municipio via Giarre,13.43,8.06,60.1,2.1,4.43,1.54
+567,Colli,AA,21.68,13.04,60.2,2.89,8.63,1.53
+493,Extraurbano,999 | Tombelle - Vigonovo - Piove Di Sacco,14.37,8.66,60.3,4.54,3.33,0.79
+37,Extraurbano,663 | Bagnoli - Pontelongo - Piove Istituti,49.82,30.11,60.4,1.59,24.47,4.06
+654,Urbano,10A | Sarmeola - Ferrovia,6.72,4.06,60.4,0.04,4.02,0.0
+240,Extraurbano,222 | Padova - Rovolon - Carbonara,31.07,18.85,60.7,5.17,4.51,9.18
+280,Extraurbano,538 | Bassano - Cittadella - Padova,47.69,28.96,60.7,1.55,25.13,2.27
+456,Extraurbano,19 | Padova - Bagnoli - Anguillara - Agna,44.12,26.79,60.7,2.39,8.04,16.36
+52,Extraurbano,580 | Cantarana - Pontelogno - Padova,39.4,23.96,60.8,2.07,11.58,10.3
+281,Extraurbano,538 | Bassano - Terminal Cittadella - Padova,49.1,29.89,60.9,1.55,26.07,2.27
+297,Extraurbano,584 | Cervarese - Montegaldella - Padova,22.14,13.48,60.9,0.98,8.95,3.54
+380,Extraurbano,256 | Marsango - Villa Del Conte - S. Giorgio In Bosco - Terminal Cittadella - Cittadella,18.23,11.11,61.0,0.28,10.07,0.76
+319,Extraurbano,406 | Padova - Mestrino,12.08,7.4,61.2,0.31,7.01,0.08
+328,Extraurbano,999 | Padova - Lissaro Diretta,14.32,8.76,61.2,0.31,6.94,1.51
+719,Urbano,16A | Piovese Park - Ferrovia,6.76,4.14,61.2,0.44,2.13,1.57
+720,Urbano,16A | Rio - Ferrovia,9.98,6.12,61.3,0.45,3.51,2.16
+722,Urbano,16B | Ferrovia - Rio,9.84,6.03,61.3,0.53,3.4,2.09
+343,Extraurbano,1085 | Padova - Casalserugo Alì via Riviere,11.34,6.96,61.4,0.9,4.63,1.43
+560,Colli,A | Monteortone - Abano - Padova via Giarre,20.33,12.47,61.4,2.13,8.81,1.53
+731,Urbano,16LD | Ferrovia - Piovese Park,6.74,4.14,61.4,0.53,2.09,1.51
+385,Extraurbano,41 | Terminal Cittadella - Ist. Girardi - Marsango - Tavo - Arsego,30.87,18.99,61.5,2.53,9.71,6.75
+40,Extraurbano,687 | Cavarzere - Piove Di Sacco Ist. - Piove Di Sacco,24.9,15.32,61.5,2.89,8.66,3.77
+295,Extraurbano,582 | Montegaldella - Veggiano - Padova,20.23,12.47,61.6,0.98,8.51,2.97
+315,Extraurbano,1026 | Mestrino - Padova,12.02,7.42,61.8,0.31,7.04,0.08
+195,Extraurbano,994 | Monselice - Giarre,17.95,11.11,61.9,1.77,6.46,2.88
+196,Extraurbano,994 | Monselice - Giarre,17.95,11.11,61.9,1.77,6.46,2.88
+327,Extraurbano,999 | Padova - Villaguattera Diretta,8.74,5.41,61.9,0.15,2.84,2.43
+439,Extraurbano,Este - Noventa Vicentina - Agugliaro (via Riviera Berica),21.59,13.36,61.9,0.62,9.76,2.99
+50,Extraurbano,219 | Padova - Piove Di Sacco - Cantarana,40.19,24.87,61.9,2.22,11.74,10.91
+114,Extraurbano,999 | Este - Montegrotto,21.42,13.27,62.0,2.28,9.4,1.59
+298,Extraurbano,807 | Padova - Veggiano,15.61,9.68,62.0,0.98,8.15,0.55
+474,Extraurbano,544 | Rottanova - Piove Di Sacco - Z.I. - Padova,50.43,31.3,62.1,3.77,16.89,10.64
+293,Extraurbano,435 | Padova - Veggiano - Montegaldella,20.37,12.72,62.5,0.98,8.65,3.09
+244,Extraurbano,248 | Liceo Galilei - Creola - Cervarese,17.3,10.83,62.6,3.96,3.41,3.46
+557,Colli,1061 | Montegrotto - Monteortone - Mandria - Padova,25.99,16.3,62.7,0.49,14.28,1.53
+136,Extraurbano,323 | Casale Di Scodosia - Este,19.64,12.37,63.0,0.0,12.09,0.28
+660,Urbano,10D | Sarmeola - Ponte Di Brenta,12.91,8.18,63.3,0.11,6.6,1.47
+152,Extraurbano,999 | Lendinara - Cavazzana DIRETTA,3.7,2.35,63.4,0.0,2.35,0.0
+568,Colli,AB | Turri - Padova via Giarre,21.83,13.88,63.6,2.13,10.22,1.53
+294,Extraurbano,539 | Veggiano - Padova,15.4,9.81,63.7,0.99,8.17,0.65
+178,Extraurbano,550 | Montegrotto - Padova Diretta,16.2,10.34,63.8,3.81,3.78,2.75
+461,Extraurbano,32 | Padova - Bagnoli - Anguillara,36.06,23.04,63.9,2.39,4.42,16.22
+183,Extraurbano,1205 | Monselice - Abano Giarre,17.23,11.06,64.2,1.68,6.49,2.88
+653,Urbano,10A | Ponte Di Brenta - Ferrovia,6.33,4.07,64.3,0.04,2.33,1.7
+291,Extraurbano,245 | Padova - Montegaldella - Cervarese,22.31,14.39,64.5,0.94,9.11,4.34
+734,Urbano,16LD | Via Giotto - Piovese Park,6.33,4.11,65.0,0.53,2.08,1.5
+74,Extraurbano,541 | Ca’ Bianca - Vallonga - Padova,46.95,30.53,65.0,3.39,11.56,15.58
+527,Extraurbano,813 | Padova - Vicenza,36.2,23.57,65.1,4.38,17.12,2.07
+162,Extraurbano,429 | Padova - Monselice - Este - Megliadino S. Fidenzio - Montagnana,55.09,35.93,65.2,5.99,25.32,4.63
+545,Extraurbano,771 | Abano Ist. - Montemerlo - Teolo,19.17,12.5,65.2,1.27,2.9,8.33
+169,Extraurbano,499 | Montagnana - Megliadino S.F. - Este - Monselice - Padova via Riviere,54.82,35.8,65.3,6.2,25.04,4.56
+470,Extraurbano,994 | Giarre - Abano Ist.,4.49,2.94,65.5,0.46,2.2,0.28
+154,Extraurbano,1026 | Montagnana - Megliadino S. Fidenzio - Este - Monselice - Padova,54.78,36.0,65.7,6.08,25.29,4.63
+300,Extraurbano,999 | Grisignano - Cervarese,7.45,4.9,65.7,0.04,1.8,3.05
+463,Extraurbano,508 | Anguillara - Bagnoli - Padova,35.27,23.19,65.8,2.39,4.46,16.34
+549,Extraurbano,248 | Abano Ist. - Cervarese,23.15,15.24,65.8,2.65,5.37,7.22
+71,Extraurbano,201 | Padova - Ca’ Bianca,46.79,30.77,65.8,3.51,11.45,15.81
+72,Extraurbano,286 | Padova - Vallonga - Ca’ Bianca,47.23,31.15,66.0,3.51,11.87,15.77
+492,Extraurbano,999 | Piove Di Sacco - Sant’Angelo,6.57,4.34,66.1,3.37,0.4,0.57
+73,Extraurbano,540 Ca' Bianca  Padova,46.52,30.79,66.2,3.39,11.5,15.9
+524,Extraurbano,352 | Padova - Grisignano,17.8,11.79,66.3,1.15,8.8,1.85
+659,Urbano,10D | Ferrovia - Ponte Di Brenta,6.2,4.11,66.3,0.07,2.57,1.47
+263,Extraurbano,999 | Vò - Barbarano,17.06,11.34,66.4,1.34,8.59,1.41
+177,Extraurbano,775 | Padova - Z.I. - Tessera Aeroporto,60.26,40.09,66.5,5.36,32.72,2.01
+258,Extraurbano,999 | Barbarano - Vò,16.94,11.34,67.0,1.34,8.59,1.41
+556,Extraurbano,999 Parco Pescarini Abano Ist./ Alberti,1.53,1.03,67.0,0.0,1.03,0.0
+36,Extraurbano,239 | Padova - Cavarzere,41.95,28.19,67.2,5.13,11.71,11.34
+94,Extraurbano,999 | Ist. Gramsci/Cornaro - Padova,10.8,7.27,67.3,1.26,4.2,1.81
+191,Extraurbano,709 | Monselice - Rovigo Ist. Scolastici,22.24,15.01,67.5,2.5,11.73,0.79
+552,Extraurbano,999 | Montegrotto - Creola,15.28,10.32,67.5,0.21,2.27,7.84
+70,Extraurbano,1026 | Brenta D’Abbà - Padova,35.66,24.05,67.5,3.22,11.59,9.24
+168,Extraurbano,499 | Montagnana - Este - Monselice - Padova via Riviere,52.54,35.53,67.6,6.2,24.78,4.56
+192,Extraurbano,711 | Padova - Monselice - Rovigo Autostazione,44.99,30.42,67.6,6.88,18.41,5.13
+419,Extraurbano,999 MurelleBorgoricco,8.21,5.55,67.6,0.0,2.16,3.39
+525,Extraurbano,539 | Grisignano - Padova,17.79,12.03,67.6,1.46,8.61,1.95
+732,Urbano,16LD | Largo Europa - Piovese Park,6.1,4.13,67.6,0.53,2.09,1.51
+526,Extraurbano,621 | Vicenza - Padova,35.83,24.24,67.7,4.1,18.22,1.93
+166,Extraurbano,436 | Padova - Monselice - Este - Montagnana,52.74,35.77,67.8,5.99,25.15,4.63
+589,Urbano,3B | Ferrovia - San Giacomo,9.45,6.4,67.8,0.9,3.84,1.67
+193,Extraurbano,711 | Padova - Monselice - Rovigo,45.11,30.63,67.9,6.87,18.63,5.13
+237,Extraurbano,1080 | Cervarese - Creola - Liceo Galilei,16.2,11.03,68.1,4.05,3.59,3.39
+200,Extraurbano,711 | Padova - Monselice - Rovigo,44.99,30.69,68.2,6.87,18.69,5.13
+32,Extraurbano,1026 | Cavarzere - Padova,42.04,28.66,68.2,4.99,12.47,11.2
+201,Extraurbano,711 | Padova - Monselice - Rovigo Autostazione,44.92,30.67,68.3,6.87,18.67,5.13
+642,Urbano,F0 | Via Belgio - Bragni (DIRETTA),12.53,8.57,68.4,0.83,6.28,1.46
+153,Extraurbano,1026 | Montagnana - Este - Monselice - Padova,52.5,35.97,68.5,6.08,25.26,4.63
+174,Extraurbano,1071 | Padova - Montegrotto via tangenziale,20.26,13.88,68.5,3.19,9.96,0.73
+202,Extraurbano,711 | Padova - Monselice - Rovigo,44.86,30.73,68.5,6.87,18.73,5.13
+39,Extraurbano,667 | Agna - Rottanova - Candiana - Piove Di Sacco,42.61,29.2,68.5,1.22,23.93,4.06
+473,Extraurbano,999 | Padova - Bertipaglia,20.1,13.78,68.6,1.35,10.36,2.07
+454,Extraurbano,114 | Padova - Bagnoli,29.78,20.48,68.8,1.47,2.75,16.26
+467,Extraurbano,571 | Bagnoli - Padova via Riviere,29.04,20.02,69.0,1.59,2.5,15.94
+188,Extraurbano,612 | Rovigo - Monselice - Padova,44.56,30.79,69.1,6.91,18.82,5.06
+199,Extraurbano,612 | Rovigo - Monselice - Padova,44.27,30.6,69.1,6.91,18.62,5.06
+165,Extraurbano,436 | Monselice - Este - Montagnana,28.22,19.66,69.7,0.96,18.41,0.28
+475,Extraurbano,593 | Piove Di Sacco - Z.I. - Via Uruguay - Padova,23.95,16.72,69.8,2.85,5.73,8.15
+41,Extraurbano,703 | Padova - Piove Di Sacco - Candiana - Rottanova,54.95,38.42,69.9,3.16,23.77,11.49
+340,Extraurbano,10 | Padova - Candiana - Agna,42.53,29.77,70.0,1.28,26.24,2.25
+466,Extraurbano,546 | Bagnoli - Padova via Ospedale,29.02,20.31,70.0,1.47,2.76,16.08
+175,Extraurbano,1081 | Padova - Venezia,39.93,27.98,70.1,3.08,23.29,1.6
+351,Extraurbano,526 | Agna - Candiana - Padova,42.43,29.76,70.1,1.28,26.15,2.33
+344,Extraurbano,11 Padova Cristo Agna,34.18,24.07,70.4,1.27,20.46,2.33
+180,Extraurbano,593 | Venezia - Z.I. - Padova,46.8,33.01,70.5,0.54,30.24,2.23
+90,Extraurbano,911 | Piove Di Sacco - Padova,18.73,13.22,70.6,2.1,4.48,6.64
+182,Extraurbano,999 | Venezia P.le Roma - Tronchetto,0.97,0.69,70.9,0.0,0.54,0.15
+179,Extraurbano,592 | Tessera Aeroporto - Via 1^ Strada - Padova,56.27,39.96,71.0,3.87,34.16,1.93
+84,Extraurbano,1054 | Padova - Sottomarina,50.42,35.82,71.0,2.4,26.43,6.98
+83,Extraurbano,1026 | Sottomarina - Padova,49.97,35.52,71.1,2.28,26.44,6.79
+290,Extraurbano,999 | Bassano - Mussolente,6.68,4.76,71.3,0.0,4.72,0.05
+35,Extraurbano,238 | Padova - Piove Di Sacco - Candiana - Cavarzere,54.64,38.93,71.3,5.14,22.39,11.41
+226,Extraurbano,999 | Montegrotto - Villa Di Teolo,11.76,8.42,71.6,0.86,3.09,4.47
+332,Extraurbano,1058 | Este - Schiavonia Ospedale,10.19,7.32,71.8,0.15,5.35,1.82
+89,Extraurbano,672 | Padova - Piove Di Sacco,19.11,13.72,71.8,2.23,4.59,6.9
+194,Extraurbano,712 | Monselice - Rovigo,20.53,14.81,72.1,1.85,12.18,0.78
+334,Extraurbano,1189 | Schiavonia Ospedale - Este,10.68,7.71,72.2,0.15,5.76,1.81
+347,Extraurbano,217 Padova Ronchi Candiana,35.62,25.71,72.2,1.27,21.73,2.7
+176,Extraurbano,Padova - Aeroporto Marco Polo,43.85,31.73,72.4,2.84,28.13,0.77
+186,Extraurbano,553 | Rovigo - Monselice,20.54,14.92,72.6,1.88,12.31,0.72
+187,Extraurbano,553 | Rovigo - Monselice,20.54,14.94,72.7,1.88,12.34,0.72
+203,Extraurbano,712 | Monselice - Rovigo,20.34,14.86,73.1,1.85,12.23,0.78
+198,Extraurbano,553 | Rovigo - Monselice,20.17,14.79,73.3,1.88,12.18,0.72
+346,Extraurbano,145 | Padova - Bovolenta,17.83,13.07,73.3,0.86,10.47,1.74
+63,Extraurbano,671 | Padova - Agripolis - Brugine - Piove Di Sacco via Istituti,30.03,22.09,73.6,2.85,6.7,12.54
+341,Extraurbano,1026 | Bovolenta - Padova,17.75,13.08,73.7,0.87,10.47,1.74
+61,Extraurbano,519 | Piove Istituti - Brugine - Agripolis - Padova,28.93,21.49,74.3,3.14,6.09,12.27
+64,Extraurbano,671 | Padova - Agripolis - Brugine - Piove Di Sacco,28.04,20.83,74.3,2.81,5.77,12.25
+139,Extraurbano,999 | Este - Megliadino San Vitale [DIRETTA],17.5,13.1,74.8,0.0,12.82,0.28
+172,Extraurbano,1026 | Aeroporto Marco Polo - Padova,45.59,34.34,75.3,0.65,32.65,1.04
+345,Extraurbano,999 | Padova - Arzercavalli,21.64,16.43,75.9,0.86,13.83,1.74
+60,Extraurbano,519 | Piove Di Sacco - Brugine - Agripolis - Padova,27.54,20.92,76.0,3.11,5.62,12.19
+138,Extraurbano,999 | Este - Casale Di Scodosia DIRETTA,22.77,17.48,76.7,0.0,16.62,0.85
+352,Extraurbano,772 | Padova - Bovolenta - Terrassa P.,22.38,17.18,76.7,1.27,13.64,2.26
+137,Extraurbano,344 | Megliadino San Vitale - Este via Saletto,17.81,13.69,76.9,0.0,13.41,0.28
+164,Extraurbano,433 | Este - Megliadino S.F. - Montagnana,21.26,16.35,76.9,0.0,16.06,0.28
+173,Extraurbano,1026 | Venezia - Padova,39.36,30.33,77.1,0.66,28.75,0.92
+452,Extraurbano,1070 | Jesolo - Padova,79.41,61.23,77.1,1.68,58.11,1.44
+68,Extraurbano,999 | Piove Di Sacco - Brugine V. Vivaldi,5.36,4.14,77.2,0.37,3.66,0.11
+81,Extraurbano,999 | Cà Bianca - Cantarana,10.68,8.3,77.7,0.0,0.0,8.3
+353,Extraurbano,900 | Terrassa P. - Bovolenta - Padova,21.98,17.22,78.3,1.28,13.6,2.33
+538,Extraurbano,999 | Arsego - Piazzola,10.65,8.37,78.6,0.0,5.54,2.83
+75,Extraurbano,664 | Ca’ Bianca - Vallonga - Piove Di Sacco [dev. ponte],28.96,22.76,78.6,1.29,13.6,7.86
+76,Extraurbano,664 | Ca’ Bianca - Vallonga - Piove Di Sacco [dev. ponte],28.96,22.76,78.6,1.29,13.6,7.86
+67,Extraurbano,999 | Brugine - Piove Di Sacco,5.7,4.49,78.8,0.4,4.02,0.07
+312,Extraurbano,999 ArsegoVilladelContediretta,5.96,4.78,80.3,1.43,2.7,0.65
+270,Extraurbano,1043 | Bassano Centro Studi - Cittadella,14.75,11.89,80.6,0.63,11.26,0.0
+342,Extraurbano,1026 | Arzercavalli - Padova,24.86,20.15,81.0,1.28,16.53,2.33
+289,Extraurbano,999 | Cittadella - Mussolente,22.02,17.86,81.1,1.06,16.75,0.05
+275,Extraurbano,123 | Cittadella P. Treviso - Centro Studi - Bassano,17.83,14.62,82.0,1.06,13.55,0.0
+522,Extraurbano,700 | Piove Di Sacco - Rosara,6.95,5.69,82.0,1.34,3.75,0.6
+271,Extraurbano,1043 | Bassano Centro Studi - Terminal Cittadella,15.0,12.34,82.3,0.36,11.98,0.0
+288,Extraurbano,440 | Terminal Cittadella - Mussolente,22.73,18.71,82.3,0.37,18.34,0.0
+540,Extraurbano,999 | San Giorgio Delle Pertiche - Piazzola,12.83,10.59,82.5,0.0,5.55,5.05
+272,Extraurbano,120 | Cittadella P. Treviso - Bassano,15.83,13.32,84.2,1.03,12.29,0.0
+277,Extraurbano,265 | Bassano - Cittadella Ist. Fanoli,16.52,13.91,84.2,0.63,13.28,0.0
+225,Extraurbano,999 | Montegrotto - Montemerlo,11.33,9.55,84.3,0.0,3.43,6.12
+285,Extraurbano,999 | Cittadella P. Treviso - Bassano Centro Studi,15.21,12.9,84.8,1.06,11.84,0.0
+157,Extraurbano,1045 | Montagnana - Ist. Sacchieri - Este,19.96,16.94,84.9,0.0,16.65,0.28
+167,Extraurbano,444 | Este - Montagnana,18.91,16.11,85.1,0.0,15.82,0.28
+541,Extraurbano,3 | Cervarese - Montemerlo - Abano Ist.,16.07,13.75,85.6,1.15,5.3,7.3
+155,Extraurbano,1045 | Montagnana - Este,19.44,16.68,85.8,0.0,16.4,0.28
+259,Extraurbano,999 | Cervarese - Saccolongo,9.14,7.89,86.3,2.67,2.4,2.82
+551,Extraurbano,999 | Cervarese - Abano Ist.,13.65,11.84,86.7,1.97,5.93,3.94
+189,Extraurbano,707 | Cavarzerane - Rovigo,13.83,12.01,86.8,0.6,10.63,0.78
+313,Extraurbano,999 | Villa Del Conte - Arsego,8.07,7.1,87.9,1.44,5.05,0.61
+403,Extraurbano,999 Camisano - Piazzola sul Brenta Diretta,6.04,5.36,88.8,4.38,0.52,0.46
+406,Extraurbano,999 | Piazzola - Camisano,6.04,5.38,89.1,4.38,0.55,0.46
+287,Extraurbano,259 | Mussolente - Terminal Cittadella,20.79,18.67,89.8,0.34,18.33,0.0
+78,Extraurbano,999 | Ca’ Bianca - Civè DIRETTA,6.18,5.55,89.8,0.0,0.08,5.47
+79,Extraurbano,999 | Civè - Ca’ Bianca DIRETTA,6.18,5.55,89.8,0.0,0.08,5.47
+378,Extraurbano,1043 | San Giorgio Delle Pertiche - Cittadella,19.76,17.8,90.1,1.56,13.87,2.37
+65,Extraurbano,687 | Brugine V. Vivaldi - Campagnola - Piove Ist.,8.85,8.04,90.8,1.43,3.81,2.79
+337,Extraurbano,285 ConselveBonvolentaCCandiana,21.72,19.86,91.4,0.41,17.35,2.1
+521,Extraurbano,668 | Rosara - Piove Di Sacco,7.02,6.48,92.2,1.34,4.53,0.6
+190,Extraurbano,707 | Pisana - Rovigo,11.71,10.81,92.3,0.59,9.43,0.79
+184,Extraurbano,333 | Rovigo - Pisana,11.58,10.71,92.5,0.6,9.39,0.72
+491,Extraurbano,999 | Piove Di Sacco - Bojon,7.22,6.68,92.5,1.34,4.73,0.6
+58,Extraurbano,1078 | Brugine - Campagnola - Piove Di Sacco,8.15,7.56,92.8,1.43,3.28,2.85
+158,Extraurbano,320 | Ist. Manfredini - Este,4.22,3.92,93.0,0.0,3.64,0.28
+299,Extraurbano,999 Montegaldella a Dep. Montegrotto,20.79,19.35,93.1,1.97,11.77,5.6
+160,Extraurbano,363 | Este - Ist. Manfredini,3.75,3.51,93.4,0.0,3.22,0.28
+301,Extraurbano,999 | Montegaldella - Montegrotto,21.84,20.46,93.7,1.97,13.32,5.17
+85,Extraurbano,1078 | Legnaro - Piove Di Sacco,7.74,7.3,94.3,1.8,3.16,2.34
+91,Extraurbano,999 | Legnaro - Piove Di Sacco [DIRETTA],7.74,7.29,94.3,1.8,3.15,2.34
+487,Extraurbano,999 | Bojon - Corte - Piove Di Sacco,6.75,6.4,94.8,1.34,4.46,0.6
+66,Extraurbano,869 | Piove Di Sacco - Campagnola - Brugine,7.98,7.58,94.9,1.47,3.16,2.94
+96,Extraurbano,Piove Di Sacco - Legnaro,7.53,7.18,95.4,1.77,2.97,2.44
+523,Extraurbano,999 | Bojon - Corte - Rosara,5.94,5.68,95.7,0.0,5.68,0.0
+93,Extraurbano,999 | Piove Di Sacco - Legnaro DIRETTA,7.53,7.21,95.8,1.77,3.0,2.43
+69,Extraurbano,Piove Di Sacco - Campagnola - Brugine - Legnaro,15.61,15.02,96.2,1.61,4.11,9.3
+197,Extraurbano,999 | Rovigo - Cavarzerane DIRETTA,12.61,12.17,96.5,0.65,10.8,0.72
+171,Extraurbano,999 | Este - Ist. Manfredini,3.74,3.62,96.7,0.0,3.33,0.28
+339,Extraurbano,999 CandianaConselve[Diretta],10.65,10.45,98.1,1.33,5.96,3.15
