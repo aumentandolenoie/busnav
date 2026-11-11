@@ -299,6 +299,19 @@ class AcademyRoadTests(unittest.TestCase):
             with self.subTest(tags=tags):
                 self.assertIsNone(classify_speed(tags, "secondary"))
 
+    def test_speed_limit_report_counts_each_metre_once_per_tier(self):
+        import csv, json, subprocess, tempfile
+        with tempfile.TemporaryDirectory() as folder:
+            folder = Path(folder)
+            (folder / "1.json").write_text(json.dumps({"academyId": "1", "officialLengthM": 1000, "speedLimitPolicy": 3,
+                "speedLimits": [[0, 400, 50, 1], [300, 500, 50, 1], [600, 800, 80, 3], [800, 900, 50]]}))
+            prefix = folder / "report"
+            subprocess.run([sys.executable, str(script.parent / "speed_limit_report.py"), str(folder), str(prefix)],
+                           check=True, capture_output=True)
+            row = next(csv.DictReader(open(prefix.with_suffix(".csv"))))
+            self.assertEqual((row["km_con_limite"], row["km_cartello"], row["km_legale"], row["percentuale"]),
+                             ("0.8", "0.6", "0.2", "80.0"))
+
     def test_never_simplifies_gpx_to_meet_api_point_limit(self):
         with self.assertRaises(ValueError):
             module.downsample(self.points, limit=2)

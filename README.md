@@ -180,3 +180,10 @@ Il test Android reale, i permessi in uso, le voci offline e il procedimento d'in
 
 
 Nuovo approfondimento: [Padovia come fonte e voci iOS naturali](reports/padovia-and-ios-voices.md).
+
+## Limiti di velocità (policy 3)
+- Fonte: OpenStreetMap (estratto Geofabrik Nord-Est, aggiornato a ogni build dei dati), abbinato tratto per tratto ai GPX Academy con tolleranza di 4 m.
+- Ogni tratto ha un livello di affidabilità: **cartello** (`source:maxspeed=sign/markings`), **mappato** (valore numerico senza fonte), **legale** (limite generale dell'art. 142 c.1 CdS per il contesto OSM `IT:urban`/`IT:rural`/`IT:trunk`/`IT:motorway`).
+- Il valore mostrato è quello **per autobus oltre 8 t** (art. 142 c.3 lett. f CdS): massimo 80 km/h fuori autostrada e 100 km/h in autostrada; `maxspeed:bus/coach/psv` ha la precedenza, i limiti di altri veicoli sono ignorati.
+- Non vengono mostrati limiti per direzione, a orario, per corsia, variabili o con indicazioni contraddittorie; senza dato OSM non viene stimato alcun limite.
+- Copertura aggiornata per ogni GPX: [reports/speed-limit-coverage.md](reports/speed-limit-coverage.md) e [CSV](reports/speed-limit-coverage.csv). Il cartello stradale resta sempre prevalente.
