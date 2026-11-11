@@ -95,3 +95,15 @@ test('passed and duplicate cues are not read late',()=>{
  h.end();
  assert.equal(h.spoken.length,1,'A manoeuvre already passed is discarded');
 });
+test('Android bridge accepts the tokens of queued web cues',()=>{
+ const java=fs.readFileSync('android/app/src/main/java/app/lineapilot/android/MainActivity.java','utf8');
+ const accepted=new RegExp('^'+/token\.matches\("([^"]+)"\)/.exec(java)[1]+'$');
+ const h=harness();
+ const tokens=[];
+ h.context.window.LineaPilotAndroid={speak:(m,v,r,token)=>tokens.push(token),stopSpeech(){}};
+ h.say('Uno.','normal');
+ h.context.window.lineaPilotAndroidSpeechDone(tokens[0],true);
+ h.say('Due.','normal');
+ assert.equal(tokens.length,2,'Second cue spoken after the Android callback');
+ for(const token of tokens)assert.match(token,accepted);
+});

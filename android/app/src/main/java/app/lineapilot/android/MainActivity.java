@@ -42,7 +42,7 @@ public final class MainActivity extends Activity {
     boolean layoutTest;
     private AudioManager audio;
     private AudioFocusRequest focus;
-    private boolean speakingStop;
+    private boolean navigationFocus;
     private String voiceIdentifier="";
     private double voiceRate=1;
     private long speechSerial;
@@ -118,10 +118,10 @@ public final class MainActivity extends Activity {
                 ttsReady=language!=TextToSpeech.LANG_MISSING_DATA&&language!=TextToSpeech.LANG_NOT_SUPPORTED;
                 tts.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                    @Override public void onStart(String id) { }
-                    @Override public void onDone(String id) { speechFinished(id,true); }
-                    @Override public void onError(String id) { speechFinished(id,false); }
-                    @Override public void onStop(String id,boolean interrupted){speechFinished(id,false);}
+                    @Override public void onStart(String id) { speechEvent(id,true,true); }
+                    @Override public void onDone(String id) { speechEvent(id,false,true); }
+                    @Override public void onError(String id) { speechEvent(id,false,false); }
+                    @Override public void onStop(String id,boolean interrupted){speechEvent(id,false,false);}
                 });
                 web.post(() -> web.evaluateJavascript("window.loadItalianVoices && window.loadItalianVoices()", null));
             }
@@ -209,22 +209,43 @@ public final class MainActivity extends Activity {
         if(selected!=null)tts.setVoice(selected);else tts.setLanguage(Locale.ITALIAN);
     }
     boolean navigationSpeaking(){return tts!=null&&tts.isSpeaking();}
-    boolean speakNavigation(String text,boolean priority){
-        if(!ttsReady||tts==null||text.isEmpty()||text.length()>2000)return false;
-        if(tts.isSpeaking()&&(!priority||speakingStop))return false;
-        if(audio.requestAudioFocus(focus)!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED)return false;
-        selectVoice(voiceIdentifier);tts.setSpeechRate((float)voiceRate);speakingStop=priority;
-        int result=tts.speak(text,TextToSpeech.QUEUE_FLUSH,new Bundle(),"nav-"+(++speechSerial));if(result==TextToSpeech.ERROR){speakingStop=false;audio.abandonAudioFocusRequest(focus);}return result!=TextToSpeech.ERROR;
+    double speechRate(){return voiceRate;}
+    // Low-level TTS for native navigation. The queue (VoiceCueQueue) lives in
+    // NavigationSession: this is only called when nothing else is being read,
+    // so QUEUE_FLUSH never cuts a cue off any more.
+    String startNavigationUtterance(String text){
+        if(!ttsReady||tts==null||text==null||text.isEmpty()||text.length()>2000)return null;
+        if(!navigationFocus){if(audio.requestAudioFocus(focus)!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED)return null;navigationFocus=true;}
+        selectVoice(voiceIdentifier);tts.setSpeechRate((float)voiceRate);
+        String id="nav-"+(++speechSerial);
+        if(tts.speak(text,TextToSpeech.QUEUE_FLUSH,new Bundle(),id)==TextToSpeech.ERROR){releaseNavigationAudio();return null;}
+        return id;
     }
-    void stopNativeSpeech(){if(tts!=null)tts.stop();speakingStop=false;if(audio!=null&&focus!=null)audio.abandonAudioFocusRequest(focus);}
-    private void speechFinished(String id,boolean ok){web.post(()->{if(id!=null&&id.startsWith("nav-")){if(id.equals("nav-"+speechSerial)){speakingStop=false;audio.abandonAudioFocusRequest(focus);}}else notifySpeech(id,ok);});}
+    void cancelNavigationUtterance(){if(tts!=null)tts.stop();}
+    void releaseNavigationAudio(){if(navigationFocus&&audio!=null&&focus!=null){audio.abandonAudioFocusRequest(focus);navigationFocus=false;}}
+    /** Manual request (test voice): replaces whatever is queued. */
+    boolean speakNavigation(String text){
+        if(session!=null){session.speakNow(text);return true;}
+        cancelNavigationUtterance();
+        return startNavigationUtterance(text)!=null;
+    }
+    void stopNativeSpeech(){
+        if(session!=null)session.flushVoice();
+        else{cancelNavigationUtterance();releaseNavigationAudio();}
+    }
+    private void speechEvent(String id,boolean started,boolean ok){web.post(()->{
+        if(id!=null&&id.startsWith("nav-")){
+            if(session!=null){if(started)session.onSpeechStarted(id);else session.onSpeechEnded(id,ok);}
+            else if(!started&&id.equals("nav-"+speechSerial))releaseNavigationAudio();
+        }else if(!started)notifySpeech(id,ok);
+    });}
     private void handleMessage(JSONObject body){
         switch(body.optString("type")){
             case "previewRoute":try{JSONObject r=body.optJSONObject("route");double[][] points=r==null?new double[0][2]:NativeRoute.coordinates(r.getJSONArray("points"));if(points.length>0)new GPXTracker(points);double[][] stops=r==null?new double[0][2]:NativeRoute.coordinates(r.optJSONArray("stopCoordinates"));JSONArray ss=r==null?null:r.optJSONArray("stops");String[] names=new String[ss==null?0:ss.length()];for(int i=0;i<names.length;i++)names[i]=ss.getString(i);previewMap.show(points,stops,names);send("previewReady",new JSONObject());}catch(Exception ignored){}break;
             case "start":startNavigation(body);break;
             case "stop":endNavigation(false);break;
             case "settings":configureVoice(body);if(session!=null){session.voice=body.optBoolean("voice",session.voice);session.turnVoice=body.optBoolean("turnVoice",session.turnVoice);if(!session.voice)stopNativeSpeech();}break;
-            case "testVoice":speakNavigation("Tra duecento metri, alla rotonda, prendi la seconda uscita, poi prossima fermata: Padova Autostazione. Svolta a destra, poi svolta a sinistra.",true);break;
+            case "testVoice":speakNavigation("Tra duecento metri, alla rotonda, prendi la seconda uscita, poi prossima fermata: Padova Autostazione. Svolta a destra, poi svolta a sinistra.");break;
             case "openUpdate":new Bridge(this).openExternal(body.optString("url"));break;
             case "checkUpdates":new Thread(()->{try{HttpURLConnection connection=(HttpURLConnection)new URL("https://api.github.com/repos/aumentandolenoie/busnav/releases?per_page=40").openConnection();connection.setConnectTimeout(15000);connection.setReadTimeout(15000);connection.setRequestProperty("Accept","application/vnd.github+json");try(java.io.InputStream in=connection.getInputStream()){java.io.ByteArrayOutputStream bytes=new java.io.ByteArrayOutputStream();byte[] buffer=new byte[8192];int count;while((count=in.read(buffer))!=-1)bytes.write(buffer,0,count);JSONArray releases=new JSONArray(new String(bytes.toByteArray(),StandardCharsets.UTF_8));JSONObject out=new JSONObject();out.put("releases",releases);send("releases",out);}finally{connection.disconnect();}}catch(Exception e){JSONObject out=new JSONObject();try{out.put("message",e.getMessage());}catch(Exception ignored){}send("updateError",out);}}).start();break;
         }

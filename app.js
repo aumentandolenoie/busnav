@@ -1034,7 +1034,7 @@ function drainVoice(){
  const expected=item.text.length*110/Math.max(.5,voicePreferences.rate||1)+5000;
  const watch=(ms,onTimeout)=>{clearTimeout(voiceWatchdog);voiceWatchdog=setTimeout(()=>{if(!finished&&generation===voiceGeneration)onTimeout()},ms)};
  if(window.LineaPilotAndroid){
-  const token=generation+':'+(++voiceSerial);
+  const token=String(++voiceSerial); // the Android bridge only accepts digits
   window.lineaPilotAndroidSpeechDone=(callbackToken,ok)=>{if(callbackToken===token)finish(!!ok,'Android TTS')};
   try{
    window.LineaPilotAndroid.speak(item.text,voicePreferences.id,voicePreferences.rate,token);
