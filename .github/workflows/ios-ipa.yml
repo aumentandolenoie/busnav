@@ -78,7 +78,7 @@ jobs:
         run: |
           node --test tests/*.test.cjs
           python3 -m unittest discover -s tests -p 'test_road_guidance.py' -v
-          swiftc ios/Sources/GPXTracker.swift ios/Sources/GuidanceCoverage.swift tests/main.swift -o /tmp/gpx-tests
+          swiftc ios/Sources/GPXTracker.swift ios/Sources/GuidanceCoverage.swift ios/Sources/VoiceCueQueue.swift tests/main.swift -o /tmp/gpx-tests
           /tmp/gpx-tests
       - name: Prepare bundled web assets
         run: bash scripts/prepare-ios.sh

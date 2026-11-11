@@ -108,7 +108,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     var onLocation: ((CLLocation) -> Void)?
     var onStatus: ((String) -> Void)?
     var voiceEnabled = true {
-        didSet { if !voiceEnabled { synthesizer.stopSpeaking(at: .immediate); speakingStop = false } }
+        didSet { if !voiceEnabled { flushVoice() } }
     }
     var turnsEnabled = true
     var voiceIdentifier: String = ""
@@ -170,11 +170,21 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         let modes = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String] ?? []
         return !Self.isHostedByLiveContainer && modes.contains("location")
     }
-    private let synthesizer = AVSpeechSynthesizer()
+    private var synthesizer = AVSpeechSynthesizer()
     private var route: NativeRoute?
     private var tracker: GPXTracker?
     private var lastOffRouteAlert = Date.distantPast
-    private var speakingStop = false
+    // Spoken guidance: one cue at a time, the others wait in `cues` (see VoiceCueQueue).
+    private var cues = VoiceCueQueue()
+    private var currentUtterance: AVSpeechUtterance?
+    private var currentKey: String?
+    private var currentText = ""
+    private var currentStarted = false
+    private var startAttempts = 0
+    private var speechWatchdog: Timer?
+    private var lastSpeechEnd = Date.distantPast
+    private var lastStopRequest = Date.distantPast
+    private var deactivateWork: DispatchWorkItem?
     private var matched = false
     private var active = false
     private var along = 0.0
@@ -231,7 +241,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             self.onProgress?(self.along, 0, self.stopIndex, false)
             self.onStatus?("Segnale GPS assente · annunci sospesi")
             if !self.staleWarning {
-                self.synthesizer.stopSpeaking(at: .immediate); self.speakingStop = false
+                self.flushVoice()
                 self.staleWarning = true
             }
         }
@@ -266,11 +276,11 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         active = false
         watchdog?.invalidate(); watchdog = nil
         matched = false
-        speakingStop = false
         locationUpdatesStarted = false
         manager.stopUpdatingLocation()
         manager.allowsBackgroundLocationUpdates = false
-        synthesizer.stopSpeaking(at: .immediate)
+        flushVoice()
+        deactivateWork?.cancel(); deactivateWork = nil
         route = nil
         tracker = nil
         lastGoodFix = Date()
@@ -318,8 +328,9 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // Transient Core Location errors (e.g. locationUnknown) only pause positional
+        // cues; they no longer cut the sentence being spoken.
         matched = false
-        synthesizer.stopSpeaking(at: .immediate); speakingStop = false
         onProgress?(along, 0, stopIndex, false)
         onStatus?("Errore GPS: \(error.localizedDescription)")
     }
@@ -332,8 +343,9 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         guard location.horizontalAccuracy >= 0, location.horizontalAccuracy <= 65,
               location.timestamp.timeIntervalSinceNow > -8,
               location.timestamp.timeIntervalSinceNow < 2 else {
+            // A single imprecise fix pauses positional cues (they wait, and are dropped
+            // if the target is passed) instead of cutting the current sentence.
             matched = false
-            synthesizer.stopSpeaking(at: .immediate); speakingStop = false
             onProgress?(along, 0, stopIndex, false)
             onStatus?(manager.accuracyAuthorization == .reducedAccuracy ? "Attiva Posizione precisa per LiveContainer nelle impostazioni iOS" : "GPS poco preciso · annunci sospesi")
             return
@@ -353,7 +365,10 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             onProgress?(along, distance, stopIndex, false)
             onStatus?(distance > 85 ? "Fuori percorso · segui il GPX ufficiale" : "GPS in riallineamento · annunci sospesi")
             if distance > 85 && Date().timeIntervalSince(lastOffRouteAlert) > 45 {
-                if voiceEnabled { speak("Sei fuori dal percorso ufficiale. Controlla la posizione sul GPX.", stopPriority: true) }
+                if voiceEnabled {
+                    cues.removeAll() // queued directions refer to a position that is no longer valid
+                    enqueueCue("offroute") { _ in "Sei fuori dal percorso ufficiale. Controlla la posizione sul GPX." }
+                }
                 lastOffRouteAlert = Date()
             }
             return
@@ -370,12 +385,17 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
 
         onProgress?(along, hit.distance, stopIndex, true)
         announce(atSpeed: speed, deviation: hit.distance, route: route)
-        if voiceEnabled, hit.distance < 45, !synthesizer.isSpeaking,
+        if voiceEnabled, hit.distance < 45,
            let index = route.nextCamera(at: along, within: max(120, min(250, speed * 12)), excluding: spokenCameras),
            let camera = route.roadCameras?[index], camera.at - along >= 15 {
-            let metres = Int(max(20, ((camera.at - along) / 10).rounded() * 10))
-            if speak("Tra circa \(metres) metri, \(camera.title.lowercased()).") { spokenCameras.insert(index) }
+            let title = camera.title.lowercased()
+            if enqueueCue("camera:\(index)", target: camera.at, make: { left in
+                guard let left, left >= 15 else { return nil }
+                return "Tra circa \(Int(max(20, (left / 10).rounded() * 10))) metri, \(title)."
+            }) { spokenCameras.insert(index) }
         }
+        // Cues held during a GPS dropout resume as soon as the position is reliable.
+        pumpVoice()
     }
 
     private func nextVoiceTurn(in route: NativeRoute, maxDistance: Double = 450) -> Int? {
@@ -388,6 +408,14 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         }
     }
 
+    private static func spokenDistance(_ left: Double?, near: Double) -> Double? {
+        guard let left, left > near else { return nil }
+        return left
+    }
+
+    // Cues are queued, never dropped because something else is being said: the
+    // stop or manoeuvre that comes first along the GPX is read first, the next one
+    // follows ("Poi, ..."). Distances are recomputed when each cue is actually read.
     private func announce(atSpeed speed: Double, deviation: Double, route: NativeRoute) {
         guard voiceEnabled else { return }
         let index = turnsEnabled && deviation < 65 ? nextVoiceTurn(in: route) : nil
@@ -408,8 +436,10 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
                 stopFollowsChain = continuation.isStop
                 let chainLead = continuation.isStop ? max(lead, stopLead - (route.offsets[continuation.index] - turn.at)) : lead
                 if distance <= chainLead {
-                    let message = route.voiceMessage(text, distance: distance > near ? distance : nil, continuation: continuation)
-                    if speak(message, stopPriority: continuation.isStop) {
+                    let queued = enqueueCue("turn:\(index)", target: turn.at) { left in
+                        route.voiceMessage(text, distance: NativeNavigation.spokenDistance(left, near: near), continuation: continuation)
+                    }
+                    if queued {
                         turnStages[index] = distance <= near ? 2 : 1
                         if continuation.isStop {
                             stopStages[continuation.index] = 1
@@ -424,76 +454,124 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         }
 
         if stopIndex < route.stops.count && deviation < 100 && remaining >= 0 {
-            if stopStage == 0 && remaining <= stopLead && !stopFollowsChain && !synthesizer.isSpeaking {
-                if speak("Tra \(Int(max(50, (remaining / 50).rounded() * 50))) metri, prossima fermata: \(route.stops[stopIndex]).", stopPriority: true) {
+            let name = route.stops[stopIndex]
+            let key = "stop:\(stopIndex)"
+            let target = route.offsets[stopIndex]
+            if stopStage == 0 && remaining <= stopLead && !stopFollowsChain {
+                if enqueueCue(key, target: target, make: { left in
+                    guard let left, left >= 40 else { return "Fermata in arrivo: \(name)." }
+                    return "Tra \(Int(max(50, (left / 50).rounded() * 50))) metri, prossima fermata: \(name)."
+                }) {
                     stopStages[stopIndex] = 1
-                    return
                 }
             } else if stopStage == 1 && remaining <= 65 && remaining >= 8 && speed > 2 && along >= chainedStopAfter {
-                if speak("Fermata in arrivo: \(route.stops[stopIndex]).", stopPriority: true) {
+                if enqueueCue(key, target: target, make: { _ in "Fermata in arrivo: \(name)." }) {
                     stopStages[stopIndex] = 2
-                    return
                 }
             }
         }
-        guard let index, let text = turn?.text, !synthesizer.isSpeaking else { return }
+        guard let index, let text = turn?.text else { return }
         let stage = turnStages[index, default: 0]
+        let target = route.turns[index].at
         if stage < 2 && distance <= near {
-            if speak(route.voiceMessage(text, distance: nil)) { turnStages[index] = 2 }
+            if enqueueCue("turn:\(index)", target: target, make: { _ in route.voiceMessage(text, distance: nil) }) {
+                turnStages[index] = 2
+            }
         } else if stage == 0 && distance <= lead {
-            if speak(route.voiceMessage(text, distance: distance)) { turnStages[index] = 1 }
+            if enqueueCue("turn:\(index)", target: target, make: { left in
+                route.voiceMessage(text, distance: NativeNavigation.spokenDistance(left, near: near))
+            }) {
+                turnStages[index] = 1
+            }
         }
     }
 
+    /// Top-panel button. Besides repeating the instruction it also rebuilds the
+    /// synthesizer, so it always works as a manual recovery.
     func repeatInstruction() {
         guard voiceEnabled, matched, let route else { return }
+        let message: String
         let stop = route.upcomingStop(from: along, startingAt: stopIndex)
         let stopAt = stop.map { route.offsets[$0] } ?? .infinity
         if turnsEnabled, let index = nextVoiceTurn(in: route, maxDistance: .infinity), let text = route.turns[index].text,
            route.turns[index].at < stopAt {
             let distance = route.turns[index].at - along
             let continuation = route.continuation(after: index, from: along, stopIndex: stopIndex)
-            speak(route.voiceMessage(text, distance: distance > 20 ? distance : nil, continuation: continuation), stopPriority: true)
+            message = route.voiceMessage(text, distance: distance > 20 ? distance : nil, continuation: continuation)
         } else if let stop {
-            speak("Prossima fermata: \(route.stops[stop])", stopPriority: true)
-        } else { speak("Segui il percorso ufficiale.", stopPriority: true) }
+            message = "Prossima fermata: \(route.stops[stop])"
+        } else { message = "Segui il percorso ufficiale." }
+        speakNow(message)
     }
 
     func testVoice() {
-        speak("Tra duecento metri, alla rotonda, prendi la seconda uscita, poi prossima fermata: Padova Autostazione. Svolta a destra, poi svolta a sinistra.")
+        speakNow("Tra duecento metri, alla rotonda, prendi la seconda uscita, poi prossima fermata: Padova Autostazione. Svolta a destra, poi svolta a sinistra.")
+    }
+
+    /// Manual requests replace whatever is queued and are spoken immediately.
+    private func speakNow(_ message: String) {
+        flushVoice()
+        resetSynthesizer()
+        interrupted = false
+        cues.enqueue(key: "manual", target: nil, now: Date().timeIntervalSince1970, behindSpeech: false) { _ in message }
+        pumpVoice()
     }
 
     @objc private func audioInterrupted(_ note: Notification) {
         guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
         interrupted = type == .began
-        if interrupted { synthesizer.stopSpeaking(at: .immediate); speakingStop = false }
         // Stale utterances are discarded; next GPS fixes schedule current cues.
+        // The `.ended` notification is not always delivered: the flag is also
+        // cleared as soon as the audio session can be activated again.
+        if interrupted { flushVoice() }
     }
 
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        speakingStop = false
-        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    // MARK: - Speech queue
+
+    /// Queues a navigation cue. Returns true when it is being said or waiting;
+    /// a cue for the same stop/manoeuvre is never duplicated.
+    @discardableResult
+    private func enqueueCue(_ key: String, target: Double? = nil, make: @escaping (Double?) -> String?) -> Bool {
+        guard voiceEnabled else { return false }
+        if currentUtterance != nil && currentKey == key { return true }
+        let kept = cues.enqueue(key: key, target: target, now: Date().timeIntervalSince1970,
+                                behindSpeech: currentUtterance != nil, make: make)
+        pumpVoice()
+        return kept
     }
 
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        // Do not deactivate the session here: a priority stop may already be starting.
-    }
-
-    @discardableResult private func speak(_ text: String, stopPriority: Bool = false) -> Bool {
-        guard !text.isEmpty, !interrupted else { return false }
-        if synthesizer.isSpeaking {
-            guard stopPriority && !speakingStop else { return false }
-            synthesizer.stopSpeaking(at: .immediate)
+    private func pumpVoice() {
+        guard currentUtterance == nil else { return }
+        guard !cues.isEmpty else { scheduleAudioDeactivation(); return }
+        // Speaking right after stopSpeaking(at:) can be silently swallowed by iOS.
+        let sinceStop = Date().timeIntervalSince(lastStopRequest)
+        if sinceStop < 0.25 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + (0.25 - sinceStop)) { [weak self] in self?.pumpVoice() }
+            return
         }
-        speakingStop = stopPriority
+        guard let next = cues.next(along: along, positionReliable: matched,
+                                   now: Date().timeIntervalSince1970,
+                                   lastSpeechEnd: lastSpeechEnd.timeIntervalSince1970) else {
+            scheduleAudioDeactivation()
+            return
+        }
+        startAttempts = 0
+        startUtterance(next.text, key: next.key)
+    }
+
+    private func startUtterance(_ text: String, key: String) {
+        deactivateWork?.cancel(); deactivateWork = nil
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+            try session.setActive(true)
+            interrupted = false
         } catch {
-            speakingStop = false
+            // E.g. during a phone call. The cue is dropped rather than read late;
+            // the following GPS fixes schedule current cues again.
             onStatus?("Audio nativo non disponibile: \(error.localizedDescription)")
-            return false
+            return
         }
         let utterance = AVSpeechUtterance(string: text)
         let installed = installedItalianVoices()
@@ -505,8 +583,105 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         utterance.rate = min(AVSpeechUtteranceMaximumSpeechRate,
                             max(AVSpeechUtteranceMinimumSpeechRate,
                                 AVSpeechUtteranceDefaultSpeechRate * voiceRate))
+        currentUtterance = utterance
+        currentKey = key
+        currentText = text
+        currentStarted = false
+        armSpeechWatchdog(after: 5)
         synthesizer.speak(utterance)
-        return true
+    }
+
+    private func armSpeechWatchdog(after seconds: TimeInterval) {
+        speechWatchdog?.invalidate()
+        let utterance = currentUtterance
+        speechWatchdog = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { [weak self] _ in
+            guard let self, let utterance, self.currentUtterance === utterance else { return }
+            self.recoverStuckSpeech()
+        }
+    }
+
+    /// AVSpeechSynthesizer sometimes never reports the start or the end of an
+    /// utterance, typically when two cues follow each other closely. The app then
+    /// believed it was still speaking and stayed silent until the repeat button was
+    /// pressed. Now the synthesizer is rebuilt and the queue carries on by itself.
+    private func recoverStuckSpeech() {
+        let text = currentText
+        let key = currentKey ?? "recovered"
+        let wasHeard = currentStarted
+        let retry = !wasHeard && startAttempts == 0
+        resetSynthesizer()
+        if retry {
+            startAttempts = 1
+            startUtterance(text, key: key)
+        } else {
+            if wasHeard { lastSpeechEnd = Date() } // "Poi, ..." only after a cue that was heard
+            pumpVoice()
+        }
+    }
+
+    private func resetSynthesizer() {
+        speechWatchdog?.invalidate(); speechWatchdog = nil
+        currentUtterance = nil; currentKey = nil; currentStarted = false
+        synthesizer.delegate = nil
+        synthesizer.stopSpeaking(at: .immediate)
+        synthesizer = AVSpeechSynthesizer()
+        synthesizer.delegate = self
+    }
+
+    /// Silences guidance now and forgets queued cues (GPS lost, voice off, end of trip).
+    private func flushVoice() {
+        cues.removeAll()
+        speechWatchdog?.invalidate(); speechWatchdog = nil
+        let wasSpeaking = currentUtterance != nil || synthesizer.isSpeaking
+        currentUtterance = nil; currentKey = nil; currentStarted = false
+        if wasSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+            lastStopRequest = Date()
+        }
+        scheduleAudioDeactivation()
+    }
+
+    /// The session is released only once nothing has been said for a moment.
+    /// Deactivating it right in didFinish used to cut the next, already started cue.
+    private func scheduleAudioDeactivation() {
+        // Called on every GPS fix while idle: keep the pending release instead of
+        // postponing it forever (other audio would otherwise stay ducked).
+        guard deactivateWork == nil else { return }
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.deactivateWork = nil
+            guard self.currentUtterance == nil, !self.synthesizer.isSpeaking else { return }
+            try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        }
+        deactivateWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2, execute: work)
+    }
+
+    private func utteranceEnded(_ utterance: AVSpeechUtterance) {
+        // Late callbacks from an utterance that was already replaced are ignored.
+        guard utterance === currentUtterance else { return }
+        speechWatchdog?.invalidate(); speechWatchdog = nil
+        currentUtterance = nil; currentKey = nil; currentStarted = false
+        lastSpeechEnd = Date()
+        pumpVoice()
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, utterance === self.currentUtterance else { return }
+            self.currentStarted = true
+            // Generous upper bound for the whole sentence; normal cues end well before.
+            let seconds = Double(utterance.speechString.count) * 0.11 / Double(max(0.5, self.voiceRate)) + 5
+            self.armSpeechWatchdog(after: seconds)
+        }
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async { [weak self] in self?.utteranceEnded(utterance) }
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async { [weak self] in self?.utteranceEnded(utterance) }
     }
 
 }

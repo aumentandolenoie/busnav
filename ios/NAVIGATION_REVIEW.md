@@ -6,7 +6,7 @@
 - Durante il GPS iOS, MapKit mostra la cartografia Apple online corrente. La linea sovrapposta proviene esclusivamente dai punti Academy.
 - Un solo `GPXTracker` alimenta avanzamento, prossima fermata e voce. Il matcher rifiuta fix fuori ordine, qualità >65 m e salti non confermati; cerca prima lungo la progressione locale per evitare cambi di giro agli incroci.
 - Fermate Busitalia GTFS selezionate esplicitamente: coordinate reali sulla mappa, distanze/annunci lungo il GPX. Una nuova selezione cancella subito il precedente percorso.
-- AVSpeechSynthesizer italiano, avvisi anticipati proporzionali alla velocità, richiamo in prossimità, priorità alle fermate e nessuna coda illimitata di annunci vecchi.
+- AVSpeechSynthesizer italiano, avvisi anticipati proporzionali alla velocità e richiamo in prossimità. Gli annunci ravvicinati non si scartano né si interrompono: vanno in coda (max 4) e sono letti uno dopo l'altro ("Poi, …"), prima la fermata o manovra che si incontra prima lungo il GPX, con la distanza ricalcolata al momento della lettura. Annunci superati o in attesa da oltre 25 s vengono scartati. Un watchdog ricrea il sintetizzatore se iOS non segnala l'inizio o la fine di un annuncio, così la voce non resta bloccata.
 - Preparazione in tre passaggi: percorso → sequenza fermate → riepilogo e avvio.
 - Librerie web incluse nell'IPA; il selettore non dipende da CDN durante l'utilizzo.
 

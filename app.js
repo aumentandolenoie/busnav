@@ -921,14 +921,26 @@ function renderStops(){if(!current)return;if(!current.stops.length){$('stopList'
  }
 }
 // GPS-like spoken guidance. All distances are measured along the Academy GPX.
+// Cues are queued instead of being dropped or cutting each other off: the stop or
+// manoeuvre that comes first along the GPX is read first and the next one follows
+// ("Poi, ..."). A stuck synthesizer is detected by a watchdog and the queue carries on.
 let voiceQueue=[],voiceBusy=false,voiceGeneration=0,voiceUnlocked=false,activeVoicePriority=null,firstVoiceFix=true;
 let spokenStopStages=new Map(),spokenTurnStages=new Map(),lastVoiceTime=0,lastPositionSample=null,filteredSpeed=0;
-let voiceStarted=false;
+let voiceStarted=false,voiceSerial=0,activeVoiceKey=null,activeUtterance=null,voiceWatchdog=null,voiceDrainTimer=null;
+let voiceFailures=0,voiceAlong=null,voicePositionOk=false,voiceLastEnd=0,voiceLastCancel=0;
+const VOICE_MAX_PENDING=4,VOICE_MAX_AGE=25000,VOICE_CHAIN_WINDOW=2500;
 function resetVoiceGuidance(){
  voiceGeneration++;voiceQueue=[];voiceBusy=false;spokenStopStages.clear();spokenTurnStages.clear();voiceStarted=false;
  lastVoiceTime=0;lastPositionSample=null;filteredSpeed=0;activeVoicePriority=null;firstVoiceFix=true;
+ activeVoiceKey=null;activeUtterance=null;voiceFailures=0;voiceAlong=null;voicePositionOk=false;
+ clearTimeout(voiceWatchdog);voiceWatchdog=null;clearTimeout(voiceDrainTimer);voiceDrainTimer=null;
  if(window.LineaPilotAndroid)try{window.LineaPilotAndroid.stopSpeech()}catch(e){console.warn(e)}
- if('speechSynthesis'in window)try{speechSynthesis.cancel()}catch(e){console.warn(e)}
+ if('speechSynthesis'in window)try{
+  // Only wait before the next utterance if something was really playing: a cue
+  // started from a tap must stay inside the user gesture for iOS Safari.
+  if(speechSynthesis.speaking||speechSynthesis.pending)voiceLastCancel=Date.now();
+  speechSynthesis.cancel();
+ }catch(e){console.warn(e)}
 }
 function setVoiceStatus(message,problem=false){
  const el=$('voiceNavStatus');
@@ -946,66 +958,121 @@ function setupVoice(){
  try{if(speechSynthesis.paused)speechSynthesis.resume()}catch(e){console.warn(e)}
  return true;
 }
-function enqueueVoice(message,priority='normal'){
+function voiceSpeaksFirst(a,b){
+ const at=a.target??-Infinity,bt=b.target??-Infinity;
+ return at!==bt?(at<bt?-1:1):a.seq-b.seq;
+}
+function chainVoiceText(text){
+ const second=text.charAt(1);
+ const lower=second&&second===second.toLowerCase()&&second!==second.toUpperCase();
+ return 'Poi, '+(lower?text.charAt(0).toLowerCase():text.charAt(0))+text.slice(1);
+}
+// Removes and returns the next cue still worth saying. Cues tied to a position wait
+// while GPS is unreliable and are discarded once passed or after waiting too long.
+function takeNextVoice(now=Date.now()){
+ voiceQueue=voiceQueue.filter(x=>now-x.at<=VOICE_MAX_AGE&&
+  (x.target===null||!voicePositionOk||voiceAlong===null||voiceAlong<=x.target+5));
+ for(let i=0;i<voiceQueue.length;i++){
+  const item=voiceQueue[i];
+  if(item.target!==null&&!voicePositionOk)continue;
+  voiceQueue.splice(i--,1);
+  const left=item.target===null||voiceAlong===null?null:item.target-voiceAlong;
+  let text='';
+  try{text=String(item.build(left)??'').trim()}catch(e){console.warn('Annuncio:',e)}
+  if(!text)continue;
+  if(item.behind&&now-voiceLastEnd<VOICE_CHAIN_WINDOW)text=chainVoiceText(text);
+  return {...item,text};
+ }
+ return null;
+}
+function enqueueVoice(message,priority='normal',options={}){
  if(nativeActive)return false; // Swift owns stop/turn audio during native GPS sessions
  if(!$('voiceToggle').checked||!setupVoice())return false;
- if(priority==='stop'){
-  voiceQueue=voiceQueue.filter(x=>x.priority!=='turn');
-  if(voiceBusy&&activeVoicePriority==='turn'){
-   voiceGeneration++;voiceBusy=false;activeVoicePriority=null;
-   try{speechSynthesis.cancel()}catch(e){console.warn(e)}
-  }
+ const key=options.key||null,target=Number.isFinite(options.target)?options.target:null;
+ // Already being read: do not repeat the same stop or manoeuvre.
+ if(key&&voiceBusy&&activeVoiceKey===key)return true;
+ const build=typeof options.build==='function'?options.build:()=>message;
+ let item=key?voiceQueue.find(x=>x.key===key):null;
+ if(item){item.message=message;item.build=build;item.priority=priority;item.at=Date.now();item.behind=item.behind||voiceBusy}
+ else{
+  item={message,build,priority,key,target,at:Date.now(),seq:++voiceSerial,behind:voiceBusy};
+  voiceQueue.push(item);
+  voiceQueue.sort(voiceSpeaksFirst);
+  if(voiceQueue.length>VOICE_MAX_PENDING)voiceQueue.length=VOICE_MAX_PENDING;
+  if(!voiceQueue.includes(item))return false;
  }
- if(priority==='turn'&&(voiceBusy||voiceQueue.some(x=>x.priority==='stop')))return false;
- if(voiceQueue.length>3)voiceQueue=voiceQueue.slice(-2);
- voiceQueue.push({message,priority});
  drainVoice();return true;
 }
 function drainVoice(){
  if(voiceBusy||!voiceQueue.length||(!('speechSynthesis'in window)&&!window.LineaPilotAndroid))return;
- const item=voiceQueue.shift(),generation=voiceGeneration;
- voiceBusy=true;activeVoicePriority=item.priority;
+ // Speaking right after cancel() is often swallowed by Safari: leave a short gap.
+ const wait=voiceLastCancel+250-Date.now();
+ if(wait>0){clearTimeout(voiceDrainTimer);voiceDrainTimer=setTimeout(drainVoice,wait);return}
+ if(!window.LineaPilotAndroid&&Date.now()-voiceLastCancel>1000){
+  // We are idle: anything still marked as speaking is a stuck utterance.
+  try{if(speechSynthesis.speaking||speechSynthesis.pending){speechSynthesis.cancel();voiceLastCancel=Date.now();clearTimeout(voiceDrainTimer);voiceDrainTimer=setTimeout(drainVoice,250);return}}catch(e){console.warn(e)}
+ }
+ const item=takeNextVoice();
+ if(!item)return;
+ const generation=voiceGeneration;
+ let finished=false,started=false;
+ voiceBusy=true;activeVoicePriority=item.priority;activeVoiceKey=item.key;
  setVoiceStatus('Annuncio in preparazione…');
+ const finish=(ok,reason)=>{
+  if(finished||generation!==voiceGeneration)return;
+  finished=true;clearTimeout(voiceWatchdog);voiceWatchdog=null;
+  voiceBusy=false;activeVoicePriority=null;activeVoiceKey=null;activeUtterance=null;
+  if(ok)voiceLastEnd=Date.now(); // "Poi, ..." only after a cue that was really heard
+  if(ok){voiceFailures=0;setVoiceStatus('Voce attiva')}
+  else{
+   voiceFailures++;console.warn('Voce:',reason);
+   // A failed cue no longer empties the queue: the next one is tried anyway.
+   setVoiceStatus(voiceFailures>=3?'Audio non riprodotto · Premi Riattiva voce':'Annuncio non riprodotto · passo al successivo',true);
+  }
+  drainVoice();
+ };
+ const expected=item.text.length*110/Math.max(.5,voicePreferences.rate||1)+5000;
+ const watch=(ms,onTimeout)=>{clearTimeout(voiceWatchdog);voiceWatchdog=setTimeout(()=>{if(!finished&&generation===voiceGeneration)onTimeout()},ms)};
  if(window.LineaPilotAndroid){
-  const token=String(generation);
-  window.lineaPilotAndroidSpeechDone=(callbackToken,ok)=>{
-   if(callbackToken!==token||voiceGeneration!==generation)return;
-   voiceBusy=false;activeVoicePriority=null;
-   if(!ok){setVoiceStatus('Audio Android non disponibile',true);voiceQueue=[]}
-   else {setVoiceStatus('Voce attiva');drainVoice()}
-  };
+  const token=generation+':'+(++voiceSerial);
+  window.lineaPilotAndroidSpeechDone=(callbackToken,ok)=>{if(callbackToken===token)finish(!!ok,'Android TTS')};
   try{
-   window.LineaPilotAndroid.speak(item.message,voicePreferences.id,voicePreferences.rate,token);
+   window.LineaPilotAndroid.speak(item.text,voicePreferences.id,voicePreferences.rate,token);
    voiceStarted=true;
-  }catch(e){console.warn('TTS Android',e);voiceBusy=false;setVoiceStatus('Voce Android non disponibile',true)}
+   // A lost completion callback must not keep the queue blocked.
+   watch(expected,()=>{try{window.LineaPilotAndroid.stopSpeech()}catch(e){}finish(true,'fine annuncio non segnalata')});
+  }catch(e){console.warn('TTS Android',e);finish(false,'Voce Android non disponibile')}
   return;
  }
-
  try{
-  const speech=new SpeechSynthesisUtterance(item.message);
+  const speech=new SpeechSynthesisUtterance(item.text);
+  activeUtterance=speech; // keep a reference: garbage-collected utterances never fire onend
   speech.lang='it-IT';speech.rate=voicePreferences.rate;speech.pitch=1;
   const voices=speechSynthesis.getVoices();
   const italian=voices.find(v=>v.voiceURI===voicePreferences.id&&v.lang.toLowerCase().startsWith('it'))||
    voices.find(v=>v.lang.toLowerCase()==='it-it')||voices.find(v=>v.lang.toLowerCase().startsWith('it'));
   if(italian)speech.voice=italian;
-  let completed=false,started=false;
-  const finish=(error=null)=>{
-   if(completed||generation!==voiceGeneration)return;
-   completed=true;voiceBusy=false;activeVoicePriority=null;
-   if(error){setVoiceStatus('Audio interrotto · Premi Riattiva voce',true);voiceQueue=[]}
-   else setVoiceStatus('Voce attiva');
-   if(!error)drainVoice();
+  const abandon=(ok,reason)=>{
+   // Our own cancel() fires onerror synchronously in some browsers: ignore it.
+   const was=finished;finished=true;
+   try{speechSynthesis.cancel()}catch(e){}
+   voiceLastCancel=Date.now();finished=was;finish(ok,reason);
   };
-  speech.onstart=()=>{if(generation!==voiceGeneration)return;started=true;voiceStarted=true;setVoiceStatus(item.priority==='stop'?'Annuncio fermata…':item.priority==='turn'?'Avviso svolta…':'Voce attiva')};
-  speech.onend=()=>finish();
-  speech.onerror=e=>{console.warn('Voce:',e.error);finish(e.error||'errore audio')};
+  speech.onstart=()=>{
+   if(finished||generation!==voiceGeneration)return;
+   started=true;voiceStarted=true;
+   setVoiceStatus(item.priority==='stop'?'Annuncio fermata…':item.priority==='turn'?'Avviso svolta…':'Voce attiva');
+   // Some browsers never fire onend: release the queue after a generous delay.
+   watch(expected,()=>abandon(true,'fine annuncio non segnalata'));
+  };
+  speech.onend=()=>finish(true);
+  speech.onerror=e=>finish(false,e?.error||'errore audio');
   speechSynthesis.speak(speech);
-  // On some iOS Safari sessions the utterance never starts after a user-gesture
-  // ended. Do not leave the voice queue permanently blocked.
-  setTimeout(()=>{if(generation===voiceGeneration&&!started&&!completed)finish('avvio non riuscito')},5000);
- }catch(e){console.warn('Sintesi vocale:',e);voiceBusy=false;activeVoicePriority=null;setVoiceStatus('Audio non disponibile · Premi Riattiva voce',true)}
+  // On some iOS Safari sessions the utterance never starts: skip it, keep the queue alive.
+  watch(5000,()=>{if(!started)abandon(false,'avvio non riuscito')});
+ }catch(e){console.warn('Sintesi vocale:',e);finish(false,'Audio non disponibile')}
 }
-function speak(message,priority='normal'){return enqueueVoice(message,priority)}
+function speak(message,priority='normal',options={}){return enqueueVoice(message,priority,options)}
 function activateNavigationVoice(){
  if(nativeActive){nativePost({type:'testVoice'});return}
  if(!$('voiceToggle').checked){setVoiceStatus('Attiva annunci vocali nelle impostazioni',true);return}
@@ -1041,15 +1108,18 @@ function planStopVoice(stopIndex,remaining,mps,offRoute,isDemo){
  let stage=spokenStopStages.get(stopIndex)||0;
  // Only trigger the first announcement once within the early warning window.
  if(stage===0&&remaining<=threshold){
-  if(enqueueVoice('Tra '+speechDistance(remaining)+', prossima fermata: '+stop.stop_name+'.','stop')){
+  const name=stop.stop_name;
+  if(enqueueVoice('Tra '+speechDistance(remaining)+', prossima fermata: '+name+'.','stop',{key:'stop:'+stopIndex,target:current?.offsets?.[stopIndex],
+     build:left=>left!==null&&left<40?'Fermata in arrivo: '+name+'.':'Tra '+speechDistance(left??remaining)+', prossima fermata: '+name+'.'})){
    spokenStopStages.set(stopIndex,1);lastSpokenStop=stopIndex;
   }
   stage=spokenStopStages.get(stopIndex)||0;
  }
  // Optional final cue at short range; never at the same update as the first cue.
  if(stage===1&&remaining<=65&&remaining>=8&&lastSpokenStop===stopIndex&&
-    (mps>2||isDemo)&&!voiceBusy&&!voiceQueue.length){
-  if(enqueueVoice('Fermata in arrivo: '+stop.stop_name+'.','stop'))spokenStopStages.set(stopIndex,2);
+    (mps>2||isDemo)){
+  // Queued behind any cue being read; replaces the early notice if that is still waiting.
+  if(enqueueVoice('Fermata in arrivo: '+stop.stop_name+'.','stop',{key:'stop:'+stopIndex,target:current?.offsets?.[stopIndex]}))spokenStopStages.set(stopIndex,2);
  }
 }
 function turnAlertDistance(speed){
@@ -1065,17 +1135,18 @@ function planTurnVoice(turn,turnIndex,remaining,speed,distanceFromGPX,stopRemain
  const lead=turnAlertDistance(speed),stage=spokenTurnStages.get(turnIndex)||0;
  const label=turn.verifiedRoad?turn.text:'Possibile svolta a '+turn.side;
  if(stage===0&&remaining<=lead){
-  if(speak(turn.verifiedRoad?'Tra circa '+speechDistance(remaining)+', '+label+'.':label+' tra circa '+speechDistance(remaining)+'.','turn')){
+  if(speak('Tra circa '+speechDistance(remaining)+', '+label+'.','turn',{key:'turn:'+turnIndex,target:turn.at,
+     build:left=>left!==null&&left<=85?'Tra poco, '+label+'.':'Tra circa '+speechDistance(left??remaining)+', '+label+'.'})){
    spokenTurnStages.set(turnIndex,1);lastSpokenTurn=turnIndex;
   }
  }else if(stage===1&&remaining<=85){
-  if(speak(turn.verifiedRoad?'Tra poco, '+label+'.':label+' tra poco.','turn'))spokenTurnStages.set(turnIndex,2);
+  if(speak('Tra poco, '+label+'.','turn',{key:'turn:'+turnIndex,target:turn.at}))spokenTurnStages.set(turnIndex,2);
  }
 }
 function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){
  if(!current)return;
  const {points,dists,offsets,stops}=current;
- if(!isDemo&&accuracy>110){$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
+ if(!isDemo&&accuracy>110){voicePositionOk=false;$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
  lastFix=p;
  if(!isDemo){realGpsFix={lat:p.lat,lng:p.lng};realGpsFixAt=Date.now();}
  const speed=speedEstimate(p,reportedSpeed,isDemo);
@@ -1084,12 +1155,14 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  followStableCamera(p,isDemo);
  let near=stableRouteMatch(p,points,dists,speed,isDemo);
  if(near.offRoute||near.d>180){
+  voicePositionOk=false;
   $('gpsStatus').textContent='GPS fuori dal GPX · '+Math.round(near.d)+' m';
   $('navStatus').textContent='Posizione distante dal percorso Academy';
   $('turnHint').textContent='Avvisi sospesi finché la posizione non torna affidabile';
   return;
  }
  if(near.recovering||near.waiting){
+  voicePositionOk=false;
   $('gpsStatus').textContent='GPS · riallineamento al GPX';
   $('navStatus').textContent='Verifica avanzamento sul percorso';
   $('turnHint').textContent='Ricalcolo posizione: avvisi in attesa';
@@ -1104,6 +1177,8 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
   if(stops.length>1&&offsets[0]<=50&&Math.abs(along-offsets[0])<30)nextStopIdx=1;
  }
  lastAlong=Math.max(lastAlong,along-30);
+ // Queued cues use this position to recompute their distance when they are read.
+ voiceAlong=along;voicePositionOk=near.d<100;
  updateNavigationHeading(points,dists,along);
  $('gpsStatus').textContent=isDemo?'Simulazione':accuracy?'GPS ±'+Math.round(accuracy)+' m':'GPS attivo';
  $('navStatus').textContent=current.trip.trip_headsign||'Corsa in corso';
@@ -1131,6 +1206,8 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
    'Possibile svolta a '+turn.side+' tra '+niceDistance(d)+' (GPX indicativo)';
   planTurnVoice(turn,turnIndex,d,speed,near.d,stops.length&&!done?remaining:Infinity);
  }else $('turnHint').textContent=done?'Corsa completata':current.guidanceCoverage&&!covered?'Manovre non disponibili in questo tratto · segui il GPX':'Segui il tracciato GPX';
+ // Cues held during a GPS dropout resume as soon as the position is reliable again.
+ drainVoice();
  // Map already follows the actual GPS fix, not the snapped GPX coordinate.
  if(!locationMarker)locationMarker=L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:3,fillColor:'#0c55eb',fillOpacity:1}).addTo(map);
  else locationMarker.setLatLng([p.lat,p.lng]);
