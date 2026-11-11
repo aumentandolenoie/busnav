@@ -1,4 +1,4 @@
-"""Extract explicitly mapped limits and directional fixed enforcement from OSM."""
+"""Extract bus speed limits (with their reliability) and directional fixed enforcement from OSM."""
 import argparse
 import bisect
 import hashlib
@@ -8,7 +8,30 @@ from collections import defaultdict
 from pathlib import Path
 
 
-SPEED_LIMIT_POLICY = 2
+SPEED_LIMIT_POLICY = 3
+
+# Reliability of a displayed limit, from the OSM evidence on the way.
+TIER_SIGN = 1     # source:maxspeed=sign/markings: value read from a road sign
+TIER_MAPPED = 2   # explicit numeric maxspeed, no stated source
+TIER_LEGAL = 3    # Italian legal default for the mapped road context (IT:urban, IT:rural, ...)
+TIER_NAMES = {TIER_SIGN: "sign", TIER_MAPPED: "mapped", TIER_LEGAL: "legal"}
+
+# Codice della Strada art. 142 c.1 general limits for the OSM context codes.
+ITALIAN_DEFAULTS = {"it:urban": 50, "it:rural": 90, "it:trunk": 110, "it:motorway": 130}
+# Art. 142 c.3 lett. f: autobus e filobus oltre 8 t: 80 km/h fuori dei centri
+# abitati, 100 km/h in autostrada. Busitalia vehicles are all above 8 t, so the
+# limit shown to the driver is the road limit capped by the bus limit.
+BUS_MOTORWAY_KMH = 100
+BUS_OTHER_KMH = 80
+MOTORWAY_HIGHWAYS = {"motorway", "motorway_link"}
+
+# Tags that only describe the limit or concern other vehicles do not change it for a bus.
+_METADATA = {"maxspeed:source", "maxspeed:type", "maxspeed:reason", "maxspeed:note",
+             "maxspeed:advisory", "maxspeed:practical"}
+_OTHER_VEHICLES = ("maxspeed:hgv", "maxspeed:goods", "maxspeed:trailer", "maxspeed:caravan",
+                   "maxspeed:motorcycle", "maxspeed:moped", "maxspeed:mofa", "maxspeed:agricultural",
+                   "maxspeed:hazmat", "maxspeed:motorcar", "maxspeed:motorhome")
+_BUS_KEYS = ("maxspeed:bus", "maxspeed:coach", "maxspeed:psv")
 
 
 def validator_digest():
@@ -19,20 +42,67 @@ def validator_digest():
     return digest.hexdigest()
 
 
-def explicit_speed(tags):
-    """Require positive evidence of an unconditional, signposted road limit."""
-    metadata = {"maxspeed:source", "maxspeed:type", "maxspeed:reason"}
-    if any(key.startswith("maxspeed:") and key not in metadata for key in tags):
-        return None
+def _kmh(value):
+    match = re.fullmatch(r"([0-9]{1,3})(?:\s*km/h)?", (value or "").strip().lower())
+    return int(match[1]) if match else None
+
+
+def classify_speed(tags, highway=""):
+    """Return (bus limit km/h, reliability tier) for an unconditional limit, else None.
+
+    Directional, conditional, per-lane or variable limits are rejected: one value
+    could be wrong for the direction or the moment in which the bus drives.
+    """
+    bus_value = None
+    for key in tags:
+        if not key.startswith("maxspeed:") or key in _METADATA:
+            continue
+        if any(key == prefix or key.startswith(prefix + ":") for prefix in _OTHER_VEHICLES):
+            continue
+        if key in _BUS_KEYS:
+            value = _kmh(tags[key])
+            if value is None or (bus_value is not None and bus_value != value):
+                return None
+            bus_value = value
+            continue
+        return None  # forward/backward/conditional/lanes/variable/bus:conditional/...
     sources = {tags[key].strip().lower() for key in ("source:maxspeed", "maxspeed:source", "maxspeed:type")
                if tags.get(key, "").strip()}
-    if not sources or not sources <= {"sign", "markings"}:
+    legal = sources & ITALIAN_DEFAULTS.keys()
+    signed = sources & {"sign", "markings"}
+    raw = (tags.get("maxspeed") or "").strip()
+    if raw.lower() in ITALIAN_DEFAULTS:
+        if signed or (legal and legal != {raw.lower()}):
+            return None
+        road_value, tier = ITALIAN_DEFAULTS[raw.lower()], TIER_LEGAL
+    elif raw:
+        road_value = _kmh(raw)
+        if road_value is None:
+            return None  # none, walk, mph, multiple values ...
+        if signed and legal:
+            return None  # contradictory evidence
+        if legal:
+            if len(legal) != 1 or ITALIAN_DEFAULTS[next(iter(legal))] != road_value:
+                return None  # value does not match the stated legal context
+            tier = TIER_LEGAL
+        elif signed:
+            tier = TIER_SIGN if sources <= {"sign", "markings"} else TIER_MAPPED
+        else:
+            tier = TIER_MAPPED
+    elif bus_value is not None:
+        road_value, tier = bus_value, TIER_MAPPED
+    else:
         return None
-    match = re.fullmatch(r"([0-9]{1,3})(?:\s+km/h)?", tags.get("maxspeed", "").strip())
-    if not match:
-        return None
-    value = int(match[1])
-    return value if 5 <= value <= 130 else None
+    value = min(road_value, bus_value) if bus_value is not None else road_value
+    cap = BUS_MOTORWAY_KMH if highway in MOTORWAY_HIGHWAYS else BUS_OTHER_KMH
+    value = min(value, cap)
+    return (value, tier) if 5 <= value <= 130 else None
+
+
+def explicit_speed(tags, highway=""):
+    """Bus limit in km/h for the way, or None (see classify_speed)."""
+    result = classify_speed(tags, highway)
+    return result[0] if result else None
 
 
 def extract(pbf):
@@ -72,9 +142,10 @@ def extract(pbf):
             tags = way.tags
             if not tags.get("highway"):
                 return
-            value = explicit_speed({tag.k: tag.v for tag in tags if tag.k.startswith("maxspeed") or tag.k == "source:maxspeed"})
-            if value is not None:
-                limits[str(way.id)] = value
+            result = classify_speed({tag.k: tag.v for tag in tags if tag.k.startswith("maxspeed") or tag.k == "source:maxspeed"},
+                                    tags.get("highway"))
+            if result is not None:
+                limits[str(way.id)] = list(result)
             for node in way.nodes:
                 if node.ref in needed:
                     node_ways[node.ref].append(way.id)
@@ -97,7 +168,8 @@ def extract(pbf):
             continue
         cameras.append({"id": identifier, "kind": kind, "from": nodes[approach], "to": nodes[departure],
                         "device": nodes[device], "fromWays": node_ways[approach], "toWays": node_ways[departure]})
-    print(f"OSM road safety source: {len(limits)} ways with explicit limits, {len(cameras)} directional fixed sites", flush=True)
+    tiers = {name: sum(1 for _, tier in limits.values() if tier == code) for code, name in TIER_NAMES.items()}
+    print(f"OSM road safety source: {len(limits)} ways with usable limits {tiers}, {len(cameras)} directional fixed sites", flush=True)
     return {"limits": limits, "cameras": cameras}
 
 
@@ -106,7 +178,10 @@ def index_catalog(data):
     for camera in data["cameras"]:
         for way in camera["fromWays"]:
             by_way[way].append(camera)
-    return data["limits"], by_way
+    # Each limit is [km/h, tier]; a bare number (older extracts) counts as signposted.
+    limits = {way: (list(value) if isinstance(value, (list, tuple)) else [value, TIER_SIGN])
+              for way, value in data["limits"].items()}
+    return limits, by_way
 
 
 def same_driven_edge(shape, shape_dist, reference, progress, begin, finish):
@@ -176,7 +251,7 @@ def annotate(catalog, attributes, matched, projected, official, distances, refer
         if str(way) in limits and max(e[0] for e in projected[start:end+1]) <= 4:
             if (all(road.project(p, shape, shape_dist)[0] <= 4 for p in road.sampled(core, 4))
                     and all(road.project(p, core, core_dist)[0] <= 4 for p in road.sampled(shape, 4))):
-                segments.append([begin, finish, limits[str(way)]])
+                segments.append([begin, finish, *limits[str(way)]])
         trusted[way].append((begin, finish, shape, shape_dist))
         for camera in by_way.get(way, ()):
             cameras[camera["id"]] = camera

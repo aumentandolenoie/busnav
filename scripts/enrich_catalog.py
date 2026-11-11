@@ -16,7 +16,8 @@ def main():
     parser.add_argument('--road-safety', type=pathlib.Path)
     args = parser.parse_args()
     safety = road_safety.index_catalog(json.loads(args.road_safety.read_text())) if args.road_safety else None
-    safety_stats = {'limitRoutes': 0, 'cameraRoutes': 0, 'speed': 0, 'redLight': 0}
+    safety_stats = {'limitRoutes': 0, 'cameraRoutes': 0, 'speed': 0, 'redLight': 0,
+                    'routeKm': 0.0, 'limitKm': 0.0, 'limitKmByTier': {name: 0.0 for name in road_safety.TIER_NAMES.values()}}
     source = ROOT / 'official-routes.json'
     original = source.read_bytes()
     catalog = road.load_catalog()
@@ -34,8 +35,20 @@ def main():
             # Keep only contiguous validated portions and deduplicate the same site
             # where two trace windows overlap.
             ranges = data['coverage']['ranges']
-            data['speedLimits'] = [[a,b,k] for a,b,k in data['speedLimits']
+            data['speedLimits'] = [[a,b,*rest] for a,b,*rest in data['speedLimits']
                                    if any(lo <= a < b <= hi for lo,hi in ranges)]
+            # Per-route coverage of displayable limits and their reliability.
+            by_tier = {name: 0.0 for name in road_safety.TIER_NAMES.values()}
+            covered = 0.0; reach = -1.0
+            for a, b, _, *tier in sorted(data['speedLimits']):
+                by_tier[road_safety.TIER_NAMES.get(tier[0] if tier else road_safety.TIER_SIGN, 'sign')] += b - a
+                covered += max(0.0, b - max(a, reach)); reach = max(reach, b)
+            length = data['officialLengthM']
+            row['speedLimitCoverage'] = {'percent': round(100 * covered / length, 1) if length else 0.0,
+                                         'metresByTier': {k: round(v) for k, v in by_tier.items()}}
+            safety_stats['routeKm'] += length / 1000; safety_stats['limitKm'] += covered / 1000
+            for name, metres in by_tier.items():
+                safety_stats['limitKmByTier'][name] += metres / 1000
             cameras = []
             for camera in sorted(data['roadCameras'], key=lambda c:c['at']):
                 if any(lo <= camera['at'] <= hi for lo,hi in ranges) and not any(
@@ -59,7 +72,10 @@ def main():
             print(f"{index+1}/{len(catalog)} {route['id']}: escluso: {row['reason']}",flush=True)
         report['routes'].append(row)
     if safety is not None and not safety_stats['limitRoutes']:
-        raise RuntimeError('No explicit speed limits matched the official GPX')
+        raise RuntimeError('No usable speed limits matched the official GPX')
+    safety_stats['routeKm'] = round(safety_stats['routeKm'], 1)
+    safety_stats['limitKm'] = round(safety_stats['limitKm'], 1)
+    safety_stats['limitKmByTier'] = {k: round(v, 1) for k, v in safety_stats['limitKmByTier'].items()}
     report['roadSafety'] = safety_stats
     print('Road safety audit:', json.dumps(safety_stats), flush=True)
     report['validated'] = sum(r['status']=='validated' for r in report['routes'])

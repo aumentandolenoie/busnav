@@ -39,7 +39,7 @@ jobs:
           cp build/road-graph-audit.json reports/road-graph-audit.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add reports/road-guidance-audit.json reports/road-admin-audit.json reports/road-graph-audit.json
+          git add reports/road-guidance-audit.json reports/road-admin-audit.json reports/road-graph-audit.json reports/speed-limit-coverage.md reports/speed-limit-coverage.csv
           git diff --cached --quiet || git commit -m 'Record verified road graph and roundabout instruction audit'
           git pull --rebase --autostash origin main
           git push origin HEAD:main

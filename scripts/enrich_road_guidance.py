@@ -447,8 +447,8 @@ def annotate_route(route,endpoint,safety=None):
         'turns':unique,'noManeuvers':not bool(unique),'coverage':coverage,'solution':'validated-windows',
         'drivingSideValidated':all(d.get('drivingSideValidated') for _,_,d in accepted),
         'roundaboutAudit':[{**r,'at':r['at']+distances[a]} for a,_,d in accepted for r in d.get('roundaboutAudit',[])],
-        'speedLimits': sorted([a+distances[start],b+distances[start],limit]
-                              for start,_,d in accepted for a,b,limit in d['speedLimits']),
+        'speedLimits': sorted([a+distances[start],b+distances[start],*rest]
+                              for start,_,d in accepted for a,b,*rest in d['speedLimits']),
         'roadCameras': sorted(({**c,'at':c['at']+distances[start]}
                                for start,_,d in accepted for c in d['roadCameras']), key=lambda c:c['at']),
     }

@@ -249,7 +249,7 @@ class AcademyRoadTests(unittest.TestCase):
                             "_edgeAttributes":{"shape":encode_polyline6(track),"edges":[
                                 {"way_id":71,"begin_shape_index":0,"end_shape_index":3}]}}
                 data = module.convert({"id":"safety","points":points}, response, allow_empty=True, safety=catalog)
-                self.assertEqual([limit for _,_,limit in data["speedLimits"]], expected)
+                self.assertEqual([r[2] for r in data["speedLimits"]], expected)
                 self.assertEqual(points, original)
 
     def test_speed_limit_does_not_follow_a_nearby_parallel_way(self):
@@ -266,18 +266,38 @@ class AcademyRoadTests(unittest.TestCase):
         data = module.convert({"id":"parallel","points":points}, response, allow_empty=True, safety=catalog)
         self.assertEqual(data["speedLimits"], [])
 
-    def test_numeric_limits_accept_units_and_descriptive_tags_but_not_restrictions(self):
-        from road_safety import explicit_speed
-        self.assertEqual(explicit_speed({"maxspeed":"50 km/h","maxspeed:type":"sign"}), 50)
-        self.assertEqual(explicit_speed({"maxspeed":"90","source:maxspeed":"sign"}), 90)
-        self.assertEqual(explicit_speed({"maxspeed":"30","source:maxspeed":"markings"}), 30)
-        for tags in [{"maxspeed":"90"}, {"maxspeed":"90","source:maxspeed":"IT:rural"},
-                     {"maxspeed":"90","maxspeed:type":"IT:rural"},
-                     {"maxspeed":"90","source:maxspeed":"sign","maxspeed:type":"IT:rural"},
-                     {"maxspeed":"IT:urban"}, {"maxspeed":"50","source:maxspeed":"sign","maxspeed:forward":"30"},
-                     {"maxspeed":"50","source:maxspeed":"sign","maxspeed:bus":"30"}, {"maxspeed":"50","source:maxspeed":"sign","maxspeed:variable":"yes"},
-                     {"maxspeed":"50","source:maxspeed":"sign","maxspeed:conditional":"30 @ (Mo-Fr)"}]:
-            self.assertIsNone(explicit_speed(tags))
+    def test_bus_limits_keep_their_evidence_and_reject_restrictions(self):
+        from road_safety import classify_speed, TIER_SIGN, TIER_MAPPED, TIER_LEGAL
+        cases = [
+            ({"maxspeed":"50 km/h","maxspeed:type":"sign"}, "residential", (50, TIER_SIGN)),
+            ({"maxspeed":"30","source:maxspeed":"markings"}, "tertiary", (30, TIER_SIGN)),
+            ({"maxspeed":"70"}, "secondary", (70, TIER_MAPPED)),
+            ({"maxspeed":"60","source:maxspeed":"survey"}, "secondary", (60, TIER_MAPPED)),
+            ({"maxspeed":"IT:urban"}, "residential", (50, TIER_LEGAL)),
+            ({"maxspeed":"50","source:maxspeed":"IT:urban"}, "residential", (50, TIER_LEGAL)),
+            # Art. 142 c.3 lett. f: a bus above 8 t never exceeds 80 km/h outside
+            # motorways and 100 km/h on motorways, whatever the road sign says.
+            ({"maxspeed":"90","source:maxspeed":"IT:rural"}, "secondary", (80, TIER_LEGAL)),
+            ({"maxspeed":"90","source:maxspeed":"sign"}, "primary", (80, TIER_SIGN)),
+            ({"maxspeed":"110","maxspeed:type":"IT:trunk"}, "trunk", (80, TIER_LEGAL)),
+            ({"maxspeed":"IT:motorway"}, "motorway", (100, TIER_LEGAL)),
+            ({"maxspeed":"130","source:maxspeed":"sign"}, "motorway", (100, TIER_SIGN)),
+            # Limits for other vehicles do not apply to buses; bus limits do.
+            ({"maxspeed":"90","maxspeed:hgv":"70"}, "secondary", (80, TIER_MAPPED)),
+            ({"maxspeed":"50","source:maxspeed":"sign","maxspeed:bus":"30"}, "secondary", (30, TIER_SIGN)),
+        ]
+        for tags, highway, expected in cases:
+            with self.subTest(tags=tags):
+                self.assertEqual(classify_speed(tags, highway), expected)
+        for tags in [{"maxspeed":"90","source:maxspeed":"sign","maxspeed:type":"IT:rural"},
+                     {"maxspeed":"70","source:maxspeed":"IT:urban"}, {"maxspeed":"IT:urban","source:maxspeed":"sign"},
+                     {"maxspeed":"50","source:maxspeed":"sign","maxspeed:forward":"30"},
+                     {"maxspeed":"50","source:maxspeed":"sign","maxspeed:variable":"yes"},
+                     {"maxspeed":"50","maxspeed:bus:conditional":"30 @ (Mo-Fr)"},
+                     {"maxspeed":"50","source:maxspeed":"sign","maxspeed:conditional":"30 @ (Mo-Fr)"},
+                     {"maxspeed":"none"}, {"maxspeed":"walk"}, {"maxspeed":"30 mph"}, {"maxspeed":"50;30"}, {}]:
+            with self.subTest(tags=tags):
+                self.assertIsNone(classify_speed(tags, "secondary"))
 
     def test_never_simplifies_gpx_to_meet_api_point_limit(self):
         with self.assertRaises(ValueError):

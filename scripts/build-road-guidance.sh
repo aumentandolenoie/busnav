@@ -35,3 +35,5 @@ pbf=$(find build/valhalla -maxdepth 2 -name 'nord-est-latest.osm.pbf' -print -qu
 test -n "$pbf"
 python3 scripts/road_safety.py "$pbf" build/road-safety.json
 python3 scripts/enrich_catalog.py --endpoint http://127.0.0.1:8002 --road-safety build/road-safety.json
+# Speed limit coverage per GPX and per reliability tier (cartello / mappato / legale).
+python3 scripts/speed_limit_report.py road-guidance reports/speed-limit-coverage

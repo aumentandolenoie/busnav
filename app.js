@@ -223,8 +223,10 @@ function normalizeRoadGuidance(data,total){
  const source=data.coverage||{complete:true,percent:100,ranges:[[0,sourceTotal]],gaps:[]};
  const coverage={...source,totalM:total,coveredM:(source.coveredM??sourceTotal)*scale,
   ranges:source.complete?[[0,total]]:source.ranges.map(r=>r.map(at)),gaps:(source.gaps||[]).map(r=>r.map(at))};
- const speedLimits=(data.speedLimitPolicy===2&&Array.isArray(data.speedLimits)?data.speedLimits:[]).filter(r=>
-  Array.isArray(r)&&r.length===3&&r.every(Number.isFinite)&&r[0]>=0&&r[0]<r[1]&&r[1]<=sourceTotal+1&&
+ // Policy 2: signposted limits only. Policy 3: bus limits (art. 142 c.3 CdS) with
+ // a 4th value for the OSM evidence: 1 road sign, 2 mapped value, 3 legal default.
+ const speedLimits=([2,3].includes(data.speedLimitPolicy)&&Array.isArray(data.speedLimits)?data.speedLimits:[]).filter(r=>
+  Array.isArray(r)&&(r.length===3||r.length===4&&[1,2,3].includes(r[3]))&&r.every(Number.isFinite)&&r[0]>=0&&r[0]<r[1]&&r[1]<=sourceTotal+1&&
   Number.isInteger(r[2])&&r[2]>=5&&r[2]<=130).map(([a,b,k])=>[at(a),at(b),k]);
  const roadCameras=(Array.isArray(data.roadCameras)?data.roadCameras:[]).filter(c=>
   c&&Number.isFinite(c.at)&&c.at>=0&&c.at<=sourceTotal+1&&['speed','redLight'].includes(c.kind))

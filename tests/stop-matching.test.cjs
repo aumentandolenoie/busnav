@@ -80,6 +80,10 @@ test('road offsets and coverage are normalized to the same distance model as GPS
  assert.deepEqual(normalized.speedLimits,[[40000,total,50]]);
  assert.equal(normalized.turns[0].at,40000);assert.equal(normalized.coverage.ranges[0][1],total);
  assert.equal(normalized.coverage.coveredM,total);
+ // Policy 3 rows carry the OSM evidence (1 sign, 2 mapped, 3 legal default) as a 4th value.
+ data.speedLimitPolicy=3;
+ data.speedLimits=[[0,40045,80,3],[40045,sourceTotal,50,1],[10,20,50,7]];
+ assert.deepEqual(api.normalizeRoadGuidance(data,total).speedLimits,[[0,40000,80],[40000,total,50]]);
 });
 
 test('Academy ZIP adds only its two previously omitted tracks',()=>{
