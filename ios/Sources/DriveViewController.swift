@@ -363,7 +363,7 @@ final class NavigationPuckView: MKAnnotationView {
             path.addLine(to: CGPoint(x: side * 0.5, y: side * 0.69))
             path.addLine(to: CGPoint(x: side * 0.16, y: side * 0.86))
             path.close()
-            path.lineJoin = .round
+            path.lineJoinStyle = .round
             path.lineWidth = 7
             context.cgContext.setShadow(offset: CGSize(width: 0, height: 1.5), blur: 5,
                                         color: UIColor.black.withAlphaComponent(0.35).cgColor)
