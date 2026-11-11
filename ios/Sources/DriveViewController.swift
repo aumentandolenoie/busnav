@@ -32,7 +32,13 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     var onRepeat: (() -> Void)?
     private var voice = true
     private let simulated: Bool
-    private let demoMarker = MKPointAnnotation()
+    // Our own position marker (real GPS and simulation alike): a blue navigation
+    // arrow like Apple Maps instead of the round user-location dot.
+    private let puck = MKPointAnnotation()
+    private weak var puckView: NavigationPuckView?
+    /// Vertical position of the vehicle inside the free map area (0 = top, 1 = bottom).
+    /// Lower than the centre so more of the road ahead is visible.
+    static let positionAnchor: CGFloat = 0.75
 
     init(route: NativeRoute, voiceEnabled: Bool, simulated: Bool = false) {
         self.simulated = simulated
@@ -49,7 +55,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         view.backgroundColor = .systemBackground
         map.frame = view.bounds; map.autoresizingMask = [.flexibleWidth,.flexibleHeight]
         map.delegate = self
-        map.showsUserLocation = !simulated
+        map.showsUserLocation = false
         map.showsCompass = false
         map.showsTraffic = true
         map.pointOfInterestFilter = .excludingAll
@@ -231,7 +237,14 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         }
         updateCamera()
     }
-    func location(_ location: CLLocation) { fix = location; if simulated { demoMarker.coordinate = location.coordinate; demoMarker.title = "Posizione simulata"; if !map.annotations.contains(where: { $0 === demoMarker }) { map.addAnnotation(demoMarker) } }; updateCamera() }
+    func location(_ location: CLLocation) {
+        fix = location
+        puck.coordinate = location.coordinate
+        if !map.annotations.contains(where: { $0 === puck }) { map.addAnnotation(puck) }
+        refreshHeading()
+        updateCamera()
+        orientPuck()
+    }
     func message(_ message: String) { status.text = message }
     func update(along:Double,deviation:Double,stop:Int,reliable:Bool) {
         let limit = reliable ? fix.flatMap {
@@ -249,6 +262,8 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         roadStatus.text = roadDetails.joined(separator: "\n")
         roadStatus.isHidden = roadDetails.isEmpty
         progress = along; self.reliable = reliable
+        refreshHeading()
+        defer { orientPuck() }
         if !reliable {
             instruction.text = deviation > 85 ? "Fuori dal percorso ufficiale" : "Verifica posizione GPS"
             turnDistance.text = "Annunci sospesi"; symbol.image = UIImage(systemName:"exclamationmark.triangle")
@@ -273,22 +288,28 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         updateCamera()
     }
     private func distance(_ m:Double) -> String { m < 1000 ? "\(Int(max(0,m)/10)*10) m" : String(format:"%.1f km",m/1000) }
-    private func updateCamera() {
-        guard following, let fix else { return }
-        // Use actual GPS position; route bearing is only appropriate while matched.
-        var heading = lastHeading
+    /// Direction of travel: route bearing while matched, otherwise the GPS course.
+    private func refreshHeading() {
+        guard let fix else { return }
         if reliable {
             let a = geometry.coordinate(at:progress), b = geometry.coordinate(at:progress+40)
             if GPXTracker.metres(a,b) > 10 {
                 let r = Double.pi/180, d = (b[1]-a[1])*r
-                heading = atan2(sin(d)*cos(b[0]*r),cos(a[0]*r)*sin(b[0]*r)-sin(a[0]*r)*cos(b[0]*r)*cos(d))/r
+                lastHeading = atan2(sin(d)*cos(b[0]*r),cos(a[0]*r)*sin(b[0]*r)-sin(a[0]*r)*cos(b[0]*r)*cos(d))/r
             }
-        } else if fix.course >= 0 && fix.speed > 3 { heading = fix.course }
-        lastHeading = heading
+        } else if fix.course >= 0 && fix.speed > 3 { lastHeading = fix.course }
+    }
+    private func orientPuck() {
+        puckView?.orient(heading: lastHeading, mapHeading: map.camera.heading, pitch: map.camera.pitch)
+    }
+    private func updateCamera() {
+        guard following, let fix else { return }
+        // Use actual GPS position; route bearing is only appropriate while matched.
+        let heading = lastHeading
         let camera = MKMapCamera(lookingAtCenter:fix.coordinate,fromDistance:650,pitch:55,heading:heading)
         map.setCamera(camera,animated:false)
         guard !cameraViewport.isEmpty else { return }
-        let anchor = CGPoint(x:cameraViewport.midX,y:cameraViewport.minY + cameraViewport.height * 0.63)
+        let anchor = CGPoint(x:cameraViewport.midX,y:cameraViewport.minY + cameraViewport.height * Self.positionAnchor)
         // Use the projected ground point so the offset also works with pitch and heading.
         let actual = map.convert(fix.coordinate,toPointTo:map)
         let underAnchor = map.convert(anchor,toCoordinateFrom:map)
@@ -312,6 +333,66 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     }
     func mapView(_ mapView:MKMapView,viewFor annotation:MKAnnotation) -> MKAnnotationView? {
         guard !(annotation is MKUserLocation) else { return nil }
-        let pin = MKMarkerAnnotationView(annotation:annotation,reuseIdentifier:"stop"); pin.markerTintColor = .systemBlue; pin.glyphImage = UIImage(systemName:annotation === demoMarker ? "location.fill" : "bus.fill"); pin.canShowCallout = true; pin.displayPriority = .defaultLow; return pin
+        if annotation === puck {
+            let view = (mapView.dequeueReusableAnnotationView(withIdentifier: NavigationPuckView.identifier) as? NavigationPuckView)
+                ?? NavigationPuckView(annotation: annotation, reuseIdentifier: NavigationPuckView.identifier)
+            view.annotation = annotation
+            view.accessibilityLabel = simulated ? "Posizione simulata" : "Posizione attuale"
+            puckView = view
+            orientPuck()
+            return view
+        }
+        let pin = MKMarkerAnnotationView(annotation:annotation,reuseIdentifier:"stop"); pin.markerTintColor = .systemBlue; pin.glyphImage = UIImage(systemName:"bus.fill"); pin.canShowCallout = true; pin.displayPriority = .defaultLow; return pin
+    }
+    // Keep the arrow pointing along the road while the driver rotates or tilts the map.
+    func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) { orientPuck() }
+}
+
+/// Blue navigation arrow with a white outline, lying on the road like the Apple Maps puck.
+final class NavigationPuckView: MKAnnotationView {
+    static let identifier = "navigationPuck"
+    private static let size: CGFloat = 54
+    private let arrow = UIImageView(image: NavigationPuckView.arrowImage)
+
+    static let arrowImage: UIImage = {
+        let side = NavigationPuckView.size
+        return UIGraphicsImageRenderer(size: CGSize(width: side, height: side)).image { context in
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: side * 0.5, y: side * 0.10))
+            path.addLine(to: CGPoint(x: side * 0.84, y: side * 0.86))
+            path.addLine(to: CGPoint(x: side * 0.5, y: side * 0.69))
+            path.addLine(to: CGPoint(x: side * 0.16, y: side * 0.86))
+            path.close()
+            path.lineJoin = .round
+            path.lineWidth = 7
+            context.cgContext.setShadow(offset: CGSize(width: 0, height: 1.5), blur: 5,
+                                        color: UIColor.black.withAlphaComponent(0.35).cgColor)
+            UIColor.white.setStroke(); path.stroke()
+            context.cgContext.setShadow(offset: .zero, blur: 0, color: nil)
+            UIColor(red: 0.0, green: 0.48, blue: 1.0, alpha: 1).setFill(); path.fill()
+        }
+    }()
+
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        frame = CGRect(x: 0, y: 0, width: Self.size, height: Self.size)
+        arrow.frame = bounds
+        addSubview(arrow)
+        canShowCallout = false
+        isAccessibilityElement = true
+        accessibilityIdentifier = "navigationArrow"
+        displayPriority = .required
+        zPriority = .max
+        collisionMode = .circle
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    /// Rotates the arrow towards the direction of travel and lays it on the tilted map.
+    func orient(heading: CLLocationDirection, mapHeading: CLLocationDirection, pitch: CGFloat) {
+        let angle = CGFloat((heading - mapHeading) * .pi / 180)
+        var perspective = CATransform3DIdentity
+        perspective.m34 = -1 / 500
+        let tilt = CATransform3DMakeRotation(min(max(pitch, 0), 60) * .pi / 180 * 0.8, 1, 0, 0)
+        arrow.layer.transform = CATransform3DConcat(CATransform3DConcat(CATransform3DMakeRotation(angle, 0, 0, 1), tilt), perspective)
     }
 }

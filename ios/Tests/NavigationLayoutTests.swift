@@ -120,7 +120,7 @@ import MapKit
         let top = descendants(drive.view).first { $0.accessibilityIdentifier == "instructionPanel" }!.frame.maxY + 8
         let bottom = descendants(drive.view).first { $0.accessibilityIdentifier == "stopPanel" }!.frame.minY - 8
         XCTAssertEqual(point.x,map.bounds.midX,accuracy:12)
-        XCTAssertEqual(point.y,top + (bottom - top) * 0.63,accuracy:24)
+        XCTAssertEqual(point.y,top + (bottom - top) * DriveViewController.positionAnchor,accuracy:24)
         XCTAssertTrue(map.gestureRecognizers!.contains { $0 is UIPanGestureRecognizer && $0.delegate === drive })
     }
     private final class BeganPan: UIPanGestureRecognizer { override var state: UIGestureRecognizer.State { get { .began } set {} } }

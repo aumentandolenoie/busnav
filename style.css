@@ -27,11 +27,9 @@ body.navigating #map{height:100%;width:100%}
 @media(max-width:440px){#exitNavigation{font-size:12px}#headingStatus{font-size:11px;padding:10px}body.navigating .next-main strong{font-size:18px}body.navigating .next-card{padding:12px}body.navigating .map-controls{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 176px)}}
 
 /* Google Maps-like position glyph, permanently fixed to the map center in navigation. */
-.navigation-position{position:absolute;left:50%;top:50%;width:88px;height:104px;transform:translate(-50%,-50%);z-index:635;pointer-events:none;filter:drop-shadow(0 2px 6px #0b235266)}
+.navigation-position{position:absolute;left:50%;top:var(--nav-position-anchor,50%);width:58px;height:58px;transform:translate(-50%,-50%);z-index:635;pointer-events:none;filter:drop-shadow(0 2px 5px #0b235259)}
+.navigation-position svg{display:block;width:100%;height:100%}
 .navigation-position[hidden]{display:none!important}
-.navigation-position-halo{position:absolute;left:4px;top:0;width:80px;height:79px;background:linear-gradient(0deg,#288cff05 0%,#429cff55 95%);clip-path:polygon(50% 0%,97% 87%,50% 65%,3% 87%);opacity:.75}
-.navigation-position-arrow{position:absolute;left:31px;top:19px;width:26px;height:39px;background:#176fff;border:3px solid #fff;clip-path:polygon(50% 0,100% 100%,50% 77%,0 100%);filter:drop-shadow(0 1px 3px #002b7780)}
-.navigation-position-dot{position:absolute;left:30px;top:45px;width:28px;height:28px;border:4px solid white;border-radius:50%;background:#1672ff;box-shadow:0 0 0 4px #2a87ff35,0 2px 8px #0005}
 
 /* Mobile usability and keyboard accessibility. Preserves the existing visual identity. */
 button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,.file-button:focus-within{outline:3px solid #90b7ff;outline-offset:3px}
@@ -198,3 +196,13 @@ body.native-preview .sidebar-scroll{overflow:visible}
 body.native-preview .sidebar{min-height:0}
 
 body.native-preview>.toast{position:fixed;z-index:2000;top:12px;left:12px;right:12px;max-width:none;pointer-events:none}
+
+/* Navigation: the vehicle sits below the middle of the screen (like Apple Maps /
+   Google Maps) so more of the road ahead is visible. The map is taller than the
+   screen and its centre - the followed GPS position and rotation pivot - lands on
+   the anchor; the part below the screen is hidden by .map-wrap. */
+@media (orientation:portrait){
+ body.navigating{--nav-position-anchor:64%}
+ body.navigating #map{inset:0 0 auto 0;height:128%}
+ body.navigating #map .leaflet-bottom{bottom:21.9%}
+}
