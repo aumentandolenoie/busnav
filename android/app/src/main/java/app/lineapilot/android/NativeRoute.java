@@ -119,7 +119,7 @@ final class NativeRoute {
 
     static String voiceMessage(String first, Double distance, Continuation continuation) {
         String clause = stripPunctuation(first);
-        String message = distance == null ? clause : "Tra circa " + Math.round(distance) + " metri, " + lowerInitial(clause);
+        String message = distance == null ? clause : "Tra circa " + DistanceText.spoken(distance) + ", " + lowerInitial(clause);
         if (continuation != null) message += ", poi " + lowerInitial(stripPunctuation(continuation.text));
         return message + ".";
     }

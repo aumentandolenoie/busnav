@@ -287,7 +287,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         }
         updateCamera()
     }
-    private func distance(_ m:Double) -> String { m < 1000 ? "\(Int(max(0,m)/10)*10) m" : String(format:"%.1f km",m/1000) }
+    private func distance(_ m:Double) -> String { DistanceText.display(m) }
     /// Direction of travel: route bearing while matched, otherwise the GPS course.
     private func refreshHeading() {
         guard let fix else { return }

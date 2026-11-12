@@ -1145,8 +1145,13 @@ function activateNavigationVoice(){
  const msg=count?'Guida vocale attiva. Prossime fermate abilitate.':'Guida vocale attiva. Per gli annunci delle fermate associa il G T F S Busitalia.';
  enqueueVoice(msg,'normal');
 }
-function niceDistance(m){return m<1000?Math.round(Math.max(0,m)/10)*10+' m':(m/1000).toFixed(1)+' km'}
-function speechDistance(m){return m<1000?Math.max(50,Math.round(m/50)*50)+' metri':(m/1000).toFixed(1).replace('.',',')+' chilometri'}
+// One rounding rule for screen and voice, identical to DistanceText on iOS/Android:
+// from 100 m in steps of 50 m, from 50 to 100 m in steps of 10 m, below 50 m in
+// steps of 5 m; from 1 km in tenths of a km.
+function roundedDistance(m){m=Number.isFinite(m)?Math.max(0,m):0;const step=m>=100?50:m>=50?10:5;return Math.round(m/step)*step}
+function kilometreText(m){const tenths=Math.round(Math.max(0,m)/100);return tenths%10===0?String(tenths/10):Math.floor(tenths/10)+','+tenths%10}
+function niceDistance(m){const value=roundedDistance(m);return value<1000?value+' m':kilometreText(m)+' km'}
+function speechDistance(m){const value=roundedDistance(m);if(value<1000)return value+' metri';const km=kilometreText(m);return km+(km==='1'?' chilometro':' chilometri')}
 function speedEstimate(p,reportedSpeed,isDemo){
  if(isDemo)return 13.9; // simulated 50 km/h for meaningful advance-alert tests
  const now=Date.now();
@@ -1250,8 +1255,8 @@ function updateRoadSafety(along,accuracy,deviation,speed){
  if(index<0)return;
  const camera=current.roadCameras[index],title=cameraTitle(camera).toLowerCase();
  if(camera.at-along<15)return;
- if(enqueueVoice('Tra circa '+Math.max(20,Math.round((camera.at-along)/10)*10)+' metri, '+title+'.','normal',
-   {key:'camera:'+index,target:camera.at,build:left=>left===null||left<15?null:'Tra circa '+Math.max(20,Math.round(left/10)*10)+' metri, '+title+'.'}))
+ if(enqueueVoice('Tra circa '+speechDistance(camera.at-along)+', '+title+'.','normal',
+   {key:'camera:'+index,target:camera.at,build:left=>left===null||left<15?null:'Tra circa '+speechDistance(left)+', '+title+'.'}))
   spokenRoadCameras.add(index);
 }
 function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){

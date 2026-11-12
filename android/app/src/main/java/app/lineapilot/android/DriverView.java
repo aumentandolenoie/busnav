@@ -134,7 +134,7 @@ final class DriverView extends FrameLayout {
         if(!following||nativeMap.map==null)return;
         nativeMap.map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(p.getLatitude(),p.getLongitude())).zoom(17).tilt(55).bearing(heading).padding(followPadding.clone()).build()));
     }
-    private String metres(double value){return value<1000?((int)Math.max(0,value)/10*10)+" m":String.format(Locale.ITALY,"%.1f km",value/1000);}
+    private String metres(double value){return DistanceText.display(value);}
     private LinearLayout column(Context c){LinearLayout v=new LinearLayout(c);v.setOrientation(LinearLayout.VERTICAL);return v;}
     private LinearLayout card(Context c,int color){LinearLayout v=new LinearLayout(c);v.setPadding(dp(12),dp(12),dp(12),dp(12));v.setBackground(background(color));v.setElevation(dp(5));return v;}
     private GradientDrawable background(int color){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(24));return d;}

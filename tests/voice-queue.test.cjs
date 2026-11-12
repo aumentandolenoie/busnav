@@ -121,3 +121,12 @@ test('web speed limit and camera rules match the native apps',()=>{
  assert.equal(api.nextWebCamera(100,350,new Set([0])),-1,'Camera beyond validated guidance');
  assert.equal(api.nextWebCamera(310,350),-1);
 });
+test('distances: 50 m steps from 100 m, 10 m from 50 m, 5 m below (same table as iOS/Android)',()=>{
+ const api=new Function(['roundedDistance','kilometreText','niceDistance','speechDistance'].map(sourceOf).join('\n')+
+  '\nreturn {niceDistance,speechDistance};')();
+ const table=JSON.parse(fs.readFileSync('tests/fixtures/distance-text.json','utf8'));
+ for(const [metres,display,spoken] of table){
+  assert.equal(api.niceDistance(metres),display,'display '+metres);
+  assert.equal(api.speechDistance(metres),spoken,'voice '+metres);
+ }
+});

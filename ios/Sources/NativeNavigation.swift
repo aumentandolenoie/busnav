@@ -43,7 +43,7 @@ struct NativeRoute: Decodable {
     func voiceMessage(_ first: String, distance: Double?, continuation: Continuation? = nil) -> String {
         let punctuation = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ".!?"))
         let firstClause = first.trimmingCharacters(in: punctuation)
-        let prefix = distance.map { "Tra circa \(Int($0.rounded())) metri, " } ?? ""
+        let prefix = distance.map { "Tra circa \(DistanceText.spoken($0)), " } ?? ""
         func lowerInitial(_ text: String) -> String { text.prefix(1).lowercased() + String(text.dropFirst()) }
         let secondClause = continuation.map { ", poi " + lowerInitial($0.text.trimmingCharacters(in: punctuation)) } ?? ""
         return prefix + (prefix.isEmpty ? firstClause : lowerInitial(firstClause)) + secondClause + "."
@@ -391,7 +391,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             let title = camera.title.lowercased()
             if enqueueCue("camera:\(index)", target: camera.at, make: { left in
                 guard let left, left >= 15 else { return nil }
-                return "Tra circa \(Int(max(20, (left / 10).rounded() * 10))) metri, \(title)."
+                return "Tra circa \(DistanceText.spoken(left)), \(title)."
             }) { spokenCameras.insert(index) }
         }
         // Cues held during a GPS dropout resume as soon as the position is reliable.
@@ -460,7 +460,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             if stopStage == 0 && remaining <= stopLead && !stopFollowsChain {
                 if enqueueCue(key, target: target, make: { left in
                     guard let left, left >= 40 else { return "Fermata in arrivo: \(name)." }
-                    return "Tra \(Int(max(50, (left / 50).rounded() * 50))) metri, prossima fermata: \(name)."
+                    return "Tra \(DistanceText.spoken(left)), prossima fermata: \(name)."
                 }) {
                     stopStages[stopIndex] = 1
                 }

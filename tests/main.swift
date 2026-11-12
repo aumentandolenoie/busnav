@@ -58,3 +58,16 @@ full.discardStale(along: 100, positionReliable: true, now: 1)
 let fresh = full.enqueue(key: "stop:9", target: 400, now: 1, behindSpeech: true) { _ in "Fermata." }
 check(fresh && full.count == 1, "Passed cues must not block a new one")
 print("VoiceCueQueue: ordering, chaining, live distances, stale and duplicate cues passed")
+
+// Distances on screen and in the voice: same table as web and Android.
+if let data = FileManager.default.contents(atPath: "tests/fixtures/distance-text.json"),
+   let table = try? JSONSerialization.jsonObject(with: data) as? [[Any]] {
+    for row in table {
+        let metres = (row[0] as! NSNumber).doubleValue
+        check(DistanceText.display(metres) == row[1] as! String, "display \(metres): \(DistanceText.display(metres))")
+        check(DistanceText.spoken(metres) == row[2] as! String, "voice \(metres): \(DistanceText.spoken(metres))")
+    }
+    print("DistanceText: \(table.count) shared cases passed")
+} else {
+    check(false, "tests/fixtures/distance-text.json missing")
+}

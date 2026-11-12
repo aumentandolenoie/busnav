@@ -49,7 +49,7 @@ final class NavigationSession implements LocationListener {
                 NativeRoute.Camera camera = route.cameras.get(index);
                 String title = camera.title.toLowerCase(Locale.ITALIAN);
                 if (camera.at - along >= 15 && enqueueCue("camera:" + index, camera.at, left ->
-                        left == null || left < 15 ? null : "Tra circa " + Math.max(20, Math.round(left / 10) * 10) + " metri, " + title + ".")) {
+                        left == null || left < 15 ? null : "Tra circa " + DistanceText.spoken(left) + ", " + title + ".")) {
                     spokenCameras.add(index);
                 }
             }
@@ -113,7 +113,7 @@ final class NavigationSession implements LocationListener {
             double target = route.offsets[stopIndex];
             if (stopStage == 0 && remaining <= stopLead && !stopFollowsChain) {
                 if (enqueueCue(key, target, left -> left != null && left < 40 ? "Fermata in arrivo: " + name + "."
-                        : "Tra " + Math.max(50, Math.round((left == null ? remaining : left) / 50) * 50) + " metri, prossima fermata: " + name + ".")) {
+                        : "Tra " + DistanceText.spoken(left == null ? remaining : left) + ", prossima fermata: " + name + ".")) {
                     stopStages.put(stopIndex, 1);
                 }
             } else if (stopStage == 1 && remaining <= 65 && remaining >= 8 && speed > 2 && along >= chainedStopAfter) {

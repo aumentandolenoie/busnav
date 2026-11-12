@@ -72,7 +72,7 @@ test('GPS follow camera accumulates small movements instead of stalling',()=>{
 });
 
 test('advance stop calls are queued once and another stop is announced',()=>{
- const funcs=['stopAlertDistance','speechDistance','planStopVoice'].map(sourceOf).join('\n');
+ const funcs=['roundedDistance','kilometreText','stopAlertDistance','speechDistance','planStopVoice'].map(sourceOf).join('\n');
  const calls=[];
  const elements={voiceToggle:{checked:true}};
  const mock=new Function('current','spokenStopStages','enqueueVoice','$','calls',`
@@ -139,7 +139,7 @@ test('map matcher re-acquires a real route position after GPS skips several hund
 });
 
 test('turn cues are staged, deduplicated and stop-prioritized',()=>{
- const fns=['speechDistance','turnAlertDistance','planTurnVoice'].map(sourceOf).join('\n');
+ const fns=['roundedDistance','kilometreText','speechDistance','turnAlertDistance','planTurnVoice'].map(sourceOf).join('\n');
  const calls=[];
  const run=new Function('calls',`
   const spokenTurnStages=new Map();
