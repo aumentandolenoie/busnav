@@ -26,4 +26,11 @@ public class VoiceCueQueueTest {
         assertEquals("Prossima fermata: Noale",q.next(0,false,10,0).text);
         assertEquals("Poi, SS 13 a destra.",VoiceCueQueue.chained("SS 13 a destra."));
     }
+    @Test public void passedCuesDoNotBlockNewOnes(){
+        VoiceCueQueue q=new VoiceCueQueue();
+        for(int i=0;i<4;i++)q.enqueue("turn:"+i,i*10.0,0,true,l->"Svolta.");
+        q.discardStale(100,true,1000);
+        assertTrue(q.enqueue("stop:9",400.0,1000,true,l->"Fermata."));
+        assertEquals(1,q.size());
+    }
 }

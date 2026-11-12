@@ -215,3 +215,9 @@ body.native-preview>.toast{position:fixed;z-index:2000;top:12px;left:12px;right:
 .academy-search-results strong{display:block;font-size:15px;font-weight:650;line-height:1.3}
 .academy-search-results small{display:block;margin-top:3px;color:#636369;font-size:12px}
 #wizardRoute>.help+label{margin-top:16px}
+
+/* Road safety in the web navigation, same rules as the native apps */
+.map-controls{display:flex;align-items:center;gap:10px}
+.speed-limit-sign{display:grid;place-items:center;width:50px;height:50px;border-radius:50%;background:#fff;color:#000;border:5px solid #d70015;font:800 19px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;box-shadow:0 3px 14px #0003}
+.speed-limit-sign[hidden],.road-alert[hidden]{display:none}
+.road-alert{margin-top:8px;padding:7px 10px;border-radius:10px;background:#fff4e5;color:#7a3e00;font-size:13px;font-weight:650}

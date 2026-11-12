@@ -29,7 +29,7 @@ Valhalla può rilevare strade e rotatorie ma non garantisce che divieti, corsie,
 
 ## Pubblicazione e compatibilità iOS
 
-Solo i JSON validati ed eventualmente **revisionati** vanno committati. La PWA scarica su richiesta `road-guidance/<academy-id>.json`. Il build iOS copia gli stessi file nel bundle, così le manovre restano disponibili offline una volta installata l'IPA. Il file originale `official-routes.json` resta identico.
+Solo i JSON validati ed eventualmente **revisionati** vanno committati. La PWA scarica su richiesta `road-guidance/<academy-id>.json`. Dopo ogni build la CI (`ios-ipa.yml`, passo *Publish the same validated road instructions for the web app*) committa qui esattamente i file di `navigation-data.zip`: web app, iOS e Android usano così gli stessi dati (manovre, limiti di velocità per autobus, autovelox e controlli semaforici). Le build native ripartono sempre dai file della release, mai da copie locali. Il build iOS copia gli stessi file nel bundle, così le manovre restano disponibili offline una volta installata l'IPA. Il file originale `official-routes.json` resta identico.
 
 **Stato della prima integrazione:** il generatore, il validatore e i client PWA/iOS sono operativi. Nessun percorso viene dichiarato arricchito finché un'istanza Valhalla reale non produce e valida il suo JSON. L'app evita di inventare nomi di strade o uscite della rotatoria.
 

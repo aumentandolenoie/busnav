@@ -160,6 +160,7 @@ final class NavigationSession implements LocationListener {
     private boolean enqueueCue(String key, Double target, VoiceCueQueue.Maker make) {
         if (!voice) return false;
         if (currentId != null && key.equals(currentKey)) return true;
+        cues.discardStale(along, matched, SystemClock.elapsedRealtime());
         boolean kept = cues.enqueue(key, target, SystemClock.elapsedRealtime(), currentId != null, make);
         pumpVoice();
         return kept;

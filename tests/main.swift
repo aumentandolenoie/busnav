@@ -52,4 +52,9 @@ check(cues.next(along: 510, positionReliable: true, now: 1, lastSpeechEnd: 0) ==
 cues.enqueue(key: "stop:9", target: 900, now: 0, behindSpeech: false) { _ in "Fermata in arrivo: Treviso." }
 check(cues.next(along: 800, positionReliable: true, now: 40, lastSpeechEnd: 0) == nil, "Expired cue read late")
 check(VoiceCueQueue.chained("SS 13 a destra.") == "Poi, SS 13 a destra.", "Acronym lowercased")
+var full = VoiceCueQueue()
+for index in 0..<4 { full.enqueue(key: "turn:\(index)", target: Double(index * 10), now: 0, behindSpeech: true) { _ in "Svolta." } }
+full.discardStale(along: 100, positionReliable: true, now: 1)
+let fresh = full.enqueue(key: "stop:9", target: 400, now: 1, behindSpeech: true) { _ in "Fermata." }
+check(fresh && full.count == 1, "Passed cues must not block a new one")
 print("VoiceCueQueue: ordering, chaining, live distances, stale and duplicate cues passed")

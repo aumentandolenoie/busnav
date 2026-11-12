@@ -49,10 +49,22 @@ jobs:
         run: |
           TAG="ios-preview-${GITHUB_SHA:0:12}"
           git fetch origin main
-          git diff --exit-code "$GITHUB_SHA" origin/main -- . ':(exclude)reports/**'
+          git diff --exit-code "$GITHUB_SHA" origin/main -- . ':(exclude)reports/**' ':(exclude)road-guidance/*.json'
           zip -qr navigation-data.zip road-guidance
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --target main --title "LineaPilot · $TAG" --notes "Build in preparazione. GPX Academy intatti. Vedi coverage.json per le istruzioni stradali disponibili."
           gh release upload "$TAG" navigation-data.zip road-guidance/coverage.json --clobber
+      - name: Publish the same validated road instructions for the web app
+        # Vercel serves road-guidance/<id>.json from main: committing the exact files
+        # of navigation-data.zip keeps web, iOS and Android on identical data.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A road-guidance
+          git diff --cached --quiet && exit 0
+          git commit -m 'Publish validated road instructions for the web app'
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
       - name: Valhalla diagnostic logs
         if: failure() && steps.reuse.outputs.reused != 'true'
         run: docker logs --tail 150 busnav-valhalla || true
@@ -69,6 +81,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download "ios-preview-${GITHUB_SHA:0:12}" --pattern navigation-data.zip
+          # Only the released files may be bundled: drop copies committed for the web.
+          find road-guidance -maxdepth 1 -name '*.json' -delete
           unzip -oq navigation-data.zip
       - name: Audit every official GPX against the dated Busitalia pattern snapshot
         run: |

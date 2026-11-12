@@ -987,12 +987,12 @@ function renderStops(){if(!current)return;if(!current.stops.length){$('stopList'
 let voiceQueue=[],voiceBusy=false,voiceGeneration=0,voiceUnlocked=false,activeVoicePriority=null,firstVoiceFix=true;
 let spokenStopStages=new Map(),spokenTurnStages=new Map(),lastVoiceTime=0,lastPositionSample=null,filteredSpeed=0;
 let voiceStarted=false,voiceSerial=0,activeVoiceKey=null,activeUtterance=null,voiceWatchdog=null,voiceDrainTimer=null;
-let voiceFailures=0,voiceAlong=null,voicePositionOk=false,voiceLastEnd=0,voiceLastCancel=0;
+let voiceFailures=0,voiceAlong=null,voicePositionOk=false,voiceLastEnd=0,voiceLastCancel=0,spokenRoadCameras=new Set();
 const VOICE_MAX_PENDING=4,VOICE_MAX_AGE=25000,VOICE_CHAIN_WINDOW=2500;
 function resetVoiceGuidance(){
  voiceGeneration++;voiceQueue=[];voiceBusy=false;spokenStopStages.clear();spokenTurnStages.clear();voiceStarted=false;
  lastVoiceTime=0;lastPositionSample=null;filteredSpeed=0;activeVoicePriority=null;firstVoiceFix=true;
- activeVoiceKey=null;activeUtterance=null;voiceFailures=0;voiceAlong=null;voicePositionOk=false;
+ activeVoiceKey=null;activeUtterance=null;voiceFailures=0;voiceAlong=null;voicePositionOk=false;spokenRoadCameras=new Set();
  clearTimeout(voiceWatchdog);voiceWatchdog=null;clearTimeout(voiceDrainTimer);voiceDrainTimer=null;
  if(window.LineaPilotAndroid)try{window.LineaPilotAndroid.stopSpeech()}catch(e){console.warn(e)}
  if('speechSynthesis'in window)try{
@@ -1056,6 +1056,9 @@ function enqueueVoice(message,priority='normal',options={}){
  if(item){item.message=message;item.build=build;item.priority=priority;item.at=Date.now();item.behind=item.behind||voiceBusy}
  else{
   item={message,build,priority,key,target,at:Date.now(),seq:++voiceSerial,behind:voiceBusy};
+  // Cues already passed or expired never take the place of a new one.
+  const now=Date.now();
+  voiceQueue=voiceQueue.filter(x=>now-x.at<=VOICE_MAX_AGE&&(x.target===null||!voicePositionOk||voiceAlong===null||voiceAlong<=x.target+5));
   voiceQueue.push(item);
   voiceQueue.sort(voiceSpeaksFirst);
   if(voiceQueue.length>VOICE_MAX_PENDING)voiceQueue.length=VOICE_MAX_PENDING;
@@ -1203,10 +1206,58 @@ function planTurnVoice(turn,turnIndex,remaining,speed,distanceFromGPX,stopRemain
   if(speak('Tra poco, '+label+'.','turn',{key:'turn:'+turnIndex,target:turn.at}))spokenTurnStages.set(turnIndex,2);
  }
 }
+// Speed limits and fixed enforcement: same rules as NativeRoute (iOS/Android).
+// A limit is shown only with a precise fix (±15 m, ≤8 m from the GPX) and when
+// one single value covers the whole uncertainty window inside validated guidance.
+function guidanceCovers(from,to){
+ const coverage=current?.guidanceCoverage;
+ if(!coverage)return true;
+ return (coverage.ranges||[]).some(r=>r[0]<=from&&from<=r[1]&&r[0]<=to&&to<=r[1]);
+}
+function webSpeedLimit(along,accuracy,deviation){
+ if(!Number.isFinite(along)||!(accuracy>=0&&accuracy<=15)||!(deviation>=0&&deviation<=8))return null;
+ const radius=Math.max(8,accuracy+deviation),lower=along-radius,upper=along+radius;
+ if(!guidanceCovers(lower,upper))return null;
+ const rows=(current?.speedLimits||[]).filter(r=>r[0]<=upper&&r[1]>lower).sort((a,b)=>a[0]-b[0]);
+ if(!rows.length)return null;
+ const limit=rows[0][2];let through=lower;
+ for(const r of rows){if(r[2]!==limit||r[0]>through)return null;through=Math.max(through,r[1])}
+ return through>upper?limit:null;
+}
+function nextWebCamera(along,within,used=new Set()){
+ let best=-1;
+ (current?.roadCameras||[]).forEach((c,i)=>{
+  if(used.has(i)||c.at<=along||c.at>along+within||!guidanceCovers(along,c.at))return;
+  if(best<0||c.at<current.roadCameras[best].at)best=i;
+ });
+ return best;
+}
+const cameraTitle=c=>c.kind==='redLight'?'Controllo semaforico':'Autovelox fisso';
+function hideRoadSafety(){
+ const sign=$('speedLimitSign'),alert=$('roadAlert');
+ if(sign){sign.hidden=true;sign.textContent='';sign.removeAttribute('aria-label')}
+ if(alert)alert.hidden=true;
+}
+function updateRoadSafety(along,accuracy,deviation,speed){
+ const limit=webSpeedLimit(along,accuracy,deviation),sign=$('speedLimitSign');
+ sign.hidden=limit===null;sign.textContent=limit??'';
+ if(limit===null)sign.removeAttribute('aria-label');else sign.setAttribute('aria-label','Limite di velocità '+limit+' chilometri orari');
+ const shown=deviation<45?nextWebCamera(along,350):-1,alert=$('roadAlert');
+ alert.hidden=shown<0;
+ if(shown>=0){const c=current.roadCameras[shown];alert.textContent=cameraTitle(c)+' · '+niceDistance(c.at-along)}
+ if(deviation>=45)return;
+ const index=nextWebCamera(along,Math.max(120,Math.min(250,speed*12)),spokenRoadCameras);
+ if(index<0)return;
+ const camera=current.roadCameras[index],title=cameraTitle(camera).toLowerCase();
+ if(camera.at-along<15)return;
+ if(enqueueVoice('Tra circa '+Math.max(20,Math.round((camera.at-along)/10)*10)+' metri, '+title+'.','normal',
+   {key:'camera:'+index,target:camera.at,build:left=>left===null||left<15?null:'Tra circa '+Math.max(20,Math.round(left/10)*10)+' metri, '+title+'.'}))
+  spokenRoadCameras.add(index);
+}
 function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){
  if(!current)return;
  const {points,dists,offsets,stops}=current;
- if(!isDemo&&accuracy>110){voicePositionOk=false;$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
+ if(!isDemo&&accuracy>110){voicePositionOk=false;hideRoadSafety();$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
  lastFix=p;
  if(!isDemo){realGpsFix={lat:p.lat,lng:p.lng};realGpsFixAt=Date.now();}
  const speed=speedEstimate(p,reportedSpeed,isDemo);
@@ -1215,14 +1266,14 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  followStableCamera(p,isDemo);
  let near=stableRouteMatch(p,points,dists,speed,isDemo);
  if(near.offRoute||near.d>180){
-  voicePositionOk=false;
+  voicePositionOk=false;hideRoadSafety();
   $('gpsStatus').textContent='GPS fuori dal GPX · '+Math.round(near.d)+' m';
   $('navStatus').textContent='Posizione distante dal percorso Academy';
   $('turnHint').textContent='Avvisi sospesi finché la posizione non torna affidabile';
   return;
  }
  if(near.recovering||near.waiting){
-  voicePositionOk=false;
+  voicePositionOk=false;hideRoadSafety();
   $('gpsStatus').textContent='GPS · riallineamento al GPX';
   $('navStatus').textContent='Verifica avanzamento sul percorso';
   $('turnHint').textContent='Ricalcolo posizione: avvisi in attesa';
@@ -1266,6 +1317,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
    'Possibile svolta a '+turn.side+' tra '+niceDistance(d)+' (GPX indicativo)';
   planTurnVoice(turn,turnIndex,d,speed,near.d,stops.length&&!done?remaining:Infinity);
  }else $('turnHint').textContent=done?'Corsa completata':current.guidanceCoverage&&!covered?'Manovre non disponibili in questo tratto · segui il GPX':'Segui il tracciato GPX';
+ updateRoadSafety(along,isDemo?0:accuracy,near.d,speed);
  // Cues held during a GPS dropout resume as soon as the position is reliable again.
  drainVoice();
  // Map already follows the actual GPS fix, not the snapped GPX coordinate.
@@ -1279,6 +1331,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
 }
 function stopNavigation(){
  if(nativeActive){nativePost({type:'stop'});nativeActive=false}
+ hideRoadSafety();
  // Immediately stop browser position updates and speech on manual exit.
  if(watcher!==null){navigator.geolocation.clearWatch(watcher);watcher=null}
  if(simulation){clearInterval(simulation);simulation=null}

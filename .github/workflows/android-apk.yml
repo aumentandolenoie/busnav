@@ -124,7 +124,7 @@ jobs:
         run: |
           TAG="android-preview-$(git rev-parse --short=12 HEAD)"
           git fetch origin main
-          git diff --exit-code "$GITHUB_SHA" origin/main -- . ':(exclude)reports/**'
+          git diff --exit-code "$GITHUB_SHA" origin/main -- . ':(exclude)reports/**' ':(exclude)road-guidance/*.json'
           cp android/app/build/outputs/apk/debug/app-debug.apk LineaPilot-debug.apk
           gh release create "$TAG" LineaPilot-debug.apk build/android-stop-coverage.csv build/android-native-navigation.png build/android-native-large-text.png \
             --title "LineaPilot Android APK - $TAG" \

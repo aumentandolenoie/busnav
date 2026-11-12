@@ -53,7 +53,10 @@ def main():
                     SEEN_INCOMPATIBLE.add(asset['id'])
                     continue
                 if len(coverage.get('routes',[])) != len(catalog): continue
-                # Only known route IDs and the coverage report may be extracted.
+                # Only known route IDs and the coverage report may be extracted;
+                # copies committed for the web app are replaced, never mixed in.
+                for stale in (root/'road-guidance').glob('*.json'):
+                    stale.unlink()
                 names = {'road-guidance/'+str(r['id'])+'.json' for r in catalog}
                 names.add('road-guidance/coverage.json')
                 for name in archive.namelist():

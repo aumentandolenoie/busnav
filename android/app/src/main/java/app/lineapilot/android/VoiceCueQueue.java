@@ -63,6 +63,12 @@ final class VoiceCueQueue {
         return pending.contains(cue);
     }
 
+    /** Drops passed or expired cues so they never take the place of a new one. */
+    void discardStale(double along, boolean positionReliable, long now) {
+        pending.removeIf(cue -> now - cue.created > maxAgeMs ||
+                (positionReliable && cue.target != null && along > cue.target + passedTolerance));
+    }
+
     /** Next cue still worth saying; cues tied to a position wait while GPS is unreliable. */
     Next next(double along, boolean positionReliable, long now, long lastSpeechEnd) {
         pending.removeIf(cue -> now - cue.created > maxAgeMs ||

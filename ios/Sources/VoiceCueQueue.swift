@@ -54,6 +54,17 @@ struct VoiceCueQueue {
         return pending.contains { $0.key == key }
     }
 
+    /// Drops cues whose target was passed or that waited too long, so they never
+    /// take the place of a new cue when the queue is full.
+    mutating func discardStale(along: Double, positionReliable: Bool, now: TimeInterval) {
+        let age = maxAge, tolerance = passedTolerance
+        pending.removeAll { cue in
+            if now - cue.created > age { return true }
+            guard positionReliable, let target = cue.target else { return false }
+            return along > target + tolerance
+        }
+    }
+
     /// Removes and returns the next cue still worth saying, with its final text.
     /// Cues tied to a position wait while the GPS position is not reliable.
     mutating func next(along: Double, positionReliable: Bool, now: TimeInterval,

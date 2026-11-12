@@ -535,6 +535,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     private func enqueueCue(_ key: String, target: Double? = nil, make: @escaping (Double?) -> String?) -> Bool {
         guard voiceEnabled else { return false }
         if currentUtterance != nil && currentKey == key { return true }
+        cues.discardStale(along: along, positionReliable: matched, now: Date().timeIntervalSince1970)
         let kept = cues.enqueue(key: key, target: target, now: Date().timeIntervalSince1970,
                                 behindSpeech: currentUtterance != nil, make: make)
         pumpVoice()

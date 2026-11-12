@@ -107,3 +107,17 @@ test('Android bridge accepts the tokens of queued web cues',()=>{
  assert.equal(tokens.length,2,'Second cue spoken after the Android callback');
  for(const token of tokens)assert.match(token,accepted);
 });
+test('web speed limit and camera rules match the native apps',()=>{
+ const api=new Function('let current;'+['guidanceCovers','webSpeedLimit','nextWebCamera'].map(sourceOf).join('\n')+
+  '\nreturn {set:c=>{current=c},webSpeedLimit,nextWebCamera};')();
+ api.set({speedLimits:[[0,500,50],[500,900,80]],roadCameras:[{at:300,kind:'speed'},{at:700,kind:'redLight'}],
+  guidanceCoverage:{ranges:[[0,600]]}});
+ assert.equal(api.webSpeedLimit(200,5,2),50);
+ assert.equal(api.webSpeedLimit(200,20,2),null,'Imprecise GPS hides the sign');
+ assert.equal(api.webSpeedLimit(200,5,12),null,'Far from the GPX hides the sign');
+ assert.equal(api.webSpeedLimit(495,5,2),null,'Two values in the uncertainty window');
+ assert.equal(api.webSpeedLimit(700,5,2),null,'Outside validated guidance');
+ assert.equal(api.nextWebCamera(100,350),0);
+ assert.equal(api.nextWebCamera(100,350,new Set([0])),-1,'Camera beyond validated guidance');
+ assert.equal(api.nextWebCamera(310,350),-1);
+});
