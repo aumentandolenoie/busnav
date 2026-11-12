@@ -143,3 +143,23 @@ test('Academy selection groups only confirmed duplicate files and keeps homonymo
  assert.deepEqual(choices([106,107]).map(([,name])=>name.split(' · ')[1]),['GPX 106','GPX 107']);
  assert.equal(choices([172,176]).length,2);
 });
+test('catalogue search finds lines directly, ignoring accents, apostrophes and separators',()=>{
+ const js=fs.readFileSync('app.js','utf8');
+ const constant=name=>js.match(new RegExp('const '+name+'=[\\s\\S]*?;\\n'))[0];
+ const api=new Function(constant('ACADEMY_ROUTE_ALIASES')+constant('ACADEMY_DOCUMENTS')+constant('sortIt')+
+  ['academyGroupName','academySearchText','searchAcademyRoutes'].map(appFunction).join('\n')+
+  '\nreturn {searchAcademyRoutes,academySearchText};')();
+ const routes=[...catalog,...JSON.parse(fs.readFileSync('academy-supplemental-routes.json'))];
+ const names=query=>api.searchAcademyRoutes(routes,query).map(r=>r.name);
+ assert.equal(api.academySearchText('Ca’ Bianca | Cà-Bianca'),'ca bianca ca bianca');
+ assert.equal(names('201 Padova Ca bianca')[0],'201 | Padova - Ca’ Bianca');
+ assert.equal(names('201 padova ca’ bianca')[0],'201 | Padova - Ca’ Bianca');
+ assert.ok(names('ca bianca').length>=8,'All Ca’ Bianca routes');
+ assert.ok(names('ca bianca').every(n=>/c[aà]’? ?bianca/i.test(n.replace(/'/g,'’'))));
+ assert.deepEqual(names('E201'),names('201'));
+ assert.ok(api.searchAcademyRoutes(routes,'15').slice(0,3).every(r=>r.category==='Urbano'&&/^15[A-Z]*\b/.test(r.name)),'Line 15 before 150');
+ assert.deepEqual(names(''),[]);
+ assert.deepEqual(names('zzzz inesistente'),[]);
+ const ids=api.searchAcademyRoutes(routes,'bojon').map(r=>r.id);
+ assert.ok(ids.includes(3)&&!ids.includes(2),'Duplicate GPX files are listed once');
+});

@@ -509,8 +509,7 @@ function filterAcademyRoutes(){
   $('academyCount').textContent=docs.length+' documento/i PDF · non sono GPX';
   onAcademySelected();return;
  }
- const q=$('academySearch').value.normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase('it');
- const choices=academyRouteChoices(paths.filter(r=>academyGroupName(r)===line),q);
+ const choices=academyRouteChoices(paths.filter(r=>academyGroupName(r)===line),'');
  setOptions($('academyRoute'),choices,'Scegli percorso…');
  const selected=String(ACADEMY_ROUTE_ALIASES.get(Number(previous))??previous);
  if(choices.some(([id])=>id===selected))$('academyRoute').value=selected;
@@ -837,9 +836,68 @@ function onAcademySelected(){
  if(selectedOfficial){$('officialInfo').textContent=selectedOfficial.category+', linea '+selectedOfficial.line+', variante '+(selectedOfficial.variant||'—')+': '+selectedOfficial.name+'. Puoi avviare il GPS direttamente su questo GPX.';showAcademyRoute(false);}
  else $('officialInfo').textContent='Scegli categoria, linea e percorso effettivo.';
 }
-$('academyCategory').addEventListener('change',()=>{$('academySearch').value='';filterAcademy()});
-$('academyLine').addEventListener('change',()=>{$('academySearch').value='';filterAcademyRoutes()});
-$('academySearch').addEventListener('input',filterAcademyRoutes);
+// Free search over the whole catalogue: "201 padova ca bianca" finds
+// "201 | Padova - Ca’ Bianca" regardless of accents, apostrophes and separators.
+function academySearchText(value){
+ return String(value??'').normalize('NFKD').replace(/[̀-ͯ]/g,'').toLocaleLowerCase('it')
+  .replace(/['’‘`´]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+}
+function searchAcademyRoutes(routes,query){
+ const tokens=academySearchText(query).split(' ').filter(Boolean);
+ if(!tokens.length)return [];
+ const results=[];
+ for(const route of routes){
+  if(ACADEMY_ROUTE_ALIASES.has(route.id)||ACADEMY_DOCUMENTS[route.category])continue;
+  const name=academySearchText(route.name),code=academySearchText(route.variant);
+  const words=academySearchText([route.variant,route.name,route.line,route.category,route.filename].join(' ')).split(' ');
+  // Every typed word must start a word of the route (numbers too: "20" finds 201).
+  // GTFS-style codes are accepted as well: "U15" / "E201" also find 15 / 201.
+  const matches=t=>words.some(w=>w.startsWith(t))||/^[ue]\d/.test(t)&&words.some(w=>w.startsWith(t.slice(1)));
+  if(!tokens.every(matches))continue;
+  const lead=tokens[0].replace(/^[ue](?=\d)/,''),first=name.split(' ')[0];
+  const score=(code&&code===lead?4:0)+(first===lead?2:first.replace(/[a-z]+$/,'')===lead?1.5:0)+(name.startsWith(tokens.join(' '))?1:0);
+  results.push({route,score});
+ }
+ return results.sort((a,b)=>b.score-a.score||sortIt(a.route.name,b.route.name)).map(r=>r.route);
+}
+function academySearchLabel(route){
+ const code=String(route.variant??'').trim();
+ return [route.category,'linea '+academyGroupName(route),code&&'cod. '+code,'GPX '+route.id].filter(Boolean).join(' · ');
+}
+function renderAcademySearch(){
+ const box=$('academySearchResults'),query=$('academySearch').value;
+ const found=query.trim()?searchAcademyRoutes(academy,query):[];
+ box.replaceChildren();
+ box.hidden=!query.trim();
+ if(!query.trim())return;
+ if(!found.length){const empty=document.createElement('p');empty.className='help';empty.textContent='Nessun percorso trovato. Prova con il numero della linea o una località.';box.append(empty);return}
+ const count=document.createElement('p');count.className='help';count.textContent=found.length===1?'1 percorso trovato':found.length+' percorsi trovati';box.append(count);
+ for(const route of found){
+  const button=document.createElement('button');button.type='button';button.setAttribute('role','listitem');button.dataset.routeId=route.id;
+  const title=document.createElement('strong');title.textContent=route.name;
+  const detail=document.createElement('small');detail.textContent=academySearchLabel(route);
+  button.append(title,detail);
+  button.addEventListener('click',()=>pickAcademyRoute(route));
+  box.append(button);
+ }
+}
+function pickAcademyRoute(route){
+ $('academyCategory').value=route.category;filterAcademy();
+ $('academyLine').value=academyGroupName(route);filterAcademyRoutes();
+ $('academyRoute').value=String(route.id);onAcademySelected();
+ $('academySearch').value='';renderAcademySearch();
+ $('academyCount').textContent='Selezionato: '+route.name+' ('+academySearchLabel(route)+')';
+ $('academyRoute').focus({preventScroll:true});
+}
+$('academyCategory').addEventListener('change',filterAcademy);
+$('academyLine').addEventListener('change',filterAcademyRoutes);
+$('academySearch').addEventListener('input',renderAcademySearch);
+$('academySearch').addEventListener('keydown',e=>{
+ if(e.key!=='Enter')return;
+ e.preventDefault();
+ const first=searchAcademyRoutes(academy,$('academySearch').value)[0];
+ if(first)pickAcademyRoute(first);
+});
 $('academyRoute').addEventListener('change',onAcademySelected);
 function selectedGTFS(){return tripsInDirection().find(t=>t.trip_id===$('tripSelect').value)}
 function fitWebBounds(bounds,options){
