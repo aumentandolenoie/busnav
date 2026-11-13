@@ -1,0 +1,145 @@
+{
+ "fares": [
+  {
+   "line": "E001",
+   "from": "PADOVA",
+   "to": "LEGNARO C.",
+   "text": "Classe 2 = € 3,50 a bordo"
+  },
+  {
+   "line": "E001",
+   "from": "ADRIA AUTOSTAZIONE",
+   "to": "PADOVA",
+   "text": "Classe 7 = € 7,00 a bordo"
+  },
+  {
+   "line": "E001",
+   "from": "PADOVA",
+   "to": "ADRIA AUTOSTAZIONE",
+   "text": "Classe 7 = € 7,00 a bordo"
+  },
+  {
+   "line": "E001",
+   "from": "PADOVA",
+   "to": "RONCAGLIA",
+   "text": "TU2 = € 3,00 a bordo"
+  },
+  {
+   "line": "E001",
+   "from": "PADOVA",
+   "to": "PADOVA",
+   "text": "TU1 = € 2,50 a bordo"
+  },
+  {
+   "line": "E015",
+   "from": "PADOVA",
+   "to": "TESSERA AEROPORTO",
+   "text": "Tariffa turistica = € 13,00 a bordo (bambini fino a 11 anni € 6,50)"
+  },
+  {
+   "line": "E015",
+   "from": "MONTEGROTTO TURRI",
+   "to": "TESSERA AEROPORTO",
+   "text": "Tariffa turistica = € 15,00 a bordo (bambini fino a 11 anni € 7,50)"
+  },
+  {
+   "line": "E015",
+   "from": "PADOVA",
+   "to": "VENEZIA P.LE ROMA",
+   "text": "Classe 5 = € 5,50 a bordo"
+  },
+  {
+   "line": "E031",
+   "from": "MESTRINO",
+   "to": "LISSARO",
+   "text": "Classe 1 = € 2,50 a bordo"
+  },
+  {
+   "line": "E031",
+   "from": "PADOVA",
+   "to": "BEVADORO",
+   "text": "Classe non indicata nella polimetrica di questa linea"
+  },
+  {
+   "line": "M",
+   "from": "TORREGLIA",
+   "to": "LUVIGLIANO",
+   "text": "Classe 1 = € 2,50 a bordo"
+  }
+ ],
+ "nearest": [
+  {
+   "line": "E001",
+   "lat": 45.344350000000006,
+   "lng": 11.96145,
+   "stop": "LEGNARO C."
+  },
+  {
+   "line": "E001",
+   "lat": 44.0,
+   "lng": 10.0,
+   "stop": null
+  }
+ ],
+ "suggested": [
+  {
+   "route": {
+    "category": "Extraurbano",
+    "line": "1",
+    "name": "239 | Padova - Cavarzere"
+   },
+   "lines": [
+    "E001"
+   ]
+  },
+  {
+   "route": {
+    "category": "Extraurbano",
+    "line": "19",
+    "name": "1075 | Vo - Bastia - Cervarese - Montemerlo - Liceo Galilei"
+   },
+   "lines": [
+    "E019A",
+    "E019"
+   ]
+  },
+  {
+   "route": {
+    "category": "Extraurbano",
+    "line": "19",
+    "name": "222 | Padova - Carbonara"
+   },
+   "lines": [
+    "E019",
+    "E019A"
+   ]
+  },
+  {
+   "route": {
+    "category": "Colli",
+    "line": "TD",
+    "name": "TD | Torreglia - Padova via Mandria"
+   },
+   "lines": [
+    "T",
+    "TL"
+   ]
+  },
+  {
+   "route": {
+    "category": "Extraurbano",
+    "line": "61",
+    "name": "x"
+   },
+   "lines": []
+  },
+  {
+   "route": {
+    "category": "Urbano",
+    "line": "10",
+    "name": "10 | x"
+   },
+   "lines": []
+  }
+ ]
+}

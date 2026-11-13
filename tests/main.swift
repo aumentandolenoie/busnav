@@ -71,3 +71,33 @@ if let data = FileManager.default.contents(atPath: "tests/fixtures/distance-text
 } else {
     check(false, "tests/fixtures/distance-text.json missing")
 }
+
+// On-board ticket calculator: same polimetriche and cases as tickets.js and Android.
+if let raw = FileManager.default.contents(atPath: "fares/polimetriche-padova.json"),
+   let casesData = FileManager.default.contents(atPath: "tests/fixtures/ticket-cases.json"),
+   let cases = try? JSONSerialization.jsonObject(with: casesData) as? [String: Any],
+   let tickets = try? JSONDecoder().decode(TicketData.self, from: raw) {
+    check(tickets.lines.count == 62 && tickets.suggested.isEmpty, "62 polimetrica lines")
+    func line(_ code: String) -> Int { tickets.lines.firstIndex { $0.code == code } ?? -1 }
+    func stop(_ l: Int, _ name: String) -> Int { tickets.lines[l].stops.firstIndex { $0.name == name } ?? -1 }
+    let fares = cases["fares"] as? [[String: Any]] ?? []
+    for c in fares {
+        let l = line(c["line"] as! String), a = stop(l, c["from"] as! String), b = stop(l, c["to"] as! String)
+        check(l >= 0 && a >= 0 && b >= 0, "ticket case \(c)")
+        check(tickets.fareText(line: l, from: a, to: b) == c["text"] as? String, "fare \(c): \(tickets.fareText(line: l, from: a, to: b) ?? "nil")")
+    }
+    check(fares.count == 11, "ticket fixture complete")
+    for c in cases["nearest"] as? [[String: Any]] ?? [] {
+        let l = line(c["line"] as! String)
+        let near = tickets.nearestStop(line: l, latitude: (c["lat"] as! NSNumber).doubleValue, longitude: (c["lng"] as! NSNumber).doubleValue)
+        check(near.map { tickets.lines[l].stops[$0].name } == c["stop"] as? String, "nearest \(c)")
+    }
+    check(tickets.fareText(line: 0, from: -1, to: 2) == nil && tickets.fareText(line: 0, from: 0, to: 999) == nil, "ticket bounds")
+    let withSuggestion = try! JSONDecoder().decode(TicketData.self, from: Data(#"{"labels":{"":"x"},"lines":[{"code":"A","title":"t","stops":[["P",45.4,11.8],["Q"]],"fares":[[""],["",""]]}],"suggested":[0,7]}"#.utf8))
+    check(withSuggestion.suggested == [0] && withSuggestion.lines[0].stops[1].latitude == nil, "suggested lines and stops without position")
+    let broken = try! JSONDecoder().decode(TicketData.self, from: Data(#"{"labels":5}"#.utf8))
+    check(broken.isEmpty, "bad ticket data only disables the calculator")
+    print("TicketData: \(fares.count) shared fares, nearest boarding and bad data passed")
+} else {
+    check(false, "ticket data or fixture missing")
+}

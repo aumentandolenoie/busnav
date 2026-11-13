@@ -11,6 +11,11 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     private let status = UILabel()
     private let roadStatus = UILabel()
     private let speedSign = UILabel()
+    // Bottom-left, mirroring the speed sign: opens the on-board ticket calculator.
+    private let ticketButton = UIButton(type: .system)
+    private var ticketSheet: TicketSheetView?
+    private var ticketPortrait: [NSLayoutConstraint] = []
+    private var ticketLandscape: [NSLayoutConstraint] = []
     private var portraitConstraints: [NSLayoutConstraint] = []
     private var landscapeConstraints: [NSLayoutConstraint] = []
     private var landscape: Bool?
@@ -122,6 +127,18 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         speedSign.clipsToBounds = true
         speedSign.isHidden = true
         view.addSubview(speedSign)
+        ticketButton.translatesAutoresizingMaskIntoConstraints = false
+        ticketButton.setImage(TicketSheetView.calculatorImage(color: .black), for: .normal)
+        ticketButton.tintColor = UIColor(red: 0.04, green: 0.43, blue: 0.31, alpha: 1)
+        ticketButton.backgroundColor = .systemBackground.withAlphaComponent(0.94)
+        ticketButton.layer.cornerRadius = 23
+        ticketButton.layer.shadowColor = UIColor.black.cgColor; ticketButton.layer.shadowOpacity = 0.2
+        ticketButton.layer.shadowRadius = 5; ticketButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        ticketButton.accessibilityLabel = "Calcola biglietto a bordo"
+        ticketButton.accessibilityIdentifier = "ticketButton"
+        ticketButton.addTarget(self, action: #selector(toggleTicketSheet), for: .touchUpInside)
+        ticketButton.isHidden = route.tickets?.isEmpty ?? true
+        view.addSubview(ticketButton)
 
         NSLayoutConstraint.activate([
             topPanel.topAnchor.constraint(equalTo:safe.topAnchor,constant:8),
@@ -134,8 +151,13 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
             speedSign.trailingAnchor.constraint(equalTo:compass.leadingAnchor,constant:-8),
             speedSign.centerYAnchor.constraint(equalTo:compass.centerYAnchor),
             speedSign.widthAnchor.constraint(equalToConstant:46),
-            speedSign.heightAnchor.constraint(equalTo:speedSign.widthAnchor)
+            speedSign.heightAnchor.constraint(equalTo:speedSign.widthAnchor),
+            ticketButton.widthAnchor.constraint(equalTo:speedSign.widthAnchor),
+            ticketButton.heightAnchor.constraint(equalTo:speedSign.heightAnchor),
+            ticketButton.centerYAnchor.constraint(equalTo:compass.centerYAnchor)
         ])
+        ticketPortrait = [ticketButton.leadingAnchor.constraint(equalTo:safe.leadingAnchor,constant:12)]
+        ticketLandscape = [ticketButton.leadingAnchor.constraint(equalTo:topPanel.trailingAnchor,constant:12)]
         portraitConstraints = [
             topPanel.trailingAnchor.constraint(equalTo:safe.trailingAnchor,constant:-12),
             topPanel.heightAnchor.constraint(lessThanOrEqualTo:safe.heightAnchor,multiplier:0.42),
@@ -214,8 +236,9 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         super.viewWillLayoutSubviews()
         let isLandscape = view.bounds.width > view.bounds.height
         guard landscape != isLandscape else { return }
-        NSLayoutConstraint.deactivate(portraitConstraints + landscapeConstraints)
-        NSLayoutConstraint.activate(isLandscape ? landscapeConstraints : portraitConstraints)
+        closeTicketSheet()   // its constraints belong to the previous orientation
+        NSLayoutConstraint.deactivate(portraitConstraints + landscapeConstraints + ticketPortrait + ticketLandscape)
+        NSLayoutConstraint.activate(isLandscape ? landscapeConstraints + ticketLandscape : portraitConstraints + ticketPortrait)
         landscape = isLandscape
     }
 
@@ -231,7 +254,11 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         cameraViewport = viewport
         let margins = UIEdgeInsets(top:viewport.minY,left:viewport.minX,
                                    bottom:map.bounds.maxY-viewport.maxY,right:map.bounds.maxX-viewport.maxX)
-        map.layoutMargins = margins
+        // MapKit's legal label sits at the bottom-left of the margins: keep it beside
+        // the ticket button instead of under it. The camera uses `cameraViewport`.
+        var ornaments = margins
+        if !ticketButton.isHidden { ornaments.left = max(ornaments.left, ticketButton.frame.maxX + 6) }
+        map.layoutMargins = ornaments
         if initialLayout && fix == nil {
             map.setVisibleMapRect(routeBounds,edgePadding:margins,animated:false)
         }
@@ -328,6 +355,41 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     @objc private func repeatCue() { onRepeat?() }
     @objc private func toggleVoice(_ sender:UIButton) { voice.toggle(); sender.setImage(UIImage(systemName:voice ? "speaker.wave.2.fill" : "speaker.slash.fill"),for:.normal); onVoiceToggle?(voice) }
     @objc private func finish() { onEnd?(); dismiss(animated:true) }
+    @objc private func toggleTicketSheet() {
+        if ticketSheet != nil { closeTicketSheet(); return }
+        guard let data = route.tickets, !data.isEmpty else { return }
+        let sheet = TicketSheetView(data: data)
+        sheet.onClose = { [weak self] in self?.closeTicketSheet() }
+        sheet.onLineChange = { [weak self, weak sheet] in
+            guard let fix = self?.fix else { return }
+            sheet?.suggestBoarding(latitude: fix.coordinate.latitude, longitude: fix.coordinate.longitude)
+        }
+        if let fix { sheet.suggestBoarding(latitude: fix.coordinate.latitude, longitude: fix.coordinate.longitude) }
+        view.addSubview(sheet)
+        let safe = view.safeAreaLayoutGuide
+        let aboveTools = sheet.bottomAnchor.constraint(equalTo: ticketButton.bottomAnchor)
+        aboveTools.priority = UILayoutPriority(730)   // gives way (down over the stop panel) on short screens
+        let width = sheet.widthAnchor.constraint(equalToConstant: 420); width.priority = .defaultLow
+        var constraints = [aboveTools, width,
+            sheet.bottomAnchor.constraint(lessThanOrEqualTo: safe.bottomAnchor, constant: -8),
+            sheet.trailingAnchor.constraint(lessThanOrEqualTo: safe.trailingAnchor, constant: -12),
+            sheet.leadingAnchor.constraint(equalTo: landscape == true ? topPanel.trailingAnchor : safe.leadingAnchor, constant: 12)]
+        if landscape == true {
+            constraints.append(sheet.topAnchor.constraint(greaterThanOrEqualTo: safe.topAnchor, constant: 8))
+        } else {
+            constraints.append(sheet.topAnchor.constraint(greaterThanOrEqualTo: topPanel.bottomAnchor, constant: 8))
+            constraints.append(sheet.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -12))
+        }
+        NSLayoutConstraint.activate(constraints)
+        ticketSheet = sheet
+        ticketButton.layer.borderWidth = 3
+        ticketButton.layer.borderColor = ticketButton.tintColor.cgColor
+        UIAccessibility.post(notification: .layoutChanged, argument: sheet)
+    }
+    private func closeTicketSheet() {
+        ticketSheet?.removeFromSuperview(); ticketSheet = nil
+        ticketButton.layer.borderWidth = 0
+    }
     func mapView(_ mapView:MKMapView,rendererFor overlay:MKOverlay) -> MKOverlayRenderer {
         let renderer = MKPolylineRenderer(overlay:overlay); renderer.strokeColor = .systemBlue; renderer.lineWidth = 8; renderer.lineCap = .round; renderer.lineJoin = .round; return renderer
     }

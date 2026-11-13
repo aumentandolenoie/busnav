@@ -15,6 +15,9 @@ final class DriverView extends FrameLayout {
     final TextView distance,instruction,stopName,stopDistance,status;final ImageView symbol;
     private final TextView roadStatus,speedSign;
     private final ImageButton north;
+    /** Bottom-left, mirroring the speed sign: on-board ticket calculator (null without data). */
+    private final ImageButton ticket;
+    private TicketDialog tickets;
     private boolean landscape;
     private final double[] followPadding=new double[4];
     private final BoundedScroll topText,bottomText;private final LinearLayout top,bottom;
@@ -63,7 +66,28 @@ final class DriverView extends FrameLayout {
         speedSign.setVisibility(INVISIBLE);
         speedSign.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
         addView(speedSign,new LayoutParams(dp(46),dp(46)));
+        if(s.route.tickets!=null){
+            ticket=iconButton(c,"calculator",Color.rgb(11,110,79),"Calcola biglietto a bordo","nav-ticket",null);
+            // 48 dp touch target (Android minimum) around a 46 dp disc, the size of the speed sign.
+            ticket.setPadding(dp(11),dp(11),dp(11),dp(11));
+            GradientDrawable round=new GradientDrawable();round.setShape(GradientDrawable.OVAL);round.setColor(Color.WHITE);
+            android.graphics.drawable.InsetDrawable disc=new android.graphics.drawable.InsetDrawable(round,dp(1));
+            ticket.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x330b6e4f),disc,null));
+            ticket.setElevation(dp(4));
+            ticket.setOnClickListener(v->openTickets(c));
+            addView(ticket,new LayoutParams(dp(48),dp(48)));
+        }else ticket=null;
     }
+
+    /** A dialog over the driving screen: the session, GPS and voice keep running. */
+    private void openTickets(MainActivity c){
+        if(tickets!=null&&tickets.isShowing())return;
+        tickets=new TicketDialog(c,session.route.tickets);
+        if(lastFix!=null)tickets.suggestBoarding(lastFix.getLatitude(),lastFix.getLongitude());
+        tickets.show();
+    }
+    void dismissTickets(){if(tickets!=null)tickets.dismiss();tickets=null;}
+    boolean ticketsShowing(){return tickets!=null&&tickets.isShowing();}
 
     @Override protected void onMeasure(int widthSpec,int heightSpec){
         int width=MeasureSpec.getSize(widthSpec),height=MeasureSpec.getSize(heightSpec);
@@ -88,6 +112,8 @@ final class DriverView extends FrameLayout {
         north.layout(right-buttonSize,controlsBottom-buttonSize,right,controlsBottom);
         int signRight=right-buttonSize-dp(8);
         speedSign.layout(signRight-signSize,controlsBottom-signSize-dp(1),signRight,controlsBottom-dp(1));
+        int ticketLeft=landscape?top.getRight()+dp(12):dp(12);
+        if(ticket!=null)ticket.layout(ticketLeft,controlsBottom-buttonSize,ticketLeft+buttonSize,controlsBottom);
         int leftInset=landscape?top.getRight()+dp(8):dp(8);
         int topInset=landscape?dp(8):top.getBottom()+dp(8);
         int bottomInset=landscape?dp(8):getHeight()-bottom.getTop()+dp(8);
@@ -99,7 +125,7 @@ final class DriverView extends FrameLayout {
                 ||followPadding[2]!=rightInset||followPadding[3]!=bottomInset;
         followPadding[0]=leftInset;followPadding[1]=paddedTop;
         followPadding[2]=rightInset;followPadding[3]=bottomInset;
-        nativeMap.setInsets(leftInset,topInset,rightInset,bottomInset);
+        nativeMap.setInsets(leftInset,topInset,rightInset,bottomInset,ticket!=null?Math.max(leftInset,ticketLeft+buttonSize+dp(6)):leftInset);
         if(viewportChanged&&following&&lastFix!=null)location(lastFix,session.matched,session.along);
     }
 

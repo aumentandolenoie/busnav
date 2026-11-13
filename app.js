@@ -309,6 +309,84 @@ function renderDriveStatus(){
  el.textContent=driveVoiceProblem?driveVoiceText+' · tocca 🔊 in alto per riattivare':[gps,driveVoiceText].filter(Boolean).join(' · ');
  el.dataset.problem=driveVoiceProblem?'yes':'no';
 }
+// On-board ticket calculator (polimetriche Busitalia, see tickets.js). It is an
+// overlay inside the drive view: navigation, GPS and voice keep running.
+let ticketData=null,ticketDataPromise=null,ticketState={route:null,line:-1,from:-1,to:-1};
+function loadTicketData(){
+ if(ticketData)return Promise.resolve(ticketData);
+ if(!ticketDataPromise)ticketDataPromise=fetch('fares/polimetriche-padova.json',{cache:'no-cache'})
+  .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()})
+  .then(d=>{if(!Array.isArray(d?.lines)||!d.labels)throw Error('formato non valido');ticketData=d;return d})
+  .catch(e=>{ticketDataPromise=null;console.info('Polimetriche non disponibili',e.message);return null});
+ return ticketDataPromise;
+}
+function ticketOption(value,text){const o=document.createElement('option');o.value=String(value);o.textContent=text;return o}
+function renderTicketLines(){
+ const select=$('ticketLine'),data=ticketData;select.replaceChildren();
+ if(!data){select.append(ticketOption(-1,'Polimetriche non disponibili'));select.disabled=true;return}
+ select.disabled=false;
+ const suggested=Tickets.suggestedLines(data,current?.academy);
+ if(ticketState.line<0)select.append(ticketOption(-1,'Scegli la linea'));
+ const add=(parent,i)=>parent.append(ticketOption(i,Tickets.lineLabel(data.lines[i])));
+ if(suggested.length){
+  const group=document.createElement('optgroup');group.label='Linea in corso';suggested.forEach(i=>add(group,i));select.append(group);
+  const rest=document.createElement('optgroup');rest.label='Altre linee';data.lines.forEach((_,i)=>{if(!suggested.includes(i))add(rest,i)});select.append(rest);
+ }else data.lines.forEach((_,i)=>add(select,i));
+ select.value=String(ticketState.line);
+}
+function renderTicketStops(){
+ const line=ticketData?.lines[ticketState.line];
+ for(const [id,key,empty] of [['ticketFrom','from','Scegli la salita'],['ticketTo','to','Scegli la discesa']]){
+  const select=$(id);select.replaceChildren();select.disabled=!line;
+  if(!line){select.append(ticketOption(-1,'—'));continue}
+  if(ticketState[key]<0)select.append(ticketOption(-1,empty));
+  line.stops.forEach((s,i)=>select.append(ticketOption(i,(i+1)+' · '+s[0])));
+  select.value=String(ticketState[key]);
+ }
+ renderTicketResult();
+}
+function renderTicketResult(){
+ const out=$('ticketResult'),line=ticketData?.lines[ticketState.line];
+ let text='',empty=true;
+ if(!ticketData)text='Polimetriche non disponibili: controlla la connessione e riprova';
+ else if(!line)text='Scegli la linea della polimetrica';
+ else if(ticketState.from<0)text='Scegli la salita';
+ else if(ticketState.to<0)text='Scegli la discesa';
+ else{const f=Tickets.fare(ticketData,line,ticketState.from,ticketState.to);text=f?.text||ticketData.labels[''];empty=!f||f.code===''}
+ out.textContent=text;out.dataset.empty=empty?'yes':'no';
+}
+async function openTicketSheet(){
+ const sheet=$('ticketSheet');
+ sheet.hidden=false;$('ticketButton').setAttribute('aria-expanded','true');scheduleDriveLayout();
+ $('ticketResult').textContent='Caricamento polimetriche…';$('ticketResult').dataset.empty='yes';
+ const data=await loadTicketData();
+ if(sheet.hidden)return;
+ const route=current?.academy||null;
+ if(data&&ticketState.route!==route){
+  const suggested=Tickets.suggestedLines(data,route);
+  ticketState={route,line:suggested.length?suggested[0]:-1,from:-1,to:-1};
+ }
+ // Boarding stop: the fare node nearest to the bus, every time the sheet opens.
+ const line=data?.lines[ticketState.line];
+ if(line&&lastFix){const near=Tickets.nearestStop(line,lastFix.lat,lastFix.lng);if(near>=0){ticketState.from=near;if(ticketState.to===near)ticketState.to=-1}}
+ renderTicketLines();renderTicketStops();
+}
+function closeTicketSheet(){$('ticketSheet').hidden=true;$('ticketButton').setAttribute('aria-expanded','false')}
+$('ticketButton').addEventListener('click',()=>{$('ticketSheet').hidden?openTicketSheet():closeTicketSheet()});
+$('ticketClose').addEventListener('click',closeTicketSheet);
+$('ticketLine').addEventListener('change',e=>{
+ ticketState.line=Number(e.target.value);ticketState.from=-1;ticketState.to=-1;
+ const line=ticketData?.lines[ticketState.line];
+ if(line&&lastFix)ticketState.from=Tickets.nearestStop(line,lastFix.lat,lastFix.lng);
+ renderTicketLines();renderTicketStops();
+});
+$('ticketFrom').addEventListener('change',e=>{ticketState.from=Number(e.target.value);renderTicketStops()});
+$('ticketTo').addEventListener('change',e=>{ticketState.to=Number(e.target.value);renderTicketStops()});
+/** Same data for the native drive screens (iOS and Android). */
+function nativeTicketPayload(){
+ if(!ticketData)return null;
+ return {labels:ticketData.labels,lines:ticketData.lines.map(l=>({code:l.code,title:l.title,stops:l.stops,fares:l.fares})),suggested:Tickets.suggestedLines(ticketData,current?.academy)};
+}
 function renderDriveVoiceButton(){
  const on=$('voiceToggle').checked,b=$('driveVoiceToggle');
  b.innerHTML=on?DRIVE_ICONS.speaker:DRIVE_ICONS.speakerOff;b.setAttribute('aria-pressed',String(on));
@@ -333,6 +411,15 @@ function layoutDriveView(){
  bottom.style.maxHeight=Math.max(120,landscape?H-safe.bottom-8-(topBottom+8):Math.min(.48*(H-safe.top-safe.bottom),H-safe.bottom-8-(topBottom+60)))+'px';
  const bottomTop=bottom.offsetTop;
  tools.style.bottom=landscape?'':(H-bottomTop+9)+'px';tools.dataset.placed='yes';
+ const ticketTools=$('driveTicketTools'),sheet=$('ticketSheet'),toolsBottom=landscape?'':(H-bottomTop+9)+'px';
+ const column=landscape?(top.offsetLeft+top.offsetWidth+12)+'px':'';
+ ticketTools.style.bottom=toolsBottom;ticketTools.style.left=column;ticketTools.dataset.placed='yes';
+ // Above the speed/compass row when it fits, otherwise over the stop panel
+ // (the instruction panel stays visible: guidance goes on underneath).
+ const above=bottomTop-9-(topBottom+8),fits=landscape||above>=260;
+ sheet.style.left=column;
+ sheet.style.bottom=landscape?'':fits?toolsBottom:(safe.bottom+8)+'px';
+ sheet.style.maxHeight=landscape?'':Math.max(160,fits?above:H-safe.bottom-8-(topBottom+8))+'px';
  const view=landscape?{left:top.offsetLeft+top.offsetWidth+8,top:safe.top+8,right:W-safe.right-8,bottom:H-safe.bottom-8}
   :{left:safe.left+8,top:topBottom+8,right:W-safe.right-8,bottom:bottomTop-8};
  const ax=(view.left+view.right)/2,ay=view.top+Math.max(0,view.bottom-view.top)*DRIVE_POSITION_ANCHOR;
@@ -347,7 +434,7 @@ function layoutDriveView(){
  if(lastCameraPoint)map.setView([lastCameraPoint.lat,lastCameraPoint.lng],map.getZoom(),{animate:false});
 }
 function scheduleDriveLayout(){if(!driveLayoutFrame)driveLayoutFrame=requestAnimationFrame(layoutDriveView)}
-function resetDriveMapBox(){driveMapBox='';delete $('driveTools').dataset.placed;const el=$('map');['position','inset','left','top','width','height'].forEach(k=>el.style[k]='')}
+function resetDriveMapBox(){driveMapBox='';delete $('driveTools').dataset.placed;delete $('driveTicketTools').dataset.placed;const el=$('map');['position','inset','left','top','width','height'].forEach(k=>el.style[k]='')}
 if(window.ResizeObserver){const ro=new ResizeObserver(scheduleDriveLayout);['driveTop','driveBottom'].forEach(id=>$(id)&&ro.observe($(id)))}
 addEventListener('resize',scheduleDriveLayout);
 window.visualViewport?.addEventListener('resize',scheduleDriveLayout);
@@ -429,7 +516,7 @@ function enterNavigationView(){
 function leaveNavigationView(){
  if(!navigationFullscreen)return;
  navigationFullscreen=false;document.body.classList.remove('navigating');
- $('driveView').hidden=true;resetDriveMapBox();releaseScreen();setAudioSessionType('auto');lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;recoveryCandidate=null;
+ closeTicketSheet();$('driveView').hidden=true;resetDriveMapBox();releaseScreen();setAudioSessionType('auto');lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;recoveryCandidate=null;
  $('navigationPosition').hidden=true;
  map.dragging.enable();
  if(locationMarker)locationMarker.setStyle({opacity:1,fillOpacity:1});
@@ -1504,7 +1591,7 @@ async function startGPS(simulated=false){
  primeSpeech(); // still inside the tap: Safari needs it before the await below
  const selection=current;
  $('startNav').disabled=true;
- await roadGuidanceReady;
+ await Promise.all([roadGuidanceReady,Promise.race([loadTicketData(),new Promise(r=>setTimeout(r,1500))])]);
  if(current!==selection)return;
  if(!turns.some(t=>t.verifiedRoad))toast('Istruzioni stradali non disponibili: segui il GPX sulla mappa');
  stopNavigation();
@@ -1519,7 +1606,8 @@ async function startGPS(simulated=false){
    points:current.points.map(p=>[p.lat,p.lng]),
    offsets:current.offsets,
    stops:current.stops.map(s=>s.stop?.stop_name||''),
-   turns:turns.filter(t=>t.verifiedRoad).map(t=>({at:t.at,side:t.side,kind:t.kind||'turn',text:t.verifiedRoad?t.text:null,verifiedRoad:!!t.verifiedRoad}))
+   turns:turns.filter(t=>t.verifiedRoad).map(t=>({at:t.at,side:t.side,kind:t.kind||'turn',text:t.verifiedRoad?t.text:null,verifiedRoad:!!t.verifiedRoad})),
+   tickets:nativeTicketPayload()
   };
   if(route.points.length<2){toast('Percorso non valido');return}
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
@@ -1700,6 +1788,7 @@ $('retryFeed').addEventListener('click',()=>initializeGTFS(true));
 if(!nativeMode&&'serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(console.warn);
 loadAcademy();
 syncNativeRoutePreview();
+loadTicketData();
 initializeGTFS();
 
 

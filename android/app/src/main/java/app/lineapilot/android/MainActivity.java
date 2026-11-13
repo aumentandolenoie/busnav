@@ -194,7 +194,7 @@ public final class MainActivity extends Activity {
     }
     void endNavigation(){endNavigation(true);}
     private void endNavigation(boolean notify){
-        if(session!=null){session.stop();root.removeView(session.screen);session.screen.nativeMap.destroy();session=null;}
+        if(session!=null){session.screen.dismissTickets();session.stop();root.removeView(session.screen);session.screen.nativeMap.destroy();session=null;}
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);if(web!=null)web.setVisibility(View.VISIBLE);if(preview!=null)preview.setVisibility(View.VISIBLE);if(previewMap!=null)previewMap.start();
         if(notify)send("ended",new JSONObject());
     }

@@ -9,9 +9,13 @@ import MapKit
             "name":"Prova layout", "points":[[45.0,11.0],[45.0,11.01]],
             "offsets":[700], "stops":["PADOVA AUTOSTAZIONE – CAPOLINEA PROVVISORIO VIALE DELLA STAZIONE"],
             "coverage":["ranges":[[0,700]],"complete":false,"percent":90], "speedLimits":[[0,200,50]],
-            "turns":[["at":300,"side":"destra","text":"Alla prossima rotonda prendi la terza uscita in direzione Aeroporto Marco Polo e prosegui lungo il percorso ufficiale", "verifiedRoad":true]]
+            "turns":[["at":300,"side":"destra","text":"Alla prossima rotonda prendi la terza uscita in direzione Aeroporto Marco Polo e prosegui lungo il percorso ufficiale", "verifiedRoad":true]],
+            "tickets":["labels":["":"Classe non indicata nella polimetrica di questa linea","TU1":"TU1 = € 2,50 a bordo","C2":"Classe 2 = € 3,50 a bordo"],
+                       "lines":[["code":"E001","title":"CAVARZERE-PADOVA","stops":[["PADOVA",45.0,11.0],["LEGNARO C.",45.0,11.01],["ADRIA"]],
+                                 "fares":[["TU1"],["C2",""],["","",""]]]],"suggested":[0]]
         ]
         let route = try JSONDecoder().decode(NativeRoute.self,from:JSONSerialization.data(withJSONObject:payload))
+        XCTAssertEqual(route.tickets?.lines.count,1)
         for size in [CGSize(width:320,height:568),CGSize(width:375,height:667),CGSize(width:390,height:844),CGSize(width:440,height:956),CGSize(width:568,height:320),CGSize(width:956,height:440)] {
             for category in [UIContentSizeCategory.large,.accessibilityExtraExtraExtraLarge] {
                 let root = UIViewController()
@@ -34,9 +38,9 @@ import MapKit
                 root.view.setNeedsLayout(); root.view.layoutIfNeeded(); drive.view.layoutIfNeeded()
                 let safe = drive.view.safeAreaLayoutGuide.layoutFrame
                 if !landscape { XCTAssertGreaterThanOrEqual(safe.minY,62) }
-                let ids = ["endNavigation","toggleVoice","recenter","repeatCue","compass"]
+                let ids = ["endNavigation","toggleVoice","recenter","repeatCue","compass","ticketButton"]
                 let buttons = descendants(drive.view).filter { ids.contains($0.accessibilityIdentifier ?? "") }
-                XCTAssertEqual(buttons.count,5)
+                XCTAssertEqual(buttons.count,6)
                 let frames = buttons.map { $0.convert($0.bounds,to:drive.view) }
                 for (i,frame) in frames.enumerated() {
                     XCTAssertGreaterThanOrEqual(frame.width,43.9,"\(ids[i]) width at \(size)")
@@ -59,6 +63,28 @@ import MapKit
                 for panel in panels { XCTAssertFalse(sign.frame.intersects(panel.frame)) }
                 let image = UIGraphicsImageRenderer(size:size).image { _ in root.view.drawHierarchy(in:root.view.bounds,afterScreenUpdates:true) }
                 let attachment = XCTAttachment(image:image); attachment.name = "Navigation-\(Int(size.width))-\(category.rawValue)"; attachment.lifetime = .keepAlways; add(attachment)
+                // Ticket calculator: bottom-left, same size and row as the speed sign; the sheet opens over the running navigation.
+                let ticket = buttons.first { $0.accessibilityIdentifier == "ticketButton" } as! UIButton
+                let ticketFrame = ticket.convert(ticket.bounds,to:drive.view)
+                XCTAssertEqual(ticketFrame.size,sign.frame.size,"ticket button size at \(size)")
+                XCTAssertEqual(ticketFrame.midY,sign.frame.midY,accuracy:1,"ticket button row at \(size)")
+                XCTAssertLessThan(ticketFrame.midX,sign.frame.minX,"ticket button not on the left at \(size)")
+                for panel in panels { XCTAssertFalse(ticketFrame.intersects(panel.frame),"ticket button on a panel at \(size)") }
+                ticket.sendActions(for:.touchUpInside)
+                drive.view.layoutIfNeeded()
+                let sheet = descendants(drive.view).first { $0.accessibilityIdentifier == "ticketSheet" } as! TicketSheetView
+                XCTAssertTrue(safe.insetBy(dx:-0.5,dy:-0.5).contains(sheet.frame),"ticket sheet outside the safe area at \(size): \(sheet.frame)")
+                XCTAssertFalse(sheet.frame.intersects(panels.first { $0.accessibilityIdentifier == "instructionPanel" }!.frame),"sheet covers the instruction at \(size)")
+                XCTAssertEqual(sheet.boardingTitle,"1 · PADOVA")
+                XCTAssertEqual(sheet.resultText,"Scegli la discesa")
+                sheet.choose(to:1); XCTAssertEqual(sheet.resultText,"Classe 2 = € 3,50 a bordo")
+                sheet.choose(to:2); XCTAssertEqual(sheet.resultText,"Classe non indicata nella polimetrica di questa linea")
+                let sheetImage = UIGraphicsImageRenderer(size:size).image { _ in root.view.drawHierarchy(in:root.view.bounds,afterScreenUpdates:true) }
+                let sheetAttachment = XCTAttachment(image:sheetImage); sheetAttachment.name = "Ticket-\(Int(size.width))-\(category.rawValue)"; sheetAttachment.lifetime = .keepAlways; add(sheetAttachment)
+                drive.update(along:40,deviation:0,stop:0,reliable:true)   // navigation keeps updating underneath
+                XCTAssertNotNil(sheet.superview)
+                ticket.sendActions(for:.touchUpInside)
+                XCTAssertNil(sheet.superview,"second tap closes the sheet")
                 drive.update(along:250,deviation:0,stop:0,reliable:true)
                 XCTAssertTrue(sign.isHidden)
                 drive.update(along:25,deviation:50,stop:0,reliable:true)

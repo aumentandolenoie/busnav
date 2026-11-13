@@ -187,3 +187,14 @@ Nuovo approfondimento: [Padovia come fonte e voci iOS naturali](reports/padovia-
 - Il valore mostrato è quello **per autobus oltre 8 t** (art. 142 c.3 lett. f CdS): massimo 80 km/h fuori autostrada e 100 km/h in autostrada; `maxspeed:bus/coach/psv` ha la precedenza, i limiti di altri veicoli sono ignorati.
 - Non vengono mostrati limiti per direzione, a orario, per corsia, variabili o con indicazioni contraddittorie; senza dato OSM non viene stimato alcun limite.
 - Copertura aggiornata per ogni GPX: [reports/speed-limit-coverage.md](reports/speed-limit-coverage.md) e [CSV](reports/speed-limit-coverage.csv). Il cartello stradale resta sempre prevalente.
+
+## Biglietto a bordo (polimetriche Padova, prima versione)
+
+Durante la navigazione, in basso a sinistra (dove su iOS c'era la scritta Apple Mappe,
+ora spostata accanto) c'è un pulsante calcolatrice grande come il cartello dei limiti.
+Apre una piccola scheda **senza fermare la navigazione**: Linea (proposta in base alla
+linea in corso), Salita (fermata tariffaria più vicina al bus), Discesa (da scegliere) e
+sotto `Classe N = € X a bordo`. Solo prezzi a bordo. iOS, Android e web usano gli stessi
+dati (`fares/polimetriche-padova.json`) e gli stessi casi di prova
+(`tests/fixtures/ticket-cases.json`). Fonti, regole TU1/TU2/Tessera e limiti in
+[`fares/README.md`](fares/README.md).

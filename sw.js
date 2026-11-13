@@ -1,5 +1,5 @@
-const CACHE='lineapilot-shell-v37';
-const CORE=['./','./index.html','./style.css','./app.js','./route-stops.js','./academy-supplemental-routes.json','./academy-evidence.json','./icon.svg','./apple-touch-icon.png','./icons/icon-192.png','./icons/icon-512.png','./manifest.webmanifest'];
+const CACHE='lineapilot-shell-v38';
+const CORE=['./','./index.html','./style.css','./app.js','./route-stops.js','./tickets.js','./fares/polimetriche-padova.json','./academy-supplemental-routes.json','./academy-evidence.json','./icon.svg','./apple-touch-icon.png','./icons/icon-192.png','./icons/icon-512.png','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
  const keys=await caches.keys();

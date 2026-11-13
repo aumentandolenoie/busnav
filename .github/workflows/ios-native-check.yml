@@ -2,7 +2,7 @@ name: iOS native navigation checks
 on:
   workflow_dispatch:
   push:
-    paths: ['ios/**', 'tests/main.swift', '.github/workflows/ios-native-check.yml']
+    paths: ['ios/**', 'tests/main.swift', 'fares/**', 'tests/fixtures/ticket-cases.json', '.github/workflows/ios-native-check.yml']
 permissions:
   contents: write
 jobs:
@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Exercise native GPX matching
         run: |
-          swiftc ios/Sources/GPXTracker.swift ios/Sources/GuidanceCoverage.swift ios/Sources/VoiceCueQueue.swift ios/Sources/DistanceText.swift tests/main.swift -o /tmp/gpx-tests
+          swiftc ios/Sources/GPXTracker.swift ios/Sources/GuidanceCoverage.swift ios/Sources/VoiceCueQueue.swift ios/Sources/DistanceText.swift ios/Sources/TicketData.swift tests/main.swift -o /tmp/gpx-tests
           /tmp/gpx-tests
       - name: Generate native project
         run: |

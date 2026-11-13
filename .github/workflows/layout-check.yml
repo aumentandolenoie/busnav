@@ -2,7 +2,7 @@ name: iPhone web layout checks
 on:
   workflow_dispatch:
   push:
-    paths: ['style.css', 'index.html', 'app.js', 'tests/layout-browser.py', 'tests/safari-voice-browser.py', '.github/workflows/layout-check.yml']
+    paths: ['style.css', 'index.html', 'app.js', 'tickets.js', 'fares/**', 'tests/layout-browser.py', 'tests/safari-voice-browser.py', '.github/workflows/layout-check.yml']
 permissions:
   contents: write
 jobs:

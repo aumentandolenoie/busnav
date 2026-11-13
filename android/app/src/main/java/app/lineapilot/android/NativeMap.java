@@ -175,13 +175,14 @@ final class NativeMap extends FrameLayout {
     }
     @Override protected void onSizeChanged(int w,int h,int ow,int oh){super.onSizeChanged(w,h,ow,oh);if(pendingFit)post(this::fitRoute);}
     int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
-    void setInsets(int left,int top,int right,int bottom){
-        if(left==mapLeftInset&&top==mapTopInset&&right==mapRightInset&&bottom==mapBottomInset)return;
+    void setInsets(int left,int top,int right,int bottom){setInsets(left,top,right,bottom,left);}
+    /** {@code attributionLeft} keeps the map credit beside a bottom-left button instead of under it. */
+    void setInsets(int left,int top,int right,int bottom,int attributionLeft){
+        if(map!=null&&!(left==mapLeftInset&&top==mapTopInset&&right==mapRightInset&&bottom==mapBottomInset))map.setPadding(left,top,right,bottom);
         mapLeftInset=left;mapTopInset=top;mapRightInset=right;mapBottomInset=bottom;
-        if(map!=null)map.setPadding(left,top,right,bottom);
         LayoutParams p=(LayoutParams)attribution.getLayoutParams();
-        if(p.leftMargin!=left||p.bottomMargin!=bottom){
-            p.leftMargin=left;p.bottomMargin=bottom;
+        if(p.leftMargin!=attributionLeft||p.bottomMargin!=bottom){
+            p.leftMargin=attributionLeft;p.bottomMargin=bottom;
             attribution.setLayoutParams(p);
         }
     }

@@ -16,6 +16,7 @@ final class NavigationIcon extends Drawable {
             case "roundabout":canvas.drawArc(new RectF(5,5,19,19),-80,300,false,paint);line(canvas,4,5,10,4,9,10);break;
             case "left":canvas.scale(-1,1,12,12);
             case "right":{Path p=new Path();p.moveTo(5,21);p.lineTo(5,10);p.quadTo(5,6,9,6);p.lineTo(20,6);canvas.drawPath(p,paint);line(canvas,15,1,20,6,15,11);break;}
+            case "calculator":{canvas.drawRoundRect(new RectF(5,2.8f,19,21.2f),2.6f,2.6f,paint);paint.setStyle(Paint.Style.FILL);canvas.drawRoundRect(new RectF(7.8f,5.6f,16.2f,9.2f),.8f,.8f,paint);for(float y:new float[]{12.6f,15.6f,18.4f})for(float x:new float[]{8.6f,12f,15.4f})canvas.drawCircle(x,y,1.15f,paint);break;}
             case "warning":line(canvas,12,3,22,21,2,21,12,3);line(canvas,12,9,12,14);canvas.drawPoint(12,18,paint);break;
             default:line(canvas,12,21,12,3);line(canvas,5,10,12,3,19,10);
         }

@@ -75,6 +75,7 @@ DRIVE = """(async()=>{const c=current.roadCameras[0];for(let a=0;a<c.at-120;a+=1
 
 def main():
     server = serve()
+    (ROOT / 'build/safari-voice').mkdir(parents=True, exist_ok=True)
     base = f'http://127.0.0.1:{server.server_address[1]}'
     results = []
     with sync_playwright() as p:
@@ -144,9 +145,40 @@ def main():
                 else:
                     assert arrow['x'] > t['right'], (name, 'vehicle hidden by the panel column', arrow, t)
                 assert report['sign'], (name, 'speed limit sign missing')
+                # 3. On-board ticket calculator: bottom-left button, sheet over the running navigation.
+                ticket = page.evaluate("""() => { const r = ticketButton.getBoundingClientRect(), s = speedLimitSign.getBoundingClientRect();
+                  const hit = document.elementFromPoint(r.x + r.width/2, r.y + r.height/2);
+                  return {x:r.x, y:r.y, w:r.width, h:r.height, bottom:r.bottom, hit: ticketButton.contains(hit), signY: s.y + s.height/2, signH: s.height}; }""")
+                assert abs(ticket['w'] - 46) < .6 and abs(ticket['h'] - ticket['signH']) < .6, (name, 'ticket button not sized like the speed sign', ticket)
+                assert ticket['hit'] and abs(ticket['y'] + ticket['h']/2 - ticket['signY']) < 2, (name, 'ticket button not on the speed sign row', ticket)
+                if landscape:
+                    assert ticket['x'] > t['right'], (name, 'ticket button under the panel column', ticket, t)
+                else:
+                    assert ticket['x'] <= left + 13 and ticket['bottom'] <= bp['y'] + .5, (name, 'ticket button not bottom-left', ticket)
+                page.click('#ticketButton')
+                page.wait_for_function("!ticketSheet.hidden && ticketLine.options.length > 5", timeout=5000)
+                sheet = page.evaluate("""() => { const r = ticketSheet.getBoundingClientRect(), line = ticketData.lines[ticketState.line];
+                  return {x:r.x, y:r.y, right:r.right, bottom:r.bottom, line: line && line.code, from: ticketFrom.selectedOptions[0].textContent,
+                    near: line && line.stops[Tickets.nearestStop(line, lastFix.lat, lastFix.lng)][0],
+                    result: ticketResult.textContent, nav: navigationFullscreen && !driveView.hidden && !!current}; }""")
+                assert sheet['line'] == 'E008' and sheet['near'] and sheet['from'].endswith(' · ' + sheet['near']), (name, 'line or boarding stop not pre-filled', sheet)
+                assert sheet['result'] == 'Scegli la discesa', (name, sheet)
+                assert sheet['y'] >= t['bottom'] - .5 or landscape, (name, 'sheet covers the instruction panel', sheet, t)
+                assert sheet['bottom'] <= h - bottom + .5 and sheet['x'] >= 0 and sheet['right'] <= w + .5, (name, 'sheet outside the screen', sheet)
+                target = page.evaluate("ticketData.lines[ticketState.line].stops.findIndex(s => s[0] === 'BADIA AUTOSTAZIONE')")
+                page.select_option('#ticketTo', str(target))
+                expected = page.evaluate("Tickets.fare(ticketData, ticketData.lines[ticketState.line], ticketState.from, ticketState.to).text")
+                got = page.evaluate("ticketResult.textContent")
+                assert got == expected and got.endswith(' a bordo') and got.startswith('Classe '), (name, got, expected)
+                page.evaluate(DRIVE)
+                page.wait_for_timeout(600)
+                assert page.evaluate("navigationFullscreen && !driveView.hidden && !ticketSheet.hidden && lastFix !== null"), (name, 'navigation stopped by the sheet')
+                page.screenshot(path=str(ROOT / 'build/safari-voice' / (name + '-ticket.png')))
+                page.click('#ticketClose')
+                assert page.evaluate("ticketSheet.hidden && ticketButton.getAttribute('aria-expanded') === 'false'"), name
+                results.append({'case': name + '-ticket', 'result': got})
                 assert not errors, (name, errors)
                 out = ROOT / 'build/safari-voice'
-                out.mkdir(parents=True, exist_ok=True)
                 page.screenshot(path=str(out / (name + '.png')))
                 results.append({'case': name, 'turn': report['turn'], 'sign': report['sign']})
                 context.close()

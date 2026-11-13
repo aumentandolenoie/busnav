@@ -101,6 +101,7 @@ struct NativeRoute: Decodable {
     let offsets: [Double]         // Metres along the canonical GPX
     let stops: [String]           // Busitalia GTFS names only, no MOM supplements
     let turns: [Turn]             // Validated road annotations only; geometry never routes
+    let tickets: TicketData?      // On-board ticket calculator (polimetriche); optional
 }
 
 final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynthesizerDelegate {

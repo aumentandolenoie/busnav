@@ -18,6 +18,7 @@ import static org.junit.Assert.*;
                 try{
                     JSONObject route=new JSONObject("{\"name\":\"Test\",\"points\":[[45,11],[45,11.01]],\"offsets\":[700],\"stops\":[\"PADOVA AUTOSTAZIONE CAPOLINEA PROVVISORIO VIALE DELLA STAZIONE\"],\"coverage\":{\"ranges\":[[0,787]],\"complete\":true,\"percent\":100},\"turns\":[{\"at\":300,\"side\":\"destra\",\"kind\":\"roundabout\",\"verifiedRoad\":true,\"text\":\"Alla prossima rotonda prendi la terza uscita in direzione Aeroporto Marco Polo\"}]}");
                     route.put("speedLimits",new JSONArray("[[0,200,50]]"));
+                    route.put("tickets",new JSONObject("{\"labels\":{\"\":\"Classe non indicata nella polimetrica di questa linea\",\"C2\":\"Classe 2 = € 3,50 a bordo\"},\"lines\":[{\"code\":\"E001\",\"title\":\"CAVARZERE-PADOVA\",\"stops\":[[\"PADOVA\",45,11],[\"LEGNARO C.\",45,11.01]],\"fares\":[[\"\"],[\"C2\",\"\"]]}],\"suggested\":[0]}"));
                     JSONObject body=new JSONObject();body.put("route",route);body.put("voice",false);a.startNavigation(body);
                 }catch(Exception e){throw new AssertionError(e);}
             });
@@ -37,7 +38,7 @@ import static org.junit.Assert.*;
             androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             scenario.onActivity(a->{
                 assertNotNull(a.session);DriverView screen=a.session.screen;
-                List<View> controls=new ArrayList<>();collect(screen,controls);assertEquals(5,controls.size());
+                List<View> controls=new ArrayList<>();collect(screen,controls);assertEquals(6,controls.size());
                 Rect bounds=new Rect();assertTrue(screen.getGlobalVisibleRect(bounds));List<Rect> rectangles=new ArrayList<>();float d=a.getResources().getDisplayMetrics().density;
                 for(View control:controls){Rect r=new Rect();assertTrue(control.getGlobalVisibleRect(r));int[] position=new int[2];control.getLocationOnScreen(position);Rect full=new Rect(position[0],position[1],position[0]+control.getWidth(),position[1]+control.getHeight());assertEquals("Clipped control: "+control.getTag(),full,r);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(full));assertTrue(control.getWidth()>=48*d-1);assertTrue(control.getHeight()>=48*d-1);assertTrue("Outside safe content: "+control.getTag(),bounds.contains(r));for(Rect other:rectangles)assertFalse("Overlapping controls",Rect.intersects(r,other));rectangles.add(r);}
                 android.widget.TextView sign=screen.findViewWithTag("nav-speed-limit");
@@ -46,6 +47,17 @@ import static org.junit.Assert.*;
                 Rect signBounds=new Rect();assertTrue(sign.getGlobalVisibleRect(signBounds));
                 assertTrue(bounds.contains(signBounds));
                 for(Rect other:rectangles)assertFalse("Speed sign overlaps a control",Rect.intersects(signBounds,other));
+                // Ticket calculator: bottom-left on the speed sign row; its dialog leaves navigation running.
+                View ticket=screen.findViewWithTag("nav-ticket");
+                Rect ticketBounds=new Rect();assertTrue(ticket.getGlobalVisibleRect(ticketBounds));
+                assertEquals(signBounds.centerY(),ticketBounds.centerY(),2);
+                assertTrue("Ticket button not on the left",ticketBounds.right<signBounds.left&&ticketBounds.left<bounds.left+16*d);
+                ticket.performClick();
+                assertTrue(screen.ticketsShowing());
+                screen.progress(40,0,true,0);
+                assertNotNull("Ticket dialog must not end navigation",a.session);
+                screen.dismissTickets();
+                assertFalse(screen.ticketsShowing());
                 screen.progress(250,0,true,0);
                 assertEquals(View.INVISIBLE,sign.getVisibility());
                 screen.progress(25,0,true,0);
@@ -105,7 +117,7 @@ import static org.junit.Assert.*;
                 assertTrue("Landscape panels overlap",top.getBottom()<bottom.getTop());
                 Rect safe=new Rect();assertTrue(screen.getGlobalVisibleRect(safe));
                 List<View> controls=new ArrayList<>();collect(screen,controls);
-                assertEquals(5,controls.size());
+                assertEquals(6,controls.size());
                 controls.add(screen.findViewWithTag("nav-speed-limit"));
                 List<Rect> used=new ArrayList<>();
                 for(View control:controls){

@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['ios/**', 'scripts/**', 'tests/test_road_guidance.py', 'tests/fixtures/roundabout-*.json', 'app.js', 'route-stops.js', 'index.html', 'style.css', 'sw.js', 'manifest.webmanifest', 'apple-touch-icon.png', 'icons/**', 'official-routes.json', 'academy-supplemental-routes.json', 'academy-evidence.json', 'road-guidance/**', '.github/workflows/ios-ipa.yml']
+    paths: ['ios/**', 'scripts/**', 'tests/test_road_guidance.py', 'tests/fixtures/roundabout-*.json', 'app.js', 'route-stops.js', 'tickets.js', 'fares/**', 'index.html', 'style.css', 'sw.js', 'manifest.webmanifest', 'apple-touch-icon.png', 'icons/**', 'official-routes.json', 'academy-supplemental-routes.json', 'academy-evidence.json', 'road-guidance/**', '.github/workflows/ios-ipa.yml']
   pull_request:
     branches: [main]
-    paths: ['ios/**', 'scripts/**', 'tests/test_road_guidance.py', 'tests/fixtures/roundabout-*.json', 'app.js', 'route-stops.js', 'index.html', 'style.css', 'sw.js', 'manifest.webmanifest', 'apple-touch-icon.png', 'icons/**', '.github/workflows/ios-ipa.yml']
+    paths: ['ios/**', 'scripts/**', 'tests/test_road_guidance.py', 'tests/fixtures/roundabout-*.json', 'app.js', 'route-stops.js', 'tickets.js', 'fares/**', 'index.html', 'style.css', 'sw.js', 'manifest.webmanifest', 'apple-touch-icon.png', 'icons/**', '.github/workflows/ios-ipa.yml']
 permissions:
   contents: write
 concurrency:
@@ -92,7 +92,7 @@ jobs:
         run: |
           node --test tests/*.test.cjs
           python3 -m unittest discover -s tests -p 'test_road_guidance.py' -v
-          swiftc ios/Sources/GPXTracker.swift ios/Sources/GuidanceCoverage.swift ios/Sources/VoiceCueQueue.swift ios/Sources/DistanceText.swift tests/main.swift -o /tmp/gpx-tests
+          swiftc ios/Sources/GPXTracker.swift ios/Sources/GuidanceCoverage.swift ios/Sources/VoiceCueQueue.swift ios/Sources/DistanceText.swift ios/Sources/TicketData.swift tests/main.swift -o /tmp/gpx-tests
           /tmp/gpx-tests
       - name: Prepare bundled web assets
         run: bash scripts/prepare-ios.sh
