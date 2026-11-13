@@ -244,8 +244,40 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         landscape = isLandscape
     }
 
+    // MapKit draws its legal label ("Legale" / Apple Mappe) at the bottom-left of the
+    // map's layout margins. Keep it beside the ticket button and vertically centred on
+    // it; the camera itself uses `cameraViewport`, so these margins only move ornaments.
+    private var cameraMargins = UIEdgeInsets.zero
+    private var legalLift: CGFloat = 0
+    private func applyOrnamentMargins() {
+        var ornaments = cameraMargins
+        if !ticketButton.isHidden {
+            ornaments.left = max(ornaments.left, ticketButton.frame.maxX + 6)
+            ornaments.bottom = max(0, ornaments.bottom + legalLift)
+        }
+        if map.layoutMargins != ornaments { map.layoutMargins = ornaments }
+    }
+    /// The legal label is MapKit's own view: measure where it ended up and correct.
+    private func alignLegalLabel() {
+        guard !ticketButton.isHidden, !ticketButton.frame.isEmpty else { return }
+        map.layoutIfNeeded()
+        func all(_ v: UIView) -> [UIView] { v.subviews.flatMap { [$0] + all($0) } }
+        let candidates = all(map).filter { v in
+            let name = String(describing: type(of: v))
+            return (name.contains("Attribution") || name.contains("Legal")) && !v.isHidden && v.alpha > 0.01 && !v.bounds.isEmpty
+        }.map { ($0, $0.convert($0.bounds, to: view)) }
+        // The lowest-left one is the label beside the button.
+        guard let label = candidates.min(by: { $0.1.maxY == $1.1.maxY ? $0.1.minX < $1.1.minX : $0.1.maxY > $1.1.maxY })?.1,
+              label.height < 60 else { return }
+        let delta = label.midY - ticketButton.frame.midY   // > 0: label below the button
+        guard abs(delta) > 0.5 else { return }
+        legalLift = min(60, max(-60, legalLift + delta))
+        applyOrnamentMargins()
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        defer { DispatchQueue.main.async { [weak self] in self?.alignLegalLabel() } }
         let safe = view.safeAreaLayoutGuide.layoutFrame
         let left = landscape == true ? topPanel.frame.maxX + 8 : safe.minX + 8
         let top = landscape == true ? safe.minY + 8 : topPanel.frame.maxY + 8
@@ -256,11 +288,8 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         cameraViewport = viewport
         let margins = UIEdgeInsets(top:viewport.minY,left:viewport.minX,
                                    bottom:map.bounds.maxY-viewport.maxY,right:map.bounds.maxX-viewport.maxX)
-        // MapKit's legal label sits at the bottom-left of the margins: keep it beside
-        // the ticket button instead of under it. The camera uses `cameraViewport`.
-        var ornaments = margins
-        if !ticketButton.isHidden { ornaments.left = max(ornaments.left, ticketButton.frame.maxX + 6) }
-        map.layoutMargins = ornaments
+        cameraMargins = margins
+        applyOrnamentMargins()
         if initialLayout && fix == nil {
             map.setVisibleMapRect(routeBounds,edgePadding:margins,animated:false)
         }

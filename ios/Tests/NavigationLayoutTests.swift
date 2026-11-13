@@ -70,6 +70,16 @@ import MapKit
                 XCTAssertEqual(ticketFrame.midY,sign.frame.midY,accuracy:1,"ticket button row at \(size)")
                 XCTAssertLessThan(ticketFrame.midX,sign.frame.minX,"ticket button not on the left at \(size)")
                 for panel in panels { XCTAssertFalse(ticketFrame.intersects(panel.frame),"ticket button on a panel at \(size)") }
+                // MapKit's legal label: beside the button and on its row (when MapKit exposes it).
+                for _ in 0..<4 { RunLoop.main.run(until: Date().addingTimeInterval(0.15)); drive.view.layoutIfNeeded() }
+                let legal = descendants(drive.view).filter { v in
+                    let name = String(describing: type(of: v))
+                    return (name.contains("Attribution") || name.contains("Legal")) && !v.isHidden && !v.bounds.isEmpty
+                }.map { $0.convert($0.bounds, to: drive.view) }.max { $0.maxY < $1.maxY }
+                if let legal, category == .large {
+                    XCTAssertEqual(legal.midY, ticketFrame.midY, accuracy: 3, "legal label not on the ticket row at \(size): \(legal) vs \(ticketFrame)")
+                    XCTAssertGreaterThanOrEqual(legal.minX, ticketFrame.maxX, "legal label under the ticket button at \(size)")
+                }
                 ticket.sendActions(for:.touchUpInside)
                 drive.view.layoutIfNeeded()
                 let sheet = descendants(drive.view).first { $0.accessibilityIdentifier == "ticketSheet" } as! TicketSheetView
