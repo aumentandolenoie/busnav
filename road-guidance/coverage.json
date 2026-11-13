@@ -1,6 +1,6 @@
 {
-  "validatorSHA256": "65a86d8bdb926573ce90984734c029a7e6dd2906772e2a17ca0e71a873aa00eb",
-  "generatedAt": "2026-11-13T21:13:18.062611+00:00",
+  "validatorSHA256": "a5471eca79b32892fe59809394f8b5777ef229196031e12e37bb1d1071ef5e5d",
+  "generatedAt": "2026-11-13T21:43:20.807694+00:00",
   "speedLimitPolicy": 3,
   "gpxSHA256": "9497f92f273359d14892e2b52d1b552a2fe24a0072b354ece011267453c03320",
   "routes": [
@@ -83716,9 +83716,9 @@
   ],
   "roadSafety": {
     "limitRoutes": 784,
-    "cameraRoutes": 334,
-    "speed": 644,
-    "redLight": 100,
+    "cameraRoutes": 400,
+    "speed": 723,
+    "redLight": 145,
     "routeKm": 16061.1,
     "limitKm": 7635.5,
     "limitKmByTier": {
