@@ -39,7 +39,7 @@ function harness(){
  vm.createContext(context);
  const decl=js.slice(js.indexOf('let voiceQueue=[]'),js.indexOf('function resetVoiceGuidance'));
  vm.runInContext(decl.replace(/^let /gm,'var ').replace(/^const /gm,'var ')+
-  'var driveVoiceProblem=false,driveVoiceText="";\n'+['resetVoiceGuidance','setVoiceStatus','renderDriveStatus','setupVoice','voiceSpeaksFirst','chainVoiceText','takeNextVoice','enqueueVoice','drainVoice','speak'].map(sourceOf).join('\n'),context);
+  'var driveVoiceProblem=false,driveVoiceText="";\n'+['resetVoiceGuidance','setVoiceStatus','renderDriveStatus','setAudioSessionType','setupVoice','voiceSpeaksFirst','chainVoiceText','takeNextVoice','enqueueVoice','drainVoice','speak'].map(sourceOf).join('\n'),context);
  const api={
   context,spoken,utterances,synth,
   advance(ms){const end=clock+ms;for(;;){timers.sort((a,b)=>a.at-b.at);const t=timers[0];if(!t||t.at>end)break;timers.shift();clock=t.at;t.fn()}clock=end},

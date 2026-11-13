@@ -379,7 +379,31 @@ function turnSpeechLabel(turn){const t=turn.text.replace(/[.!?\s]+$/,'');return 
 // synchronously in the tap handler, before any await.
 function primeSpeech(){
  if(nativeMode||window.LineaPilotAndroid||!('speechSynthesis'in window))return;
+ playThroughSilentSwitch();
  try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='it-IT';speechSynthesis.speak(u)}catch(e){console.warn(e)}
+}
+// iPhone: with the ring/silent switch on, Safari mutes speech of web pages
+// ("ambient" audio). A "playback" audio session (Safari 16.4+) and, for older
+// iOS, a short silent clip played inside the tap switch the page to media audio,
+// which the switch does not mute - like the native app's AVAudioSession(.playback).
+const isAppleTouchDevice=/iPhone|iPad|iPod/.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
+let silentClipUrl=null;
+function silentClip(){
+ if(silentClipUrl)return silentClipUrl;
+ const samples=800,bytes=new Uint8Array(44+samples),view=new DataView(bytes.buffer);
+ const text=(at,value)=>[...value].forEach((c,i)=>bytes[at+i]=c.charCodeAt(0));
+ text(0,'RIFF');view.setUint32(4,36+samples,true);text(8,'WAVEfmt ');view.setUint32(16,16,true);
+ view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,8000,true);view.setUint32(28,8000,true);
+ view.setUint16(32,1,true);view.setUint16(34,8,true);text(36,'data');view.setUint32(40,samples,true);
+ bytes.fill(128,44); // 0.1 s of 8-bit silence
+ let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));
+ return silentClipUrl='data:audio/wav;base64,'+btoa(binary);
+}
+function setAudioSessionType(type){try{if(navigator.audioSession&&navigator.audioSession.type!==type)navigator.audioSession.type=type}catch(e){console.warn('Audio session',e)}}
+function playThroughSilentSwitch(){
+ setAudioSessionType('playback');
+ if(!isAppleTouchDevice)return;
+ try{const clip=new Audio(silentClip());clip.setAttribute('playsinline','');clip.volume=0;const played=clip.play();played?.catch?.(()=>{})}catch(e){console.warn(e)}
 }
 function enterNavigationView(){
  navigationFullscreen=true;
@@ -405,7 +429,7 @@ function enterNavigationView(){
 function leaveNavigationView(){
  if(!navigationFullscreen)return;
  navigationFullscreen=false;document.body.classList.remove('navigating');
- $('driveView').hidden=true;resetDriveMapBox();releaseScreen();lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;recoveryCandidate=null;
+ $('driveView').hidden=true;resetDriveMapBox();releaseScreen();setAudioSessionType('auto');lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;recoveryCandidate=null;
  $('navigationPosition').hidden=true;
  map.dragging.enable();
  if(locationMarker)locationMarker.setStyle({opacity:1,fillOpacity:1});
@@ -1248,6 +1272,7 @@ function drainVoice(){
    // Some browsers never fire onend: release the queue after a generous delay.
    watch(expected,()=>abandon(true,'fine annuncio non segnalata'));
   };
+  setAudioSessionType('playback');
   speech.onend=()=>finish(true);
   speech.onerror=e=>finish(false,e?.error||'errore audio');
   speechSynthesis.speak(speech);

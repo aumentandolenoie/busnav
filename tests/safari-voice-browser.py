@@ -1,20 +1,28 @@
-"""Web app as used on iPhone Safari: voice unlock rule and the driving view with real JS.
+"""Web app as used on iPhone Safari: voice unlock rule, silent switch and the driving view with real JS.
 
 Safari speaks only if the first utterance starts while a tap is being handled;
 afterwards speech works from code. The mock below enforces exactly that rule, so
 an `await` before the first utterance (the bug that left the web voice silent
 until "Riattiva voce" was tapped) makes this test fail.
+The ring/silent switch is modelled as ON: speech is audible only once the page
+switched to media audio (navigator.audioSession.type = "playback", or a media
+element played inside a tap on iOS without the Audio Session API).
 """
 from pathlib import Path
 import functools, http.server, json, sys, threading
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+IPHONE = ('Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 '
+          '(KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1')
 ENGINES = [a for a in sys.argv[1:] if not a.startswith('--')] or ['chromium', 'webkit']
 LEAFLET_STUB = ("(function(){const f=function(){};const p=new Proxy(f,{get:(t,k)=>k===Symbol.toPrimitive?(()=>0):"
                 "k==='then'?undefined:p,apply:()=>p,construct:()=>p});window.L=p;})();")
 SAFARI_SPEECH = """
-window.__inGesture=false;window.__said=[];window.__dropped=[];
+window.__inGesture=false;window.__said=[];window.__dropped=[];window.__mediaInTap=0;
+Object.defineProperty(navigator,'audioSession',{value:{type:'auto'},configurable:true});
+const realPlay=HTMLMediaElement.prototype.play;
+HTMLMediaElement.prototype.play=function(){if(window.__inGesture)window.__mediaInTap++;return Promise.resolve()};
 addEventListener('click',()=>{window.__inGesture=true},true);
 addEventListener('click',()=>{window.__inGesture=false},false);
 (()=>{let unlocked=false;const synth={speaking:false,pending:false,paused:false,
@@ -24,7 +32,7 @@ addEventListener('click',()=>{window.__inGesture=false},false);
  addEventListener(){},resume(){},cancel(){this.speaking=false},
  speak(u){if(!unlocked&&!window.__inGesture){window.__dropped.push(u.text);return}
   unlocked=true;this.speaking=true;
-  setTimeout(()=>{u.onstart&&u.onstart();if(u.text.trim())window.__said.push([u.text,u.voice&&u.voice.name]);
+  setTimeout(()=>{u.onstart&&u.onstart();if(u.text.trim())window.__said.push([u.text,u.voice&&u.voice.name,navigator.audioSession.type==='playback'||window.__mediaInTap>0]);
    setTimeout(()=>{this.speaking=false;u.onend&&u.onend()},300)},40)}};
  Object.defineProperty(window,'speechSynthesis',{value:synth,configurable:true});
  window.SpeechSynthesisUtterance=function(t){this.text=t};})();
@@ -73,7 +81,7 @@ def main():
         for engine in ENGINES:
             browser = getattr(p, engine).launch(**({'channel': 'chrome'} if engine == 'chromium' and '--chrome' in sys.argv else {}))
             # 1. Voice: start with real GPS from a tap, then drive without any further tap.
-            context = browser.new_context(viewport={'width': 390, 'height': 844},
+            context = browser.new_context(viewport={'width': 390, 'height': 844}, user_agent=IPHONE,
                                           geolocation={'latitude': 45.2272, 'longitude': 11.6585}, permissions=['geolocation'])
             context.add_init_script(SAFARI_SPEECH)
             page = context.new_page()
@@ -85,13 +93,18 @@ def main():
             page.evaluate(DRIVE)
             page.wait_for_timeout(9000)
             said = page.evaluate("__said")
-            texts = [t for t, _ in said]
+            texts = [t for t, _, _ in said]
+            assert all(audible for _, _, audible in said), (engine, 'speech muted by the silent switch', said)
+            assert page.evaluate("navigator.audioSession.type") == 'playback', engine
+            assert page.evaluate("__mediaInTap") >= 1, (engine, 'silent clip not played inside the tap')
             assert len(said) >= 6, (engine, 'cues not spoken while driving', said, page.evaluate("__dropped"))
             assert any('autovelox' in t for t in texts), (engine, 'camera cue missing', texts)
-            assert all(v == 'Federica (Premium)' for _, v in said), (engine, 'best Italian voice not used', said)
+            assert all(v == 'Federica (Premium)' for _, v, _ in said), (engine, 'best Italian voice not used', said)
             assert not any(', A' in t for t in texts), (engine, 'capital letter after the distance', texts)
             assert page.evaluate("driveStatus.dataset.problem") == 'no', (engine, page.evaluate("driveStatus.textContent"))
             assert not errors, (engine, errors)
+            page.evaluate("exitNavigation.click()")
+            assert page.evaluate("navigator.audioSession.type") == 'auto', (engine, 'audio session not released after Termina')
             results.append({'engine': engine, 'spoken': len(said), 'sample': texts[:4]})
             context.close()
             # 2. Driving view with the real layout code, portrait and landscape.
