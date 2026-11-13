@@ -176,28 +176,15 @@ final class NativeMap extends FrameLayout {
     @Override protected void onSizeChanged(int w,int h,int ow,int oh){super.onSizeChanged(w,h,ow,oh);if(pendingFit)post(this::fitRoute);}
     int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     void setInsets(int left,int top,int right,int bottom){setInsets(left,top,right,bottom,left);}
-    void setInsets(int left,int top,int right,int bottom,int attributionLeft){setInsets(left,top,right,bottom,attributionLeft,-1);}
-    /** {@code attributionLeft} keeps the map credit beside a bottom-left button instead of under it;
-     *  {@code attributionCenterFromBottom} (if >= 0) centres it vertically on that button. */
-    private int creditCenter=-1;
-    void setInsets(int left,int top,int right,int bottom,int attributionLeft,int attributionCenterFromBottom){
-        creditCenter=attributionCenterFromBottom;
+    /** {@code attributionLeft} keeps the map credit beside a bottom-left button instead of under it. */
+    void setInsets(int left,int top,int right,int bottom,int attributionLeft){
         if(map!=null&&!(left==mapLeftInset&&top==mapTopInset&&right==mapRightInset&&bottom==mapBottomInset))map.setPadding(left,top,right,bottom);
         mapLeftInset=left;mapTopInset=top;mapRightInset=right;mapBottomInset=bottom;
-        centreCredit();
         LayoutParams p=(LayoutParams)attribution.getLayoutParams();
         if(p.leftMargin!=attributionLeft||p.bottomMargin!=bottom){
             p.leftMargin=attributionLeft;p.bottomMargin=bottom;
             attribution.setLayoutParams(p);
         }
-    }
-    // Vertical centring uses a translation, not the margins: it never requests a new
-    // layout, so it cannot disturb map gestures. Re-applied after every layout.
-    @Override protected void onLayout(boolean changed,int l,int t,int r,int b){super.onLayout(changed,l,t,r,b);centreCredit();}
-    private void centreCredit(){
-        if(creditCenter<0||attribution.getHeight()==0){attribution.setTranslationY(0);return;}
-        int wantedBottom=getHeight()-creditCenter+attribution.getHeight()/2;
-        attribution.setTranslationY(Math.min(0,wantedBottom-attribution.getBottom()));
     }
     void start(){if(started||destroyed)return;mapView.onStart();mapView.onResume();started=true;}void pause(){if(!started||destroyed)return;mapView.onPause();mapView.onStop();started=false;}void destroy(){if(destroyed)return;pause();destroyed=true;removeCallbacks(fallback);mapView.onDestroy();}void lowMemory(){mapView.onLowMemory();}
 }

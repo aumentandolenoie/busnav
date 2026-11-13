@@ -125,8 +125,7 @@ final class DriverView extends FrameLayout {
                 ||followPadding[2]!=rightInset||followPadding[3]!=bottomInset;
         followPadding[0]=leftInset;followPadding[1]=paddedTop;
         followPadding[2]=rightInset;followPadding[3]=bottomInset;
-        nativeMap.setInsets(leftInset,topInset,rightInset,bottomInset,ticket!=null?Math.max(leftInset,ticketLeft+buttonSize+dp(6)):leftInset,
-                ticket!=null?getHeight()-(controlsBottom-buttonSize/2):-1);
+        nativeMap.setInsets(leftInset,topInset,rightInset,bottomInset,ticket!=null?Math.max(leftInset,ticketLeft+buttonSize+dp(6)):leftInset);
         if(viewportChanged&&following&&lastFix!=null)location(lastFix,session.matched,session.along);
     }
 

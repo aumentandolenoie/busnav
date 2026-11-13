@@ -52,12 +52,11 @@ import static org.junit.Assert.*;
                 Rect ticketBounds=new Rect();assertTrue(ticket.getGlobalVisibleRect(ticketBounds));
                 assertEquals(signBounds.centerY(),ticketBounds.centerY(),2);
                 assertTrue("Ticket button not on the left",ticketBounds.right<signBounds.left&&ticketBounds.left<bounds.left+16*d);
-                // Map credit beside the button and centred on it.
+                // Map credit beside the button, not under it.
                 View credit=null;
                 for(int i=0;i<screen.nativeMap.getChildCount();i++)if(screen.nativeMap.getChildAt(i) instanceof android.widget.TextView)credit=screen.nativeMap.getChildAt(i);
                 if(credit!=null&&credit.getHeight()>0){int[] at=new int[2];credit.getLocationOnScreen(at);
-                    assertTrue("Map credit under the ticket button",at[0]>=ticketBounds.right);
-                    assertEquals("Map credit not on the ticket row",ticketBounds.centerY(),at[1]+credit.getHeight()/2f,3*d);}
+                    assertTrue("Map credit under the ticket button",at[0]>=ticketBounds.right);}
                 screen.progress(250,0,true,0);
                 assertEquals(View.INVISIBLE,sign.getVisibility());
                 screen.progress(25,0,true,0);
