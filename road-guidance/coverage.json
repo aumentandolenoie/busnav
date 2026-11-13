@@ -1,6 +1,6 @@
 {
-  "validatorSHA256": "f954909c1bde38921d97707c57cff8feafa272e29c6db301f9fa01e8e6399a9a",
-  "generatedAt": "2026-11-11T21:56:43.579118+00:00",
+  "validatorSHA256": "65a86d8bdb926573ce90984734c029a7e6dd2906772e2a17ca0e71a873aa00eb",
+  "generatedAt": "2026-11-13T21:13:18.062611+00:00",
   "speedLimitPolicy": 3,
   "gpxSHA256": "9497f92f273359d14892e2b52d1b552a2fe24a0072b354ece011267453c03320",
   "routes": [
@@ -20,7 +20,7 @@
         "percent": 30.3,
         "metresByTier": {
           "sign": 1397,
-          "mapped": 6065,
+          "mapped": 6061,
           "legal": 1789
         }
       },
@@ -58,7 +58,7 @@
         "percent": 39.9,
         "metresByTier": {
           "sign": 1397,
-          "mapped": 6655,
+          "mapped": 6651,
           "legal": 3231
         }
       },
@@ -89,12 +89,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=30080.6m matched=14583.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=30080.6m matched=14584.1m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=30080.6m matched=14583.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=30080.6m matched=14584.1m"
         },
         {
           "strategy": "window-0-139-precise",
@@ -341,12 +341,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=30080.6m matched=14583.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=30080.6m matched=14584.1m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=30080.6m matched=14583.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=30080.6m matched=14584.1m"
         },
         {
           "strategy": "window-0-139-precise",
@@ -593,12 +593,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=27441.0m matched=14583.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=27441.0m matched=14584.1m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=27441.0m matched=14583.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=27441.0m matched=14584.1m"
         },
         {
           "strategy": "window-0-137-precise",
@@ -1549,9 +1549,9 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 48.3,
+        "percent": 48.4,
         "metresByTier": {
-          "sign": 3105,
+          "sign": 3113,
           "mapped": 6927,
           "legal": 4514
         }
@@ -2575,7 +2575,7 @@
         {
           "strategy": "window-1029-1035-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=119.0m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=119.0m matched=24.0m"
         },
         {
           "strategy": "window-1029-1035-default-strict",
@@ -2585,7 +2585,7 @@
         {
           "strategy": "window-1029-1036-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=24.0m"
         },
         {
           "strategy": "window-1029-1036-default-strict",
@@ -3174,7 +3174,7 @@
         {
           "strategy": "window-985-991-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=119.0m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=119.0m matched=24.0m"
         },
         {
           "strategy": "window-985-991-default-strict",
@@ -3184,7 +3184,7 @@
         {
           "strategy": "window-985-998-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=215.1m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=215.1m matched=24.0m"
         },
         {
           "strategy": "window-985-998-default-strict",
@@ -3194,7 +3194,7 @@
         {
           "strategy": "window-985-992-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=24.0m"
         },
         {
           "strategy": "window-985-992-default-strict",
@@ -4881,10 +4881,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 45.7,
+        "percent": 41.6,
         "metresByTier": {
           "sign": 271,
-          "mapped": 9552,
+          "mapped": 8334,
           "legal": 3633
         }
       },
@@ -5282,10 +5282,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 46.5,
+        "percent": 42.4,
         "metresByTier": {
           "sign": 252,
-          "mapped": 9584,
+          "mapped": 8366,
           "legal": 3688
         }
       },
@@ -5548,10 +5548,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 48.2,
+        "percent": 42.0,
         "metresByTier": {
           "sign": 0,
-          "mapped": 7145,
+          "mapped": 5927,
           "legal": 2285
         }
       },
@@ -5586,10 +5586,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 61.9,
+        "percent": 58.9,
         "metresByTier": {
           "sign": 2221,
-          "mapped": 11738,
+          "mapped": 10520,
           "legal": 10913
         }
       },
@@ -5624,10 +5624,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 50.2,
+        "percent": 44.4,
         "metresByTier": {
           "sign": 0,
-          "mapped": 7071,
+          "mapped": 5852,
           "legal": 3502
         }
       },
@@ -5662,10 +5662,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 60.8,
+        "percent": 57.7,
         "metresByTier": {
           "sign": 2073,
-          "mapped": 11580,
+          "mapped": 10362,
           "legal": 10304
         }
       },
@@ -5700,10 +5700,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 60.1,
+        "percent": 56.9,
         "metresByTier": {
           "sign": 2098,
-          "mapped": 11420,
+          "mapped": 10200,
           "legal": 9507
         }
       },
@@ -5738,10 +5738,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 48.2,
+        "percent": 42.0,
         "metresByTier": {
           "sign": 0,
-          "mapped": 7145,
+          "mapped": 5927,
           "legal": 2285
         }
       },
@@ -5776,10 +5776,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 52.1,
+        "percent": 46.2,
         "metresByTier": {
           "sign": 0,
-          "mapped": 7361,
+          "mapped": 6141,
           "legal": 3385
         }
       },
@@ -5814,10 +5814,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 52.1,
+        "percent": 46.2,
         "metresByTier": {
           "sign": 0,
-          "mapped": 7361,
+          "mapped": 6141,
           "legal": 3385
         }
       },
@@ -7502,10 +7502,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 67.3,
+        "percent": 67.2,
         "metresByTier": {
           "sign": 1259,
-          "mapped": 4200,
+          "mapped": 4197,
           "legal": 1808
         }
       },
@@ -11038,10 +11038,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 33.8,
+        "percent": 33.6,
         "metresByTier": {
           "sign": 412,
-          "mapped": 7648,
+          "mapped": 7597,
           "legal": 1689
         }
       },
@@ -14474,7 +14474,7 @@
         "percent": 70.5,
         "metresByTier": {
           "sign": 544,
-          "mapped": 30237,
+          "mapped": 30234,
           "legal": 2225
         }
       },
@@ -23758,7 +23758,7 @@
         {
           "strategy": "window-450-455-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=66.7m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=66.7m matched=24.0m"
         },
         {
           "strategy": "window-450-455-default-strict",
@@ -23768,7 +23768,7 @@
         {
           "strategy": "window-450-457-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=24.0m"
         },
         {
           "strategy": "window-450-457-default-strict",
@@ -24596,7 +24596,7 @@
         {
           "strategy": "window-1083-1088-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=66.7m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=66.7m matched=24.0m"
         },
         {
           "strategy": "window-1083-1088-default-strict",
@@ -24606,7 +24606,7 @@
         {
           "strategy": "window-1083-1090-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=24.0m"
         },
         {
           "strategy": "window-1083-1090-default-strict",
@@ -31842,9 +31842,9 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 46.3,
+        "percent": 46.4,
         "metresByTier": {
-          "sign": 2989,
+          "sign": 2998,
           "mapped": 6339,
           "legal": 4362
         }
@@ -41533,12 +41533,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=77840.9m matched=6173.8m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=77840.9m matched=6172.9m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=77840.9m matched=4986.1m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=77840.9m matched=4985.2m"
         },
         {
           "strategy": "window-0-100-precise",
@@ -43494,22 +43494,22 @@
         {
           "strategy": "window-644-653-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=222.4m matched=40.2m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=222.4m matched=80.1m"
         },
         {
           "strategy": "window-644-653-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=222.4m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=222.4m matched=40.2m"
         },
         {
           "strategy": "window-644-652-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=159.3m matched=40.2m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=159.3m matched=80.1m"
         },
         {
           "strategy": "window-644-652-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=159.3m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=159.3m matched=40.2m"
         },
         {
           "strategy": "window-650-653-precise-strict",
@@ -44690,7 +44690,7 @@
         "percent": 62.1,
         "metresByTier": {
           "sign": 3768,
-          "mapped": 16895,
+          "mapped": 16896,
           "legal": 10635
         }
       },
@@ -44728,7 +44728,7 @@
         "percent": 69.8,
         "metresByTier": {
           "sign": 2847,
-          "mapped": 5726,
+          "mapped": 5722,
           "legal": 8148
         }
       },
@@ -44763,10 +44763,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 53.1,
+        "percent": 51.0,
         "metresByTier": {
           "sign": 2683,
-          "mapped": 16142,
+          "mapped": 14924,
           "legal": 10968
         }
       },
@@ -44880,7 +44880,7 @@
         "percent": 30.9,
         "metresByTier": {
           "sign": 1399,
-          "mapped": 6140,
+          "mapped": 6137,
           "legal": 1793
         }
       },
@@ -45234,7 +45234,7 @@
         "percent": 38.8,
         "metresByTier": {
           "sign": 1398,
-          "mapped": 6185,
+          "mapped": 6181,
           "legal": 3230
         }
       },
@@ -45386,7 +45386,7 @@
         "percent": 25.0,
         "metresByTier": {
           "sign": 1399,
-          "mapped": 6121,
+          "mapped": 6117,
           "legal": 1790
         }
       },
@@ -45424,7 +45424,7 @@
         "percent": 40.5,
         "metresByTier": {
           "sign": 1485,
-          "mapped": 5699,
+          "mapped": 5697,
           "legal": 3760
         }
       },
@@ -46210,10 +46210,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 45.0,
+        "percent": 44.1,
         "metresByTier": {
           "sign": 683,
-          "mapped": 5996,
+          "mapped": 5852,
           "legal": 2618
         }
       },
@@ -63537,10 +63537,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 35.9,
+        "percent": 35.8,
         "metresByTier": {
           "sign": 0,
-          "mapped": 1834,
+          "mapped": 1830,
           "legal": 2201
         }
       },
@@ -63724,10 +63724,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 31.7,
+        "percent": 31.6,
         "metresByTier": {
           "sign": 0,
-          "mapped": 2749,
+          "mapped": 2745,
           "legal": 2303
         }
       },
@@ -63905,7 +63905,7 @@
         "percent": 29.1,
         "metresByTier": {
           "sign": 182,
-          "mapped": 4166,
+          "mapped": 4165,
           "legal": 1054
         }
       },
@@ -64095,7 +64095,7 @@
         "percent": 68.4,
         "metresByTier": {
           "sign": 825,
-          "mapped": 6280,
+          "mapped": 6279,
           "legal": 1460
         }
       },
@@ -70051,12 +70051,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=14203.0m matched=6953.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=14203.0m matched=6953.1m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=14203.0m matched=6940.5m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=14203.0m matched=6940.6m"
         },
         {
           "strategy": "window-0-119-precise",
@@ -70294,12 +70294,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=19360.9m matched=6953.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=19360.9m matched=6953.1m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=19360.9m matched=6940.5m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=19360.9m matched=6940.6m"
         },
         {
           "strategy": "window-0-119-precise",
@@ -75838,7 +75838,7 @@
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=10134.4m matched=6184.8m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=10134.4m matched=6184.9m"
         },
         {
           "strategy": "window-0-111-precise",
@@ -76585,7 +76585,7 @@
         "percent": 59.5,
         "metresByTier": {
           "sign": 347,
-          "mapped": 6424,
+          "mapped": 6423,
           "legal": 2509
         }
       },
@@ -81715,12 +81715,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=12139.6m matched=5483.5m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=12139.6m matched=5484.2m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=12139.6m matched=5470.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=12139.6m matched=5470.7m"
         },
         {
           "strategy": "window-0-160-precise",
@@ -81735,22 +81735,22 @@
         {
           "strategy": "window-253-402-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=2522.7m matched=1111.1m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=2522.7m matched=1111.8m"
         },
         {
           "strategy": "window-253-402-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=2522.7m matched=1124.7m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=2522.7m matched=1125.4m"
         },
         {
           "strategy": "window-253-331-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=1321.7m matched=1111.1m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=1321.7m matched=1111.8m"
         },
         {
           "strategy": "window-253-331-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=1321.7m matched=1124.7m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=1321.7m matched=1125.4m"
         },
         {
           "strategy": "window-253-294-precise-strict",
@@ -81760,12 +81760,12 @@
         {
           "strategy": "window-290-331-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=707.1m matched=501.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=707.1m matched=502.1m"
         },
         {
           "strategy": "window-290-331-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=707.1m matched=514.6m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=707.1m matched=515.6m"
         },
         {
           "strategy": "window-290-311-precise-strict",
@@ -81775,22 +81775,22 @@
         {
           "strategy": "window-303-331-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=403.0m matched=197.3m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=403.0m matched=198.1m"
         },
         {
           "strategy": "window-303-331-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=403.0m matched=210.8m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=403.0m matched=211.6m"
         },
         {
           "strategy": "window-303-325-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=285.1m matched=197.3m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=285.1m matched=198.1m"
         },
         {
           "strategy": "window-303-325-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=285.1m matched=210.8m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=285.1m matched=211.6m"
         },
         {
           "strategy": "window-303-317-precise-strict",
@@ -81800,32 +81800,32 @@
         {
           "strategy": "window-310-325-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=179.9m matched=92.2m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=179.9m matched=93.1m"
         },
         {
           "strategy": "window-310-325-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=179.9m matched=105.8m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=179.9m matched=106.6m"
         },
         {
           "strategy": "window-312-331-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=255.7m matched=50.7m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=255.7m matched=50.9m"
         },
         {
           "strategy": "window-312-331-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=255.7m matched=64.2m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=255.7m matched=64.5m"
         },
         {
           "strategy": "window-312-327-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=167.7m matched=50.7m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=167.7m matched=50.9m"
         },
         {
           "strategy": "window-312-327-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=167.7m matched=64.2m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=167.7m matched=64.5m"
         },
         {
           "strategy": "window-324-331-precise-strict",
@@ -82140,32 +82140,32 @@
         {
           "strategy": "window-402-430-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=419.7m matched=367.2m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=419.7m matched=368.0m"
         },
         {
           "strategy": "window-402-430-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=419.7m matched=367.2m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=419.7m matched=368.0m"
         },
         {
           "strategy": "window-402-423-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=274.0m matched=221.3m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=274.0m matched=222.2m"
         },
         {
           "strategy": "window-402-423-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=274.0m matched=221.3m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=274.0m matched=222.2m"
         },
         {
           "strategy": "window-402-415-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=179.8m matched=127.5m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=179.8m matched=127.6m"
         },
         {
           "strategy": "window-402-415-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=179.8m matched=127.5m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=179.8m matched=127.6m"
         },
         {
           "strategy": "window-412-423-precise-strict",
@@ -83631,7 +83631,7 @@
         {
           "strategy": "window-933-938-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=66.7m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=66.7m matched=24.0m"
         },
         {
           "strategy": "window-933-938-default-strict",
@@ -83641,7 +83641,7 @@
         {
           "strategy": "window-933-940-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=156.7m matched=24.0m"
         },
         {
           "strategy": "window-933-940-default-strict",
@@ -83716,14 +83716,14 @@
   ],
   "roadSafety": {
     "limitRoutes": 784,
-    "cameraRoutes": 131,
-    "speed": 36,
+    "cameraRoutes": 334,
+    "speed": 644,
     "redLight": 100,
     "routeKm": 16061.1,
-    "limitKm": 7649.1,
+    "limitKm": 7635.5,
     "limitKmByTier": {
       "sign": 1002.7,
-      "mapped": 4768.5,
+      "mapped": 4754.8,
       "legal": 2159.1
     }
   },
