@@ -72,6 +72,13 @@ import MapKit
                 for panel in panels { XCTAssertFalse(ticketFrame.intersects(panel.frame),"ticket button on a panel at \(size)") }
                 // MapKit's legal label: beside the button and on its row (when MapKit exposes it).
                 for _ in 0..<4 { RunLoop.main.run(until: Date().addingTimeInterval(0.15)); drive.view.layoutIfNeeded() }
+                if category == .large {
+                    let mapView = descendants(drive.view).first { $0 is MKMapView }!
+                    print("MAPDUMP \(size) button=\(ticketFrame) margins=\(mapView.layoutMargins)")
+                    for v in descendants(mapView) where !v.isHidden && !v.bounds.isEmpty && v.bounds.height < 80 {
+                        print("MAPDUMP   \(String(describing: type(of: v))) \(v.convert(v.bounds, to: drive.view)) a11y=\(v.accessibilityLabel ?? "-")")
+                    }
+                }
                 let legal = descendants(drive.view).filter { v in
                     let name = String(describing: type(of: v))
                     return (name.contains("Attribution") || name.contains("Legal")) && !v.isHidden && !v.bounds.isEmpty
