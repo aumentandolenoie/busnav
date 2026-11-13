@@ -4,78 +4,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 28,
-        "width": 229.765625,
-        "height": 46,
-        "right": 241.765625,
-        "bottom": 74,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 156.5,
-        "width": 104.921875,
+        "x": 24,
+        "y": 504,
+        "width": 78,
         "height": 44,
-        "right": 116.921875,
-        "bottom": 200.5,
+        "right": 102,
+        "bottom": 548,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 260,
-        "y": 333.609375,
-        "width": 48,
-        "height": 48,
-        "right": 308,
-        "bottom": 381.609375,
+        "id": "driveRepeat",
+        "x": 252,
+        "y": 84.390625,
+        "width": 44,
+        "height": 44,
+        "right": 296,
+        "bottom": 128.390625,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 204,
+        "y": 504,
+        "width": 44,
+        "height": 44,
+        "right": 248,
+        "bottom": 548,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 252,
+        "y": 504,
+        "width": 44,
+        "height": 44,
+        "right": 296,
+        "bottom": 548,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 28,
         "width": 296,
-        "height": 46,
+        "height": 156.796875,
         "right": 308,
-        "bottom": 74
+        "bottom": 184.796875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 82,
+        "y": 296.625,
         "width": 296,
-        "height": 66,
-        "right": 308,
-        "bottom": 148
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 156,
-        "width": 296,
-        "height": 45,
-        "right": 308,
-        "bottom": 201
-      },
-      {
-        "id": ".map-controls",
-        "x": 260,
-        "y": 333.609375,
-        "width": 48,
-        "height": 48,
-        "right": 308,
-        "bottom": 381.609375
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 389.609375,
-        "width": 296,
-        "height": 170.390625,
+        "height": 263.375,
         "right": 308,
         "bottom": 560
       }
@@ -90,78 +73,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 28,
-        "width": 195.546875,
-        "height": 78,
-        "right": 207.546875,
-        "bottom": 106,
+        "x": 24,
+        "y": 504,
+        "width": 78.25,
+        "height": 44,
+        "right": 102.25,
+        "bottom": 548,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 228.015625,
-        "width": 188.84375,
-        "height": 46,
-        "right": 200.84375,
-        "bottom": 274.015625,
+        "id": "driveRepeat",
+        "x": 252,
+        "y": 78.984375,
+        "width": 44,
+        "height": 44,
+        "right": 296,
+        "bottom": 122.984375,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 260,
-        "y": 360.515625,
-        "width": 48,
-        "height": 48,
-        "right": 308,
-        "bottom": 408.515625,
+        "id": "driveVoiceToggle",
+        "x": 204,
+        "y": 504,
+        "width": 44,
+        "height": 44,
+        "right": 248,
+        "bottom": 548,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 252,
+        "y": 504,
+        "width": 44,
+        "height": 44,
+        "right": 296,
+        "bottom": 548,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 28,
         "width": 296,
-        "height": 78,
+        "height": 145.96875,
         "right": 308,
-        "bottom": 106
+        "bottom": 173.96875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 114,
+        "y": 287.375,
         "width": 296,
-        "height": 79.515625,
-        "right": 308,
-        "bottom": 193.515625
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 201.515625,
-        "width": 296,
-        "height": 99,
-        "right": 308,
-        "bottom": 300.515625
-      },
-      {
-        "id": ".map-controls",
-        "x": 260,
-        "y": 360.515625,
-        "width": 48,
-        "height": 48,
-        "right": 308,
-        "bottom": 408.515625
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 416.515625,
-        "width": 296,
-        "height": 143.484375,
+        "height": 272.625,
         "right": 308,
         "bottom": 560
       }
@@ -176,78 +142,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 28,
-        "width": 284.765625,
-        "height": 46,
-        "right": 296.765625,
-        "bottom": 74,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 156,
-        "width": 104.921875,
+        "x": 24,
+        "y": 603,
+        "width": 78,
         "height": 44,
-        "right": 116.921875,
-        "bottom": 200,
+        "right": 102,
+        "bottom": 647,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 315,
-        "y": 421.828125,
-        "width": 48,
-        "height": 48,
-        "right": 363,
-        "bottom": 469.828125,
+        "id": "driveRepeat",
+        "x": 307,
+        "y": 84.390625,
+        "width": 44,
+        "height": 44,
+        "right": 351,
+        "bottom": 128.390625,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 259,
+        "y": 603,
+        "width": 44,
+        "height": 44,
+        "right": 303,
+        "bottom": 647,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 307,
+        "y": 603,
+        "width": 44,
+        "height": 44,
+        "right": 351,
+        "bottom": 647,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 28,
         "width": 351,
-        "height": 46,
+        "height": 156.796875,
         "right": 363,
-        "bottom": 74
+        "bottom": 184.796875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 82,
+        "y": 408.625,
         "width": 351,
-        "height": 66,
-        "right": 363,
-        "bottom": 148
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 156,
-        "width": 351,
-        "height": 44,
-        "right": 363,
-        "bottom": 200
-      },
-      {
-        "id": ".map-controls",
-        "x": 315,
-        "y": 421.828125,
-        "width": 48,
-        "height": 48,
-        "right": 363,
-        "bottom": 469.828125
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 477.828125,
-        "width": 351,
-        "height": 181.171875,
+        "height": 250.375,
         "right": 363,
         "bottom": 659
       }
@@ -262,78 +211,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 28,
-        "width": 250.546875,
-        "height": 78,
-        "right": 262.546875,
-        "bottom": 106,
+        "x": 24,
+        "y": 603,
+        "width": 78.25,
+        "height": 44,
+        "right": 102.25,
+        "bottom": 647,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 230.5,
-        "width": 188.84375,
-        "height": 46,
-        "right": 200.84375,
-        "bottom": 276.5,
+        "id": "driveRepeat",
+        "x": 307,
+        "y": 78.984375,
+        "width": 44,
+        "height": 44,
+        "right": 351,
+        "bottom": 122.984375,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 315,
-        "y": 406.21875,
-        "width": 48,
-        "height": 48,
-        "right": 363,
-        "bottom": 454.21875,
+        "id": "driveVoiceToggle",
+        "x": 259,
+        "y": 603,
+        "width": 44,
+        "height": 44,
+        "right": 303,
+        "bottom": 647,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 307,
+        "y": 603,
+        "width": 44,
+        "height": 44,
+        "right": 351,
+        "bottom": 647,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 28,
         "width": 351,
-        "height": 78,
+        "height": 145.96875,
         "right": 363,
-        "bottom": 106
+        "bottom": 173.96875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 114,
+        "y": 386.03125,
         "width": 351,
-        "height": 82,
-        "right": 363,
-        "bottom": 196
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 204,
-        "width": 351,
-        "height": 99,
-        "right": 363,
-        "bottom": 303
-      },
-      {
-        "id": ".map-controls",
-        "x": 315,
-        "y": 406.21875,
-        "width": 48,
-        "height": 48,
-        "right": 363,
-        "bottom": 454.21875
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 462.21875,
-        "width": 351,
-        "height": 196.78125,
+        "height": 272.96875,
         "right": 363,
         "bottom": 659
       }
@@ -348,78 +280,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 67,
-        "width": 299.765625,
-        "height": 46,
-        "right": 311.765625,
-        "bottom": 113,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 177,
-        "width": 104.921875,
+        "x": 24,
+        "y": 746,
+        "width": 78,
         "height": 44,
-        "right": 116.921875,
-        "bottom": 221,
+        "right": 102,
+        "bottom": 790,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 330,
-        "y": 564.828125,
-        "width": 48,
-        "height": 48,
-        "right": 378,
-        "bottom": 612.828125,
+        "id": "driveRepeat",
+        "x": 322,
+        "y": 123.390625,
+        "width": 44,
+        "height": 44,
+        "right": 366,
+        "bottom": 167.390625,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 274,
+        "y": 746,
+        "width": 44,
+        "height": 44,
+        "right": 318,
+        "bottom": 790,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 322,
+        "y": 746,
+        "width": 44,
+        "height": 44,
+        "right": 366,
+        "bottom": 790,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 67,
         "width": 366,
-        "height": 46,
+        "height": 156.796875,
         "right": 378,
-        "bottom": 113
+        "bottom": 223.796875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 121,
+        "y": 551.625,
         "width": 366,
-        "height": 48,
-        "right": 378,
-        "bottom": 169
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 177,
-        "width": 366,
-        "height": 44,
-        "right": 378,
-        "bottom": 221
-      },
-      {
-        "id": ".map-controls",
-        "x": 330,
-        "y": 564.828125,
-        "width": 48,
-        "height": 48,
-        "right": 378,
-        "bottom": 612.828125
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 620.828125,
-        "width": 366,
-        "height": 181.171875,
+        "height": 250.375,
         "right": 378,
         "bottom": 802
       }
@@ -434,78 +349,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 67,
-        "width": 265.546875,
-        "height": 78,
-        "right": 277.546875,
-        "bottom": 145,
+        "x": 24,
+        "y": 746,
+        "width": 78.25,
+        "height": 44,
+        "right": 102.25,
+        "bottom": 790,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 269.5,
-        "width": 188.84375,
-        "height": 46,
-        "right": 200.84375,
-        "bottom": 315.5,
+        "id": "driveRepeat",
+        "x": 322,
+        "y": 117.984375,
+        "width": 44,
+        "height": 44,
+        "right": 366,
+        "bottom": 161.984375,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 330,
-        "y": 549.21875,
-        "width": 48,
-        "height": 48,
-        "right": 378,
-        "bottom": 597.21875,
+        "id": "driveVoiceToggle",
+        "x": 274,
+        "y": 746,
+        "width": 44,
+        "height": 44,
+        "right": 318,
+        "bottom": 790,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 322,
+        "y": 746,
+        "width": 44,
+        "height": 44,
+        "right": 366,
+        "bottom": 790,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 67,
         "width": 366,
-        "height": 78,
+        "height": 145.96875,
         "right": 378,
-        "bottom": 145
+        "bottom": 212.96875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 153,
+        "y": 529.03125,
         "width": 366,
-        "height": 82,
-        "right": 378,
-        "bottom": 235
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 243,
-        "width": 366,
-        "height": 99,
-        "right": 378,
-        "bottom": 342
-      },
-      {
-        "id": ".map-controls",
-        "x": 330,
-        "y": 549.21875,
-        "width": 48,
-        "height": 48,
-        "right": 378,
-        "bottom": 597.21875
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 605.21875,
-        "width": 366,
-        "height": 196.78125,
+        "height": 272.96875,
         "right": 378,
         "bottom": 802
       }
@@ -520,78 +418,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 70,
-        "width": 349.765625,
-        "height": 46,
-        "right": 361.765625,
-        "bottom": 116,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 180,
-        "width": 104.921875,
+        "x": 24,
+        "y": 858,
+        "width": 78,
         "height": 44,
-        "right": 116.921875,
-        "bottom": 224,
+        "right": 102,
+        "bottom": 902,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 380,
-        "y": 710.21875,
-        "width": 48,
-        "height": 48,
-        "right": 428,
-        "bottom": 758.21875,
+        "id": "driveRepeat",
+        "x": 372,
+        "y": 126.390625,
+        "width": 44,
+        "height": 44,
+        "right": 416,
+        "bottom": 170.390625,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 324,
+        "y": 858,
+        "width": 44,
+        "height": 44,
+        "right": 368,
+        "bottom": 902,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 372,
+        "y": 858,
+        "width": 44,
+        "height": 44,
+        "right": 416,
+        "bottom": 902,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 70,
         "width": 416,
-        "height": 46,
+        "height": 156.796875,
         "right": 428,
-        "bottom": 116
+        "bottom": 226.796875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 124,
+        "y": 663.625,
         "width": 416,
-        "height": 48,
-        "right": 428,
-        "bottom": 172
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 180,
-        "width": 416,
-        "height": 44,
-        "right": 428,
-        "bottom": 224
-      },
-      {
-        "id": ".map-controls",
-        "x": 380,
-        "y": 710.21875,
-        "width": 48,
-        "height": 48,
-        "right": 428,
-        "bottom": 758.21875
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 766.21875,
-        "width": 416,
-        "height": 147.78125,
+        "height": 250.375,
         "right": 428,
         "bottom": 914
       }
@@ -606,78 +487,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 70,
-        "width": 315.546875,
-        "height": 52,
-        "right": 327.546875,
-        "bottom": 122,
+        "x": 24,
+        "y": 858,
+        "width": 78.25,
+        "height": 44,
+        "right": 102.25,
+        "bottom": 902,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 246.5,
-        "width": 188.84375,
-        "height": 46,
-        "right": 200.84375,
-        "bottom": 292.5,
+        "id": "driveRepeat",
+        "x": 372,
+        "y": 120.984375,
+        "width": 44,
+        "height": 44,
+        "right": 416,
+        "bottom": 164.984375,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 380,
-        "y": 671.21875,
-        "width": 48,
-        "height": 48,
-        "right": 428,
-        "bottom": 719.21875,
+        "id": "driveVoiceToggle",
+        "x": 324,
+        "y": 858,
+        "width": 44,
+        "height": 44,
+        "right": 368,
+        "bottom": 902,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 372,
+        "y": 858,
+        "width": 44,
+        "height": 44,
+        "right": 416,
+        "bottom": 902,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 70,
         "width": 416,
-        "height": 52,
+        "height": 145.96875,
         "right": 428,
-        "bottom": 122
+        "bottom": 215.96875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 130,
+        "y": 641.03125,
         "width": 416,
-        "height": 82,
-        "right": 428,
-        "bottom": 212
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 220,
-        "width": 416,
-        "height": 99,
-        "right": 428,
-        "bottom": 319
-      },
-      {
-        "id": ".map-controls",
-        "x": 380,
-        "y": 671.21875,
-        "width": 48,
-        "height": 48,
-        "right": 428,
-        "bottom": 719.21875
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 727.21875,
-        "width": 416,
-        "height": 186.78125,
+        "height": 272.96875,
         "right": 428,
         "bottom": 914
       }
@@ -692,79 +556,62 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 59,
-        "y": 8,
-        "width": 652.65625,
-        "height": 46,
-        "right": 711.65625,
-        "bottom": 54,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 59,
-        "y": 73,
-        "width": 141.71875,
+        "x": 83,
+        "y": 305,
+        "width": 78,
         "height": 44,
-        "right": 200.71875,
-        "bottom": 117,
+        "right": 161,
+        "bottom": 349,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 737,
-        "y": 313,
-        "width": 48,
-        "height": 48,
-        "right": 785,
-        "bottom": 361,
+        "id": "driveRepeat",
+        "x": 295,
+        "y": 54.03125,
+        "width": 44,
+        "height": 44,
+        "right": 339,
+        "bottom": 98.03125,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 247,
+        "y": 305,
+        "width": 44,
+        "height": 44,
+        "right": 291,
+        "bottom": 349,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 295,
+        "y": 305,
+        "width": 44,
+        "height": 44,
+        "right": 339,
+        "bottom": 349,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
-        "x": 59,
+        "id": "#driveTop",
+        "x": 71,
         "y": 8,
-        "width": 726,
-        "height": 46,
-        "right": 785,
-        "bottom": 54
+        "width": 280,
+        "height": 136.0625,
+        "right": 351,
+        "bottom": 144.0625
       },
       {
-        "id": ".map-top",
-        "x": 426,
-        "y": 62,
-        "width": 359,
-        "height": 66,
-        "right": 785,
-        "bottom": 128
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 59,
-        "y": 62,
-        "width": 359,
-        "height": 66,
-        "right": 418,
-        "bottom": 128
-      },
-      {
-        "id": ".map-controls",
-        "x": 737,
-        "y": 313,
-        "width": 48,
-        "height": 48,
-        "right": 785,
-        "bottom": 361
-      },
-      {
-        "id": ".next-card",
-        "x": 59,
-        "y": 224.5,
-        "width": 359,
-        "height": 136.5,
-        "right": 418,
+        "id": "#driveBottom",
+        "x": 71,
+        "y": 179.8125,
+        "width": 280,
+        "height": 181.1875,
+        "right": 351,
         "bottom": 361
       }
     ]
@@ -778,79 +625,62 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 59,
-        "y": 8,
-        "width": 621.546875,
-        "height": 52,
-        "right": 680.546875,
-        "bottom": 60,
+        "x": 83,
+        "y": 305,
+        "width": 78.25,
+        "height": 44,
+        "right": 161.25,
+        "bottom": 349,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 59,
-        "y": 93.5,
-        "width": 194.84375,
-        "height": 48,
-        "right": 253.84375,
-        "bottom": 141.5,
+        "id": "driveRepeat",
+        "x": 295,
+        "y": 55.828125,
+        "width": 44,
+        "height": 44,
+        "right": 339,
+        "bottom": 99.828125,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 737,
-        "y": 313,
-        "width": 48,
-        "height": 48,
-        "right": 785,
-        "bottom": 361,
+        "id": "driveVoiceToggle",
+        "x": 247,
+        "y": 305,
+        "width": 44,
+        "height": 44,
+        "right": 291,
+        "bottom": 349,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 295,
+        "y": 305,
+        "width": 44,
+        "height": 44,
+        "right": 339,
+        "bottom": 349,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
-        "x": 59,
+        "id": "#driveTop",
+        "x": 71,
         "y": 8,
-        "width": 726,
-        "height": 52,
-        "right": 785,
-        "bottom": 60
+        "width": 280,
+        "height": 139.671875,
+        "right": 351,
+        "bottom": 147.671875
       },
       {
-        "id": ".map-top",
-        "x": 426,
-        "y": 68,
-        "width": 359,
-        "height": 78,
-        "right": 785,
-        "bottom": 146
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 59,
-        "y": 68,
-        "width": 359,
-        "height": 99,
-        "right": 418,
-        "bottom": 167
-      },
-      {
-        "id": ".map-controls",
-        "x": 737,
-        "y": 313,
-        "width": 48,
-        "height": 48,
-        "right": 785,
-        "bottom": 361
-      },
-      {
-        "id": ".next-card",
-        "x": 59,
-        "y": 224.5,
-        "width": 359,
-        "height": 136.5,
-        "right": 418,
+        "id": "#driveBottom",
+        "x": 71,
+        "y": 179.8125,
+        "width": 280,
+        "height": 181.1875,
+        "right": 351,
         "bottom": 361
       }
     ]
@@ -864,78 +694,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 28,
-        "width": 220.890625,
-        "height": 46,
-        "right": 232.890625,
-        "bottom": 74,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 158.5,
-        "width": 118.640625,
+        "x": 24,
+        "y": 504,
+        "width": 78,
         "height": 44,
-        "right": 130.640625,
-        "bottom": 202.5,
+        "right": 102,
+        "bottom": 548,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 260,
-        "y": 333.609375,
-        "width": 48,
-        "height": 48,
-        "right": 308,
-        "bottom": 381.609375,
+        "id": "driveRepeat",
+        "x": 252,
+        "y": 84.390625,
+        "width": 44,
+        "height": 44,
+        "right": 296,
+        "bottom": 128.390625,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 204,
+        "y": 504,
+        "width": 44,
+        "height": 44,
+        "right": 248,
+        "bottom": 548,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 252,
+        "y": 504,
+        "width": 44,
+        "height": 44,
+        "right": 296,
+        "bottom": 548,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 28,
         "width": 296,
-        "height": 46,
+        "height": 156.796875,
         "right": 308,
-        "bottom": 74
+        "bottom": 184.796875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 82,
+        "y": 296.625,
         "width": 296,
-        "height": 68,
-        "right": 308,
-        "bottom": 150
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 158,
-        "width": 296,
-        "height": 45,
-        "right": 308,
-        "bottom": 203
-      },
-      {
-        "id": ".map-controls",
-        "x": 260,
-        "y": 333.609375,
-        "width": 48,
-        "height": 48,
-        "right": 308,
-        "bottom": 381.609375
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 389.609375,
-        "width": 296,
-        "height": 170.390625,
+        "height": 263.375,
         "right": 308,
         "bottom": 560
       }
@@ -950,78 +763,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 28,
-        "width": 177.78125,
-        "height": 101,
-        "right": 189.78125,
-        "bottom": 129,
+        "x": 24,
+        "y": 504,
+        "width": 78.25,
+        "height": 44,
+        "right": 102.25,
+        "bottom": 548,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 218.5,
-        "width": 217.28125,
-        "height": 45,
-        "right": 229.28125,
-        "bottom": 263.5,
+        "id": "driveRepeat",
+        "x": 252,
+        "y": 78.984375,
+        "width": 44,
+        "height": 44,
+        "right": 296,
+        "bottom": 122.984375,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 260,
-        "y": 430.5,
-        "width": 48,
-        "height": 48,
-        "right": 308,
-        "bottom": 478.5,
+        "id": "driveVoiceToggle",
+        "x": 204,
+        "y": 504,
+        "width": 44,
+        "height": 44,
+        "right": 248,
+        "bottom": 548,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 252,
+        "y": 504,
+        "width": 44,
+        "height": 44,
+        "right": 296,
+        "bottom": 548,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 28,
         "width": 296,
-        "height": 101,
+        "height": 145.96875,
         "right": 308,
-        "bottom": 129
+        "bottom": 173.96875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 137,
+        "y": 287.375,
         "width": 296,
-        "height": 73.5,
-        "right": 308,
-        "bottom": 210.5
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 218.5,
-        "width": 296,
-        "height": 152,
-        "right": 308,
-        "bottom": 370.5
-      },
-      {
-        "id": ".map-controls",
-        "x": 260,
-        "y": 430.5,
-        "width": 48,
-        "height": 48,
-        "right": 308,
-        "bottom": 478.5
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 486.5,
-        "width": 296,
-        "height": 73.5,
+        "height": 272.625,
         "right": 308,
         "bottom": 560
       }
@@ -1036,78 +832,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 28,
-        "width": 275.890625,
-        "height": 46,
-        "right": 287.890625,
-        "bottom": 74,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 158,
-        "width": 118.640625,
+        "x": 24,
+        "y": 603,
+        "width": 78,
         "height": 44,
-        "right": 130.640625,
-        "bottom": 202,
+        "right": 102,
+        "bottom": 647,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 315,
-        "y": 420.828125,
-        "width": 48,
-        "height": 48,
-        "right": 363,
-        "bottom": 468.828125,
+        "id": "driveRepeat",
+        "x": 307,
+        "y": 84.390625,
+        "width": 44,
+        "height": 44,
+        "right": 351,
+        "bottom": 128.390625,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 259,
+        "y": 603,
+        "width": 44,
+        "height": 44,
+        "right": 303,
+        "bottom": 647,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 307,
+        "y": 603,
+        "width": 44,
+        "height": 44,
+        "right": 351,
+        "bottom": 647,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 28,
         "width": 351,
-        "height": 46,
+        "height": 156.796875,
         "right": 363,
-        "bottom": 74
+        "bottom": 184.796875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 82,
+        "y": 408.625,
         "width": 351,
-        "height": 68,
-        "right": 363,
-        "bottom": 150
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 158,
-        "width": 351,
-        "height": 44,
-        "right": 363,
-        "bottom": 202
-      },
-      {
-        "id": ".map-controls",
-        "x": 315,
-        "y": 420.828125,
-        "width": 48,
-        "height": 48,
-        "right": 363,
-        "bottom": 468.828125
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 476.828125,
-        "width": 351,
-        "height": 182.171875,
+        "height": 250.375,
         "right": 363,
         "bottom": 659
       }
@@ -1122,78 +901,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 28,
-        "width": 232.78125,
-        "height": 76,
-        "right": 244.78125,
-        "bottom": 104,
+        "x": 24,
+        "y": 603,
+        "width": 78.25,
+        "height": 44,
+        "right": 102.25,
+        "bottom": 647,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 240.375,
-        "width": 217.28125,
-        "height": 45,
-        "right": 229.28125,
-        "bottom": 285.375,
+        "id": "driveRepeat",
+        "x": 307,
+        "y": 78.984375,
+        "width": 44,
+        "height": 44,
+        "right": 351,
+        "bottom": 122.984375,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 315,
-        "y": 402.90625,
-        "width": 48,
-        "height": 48,
-        "right": 363,
-        "bottom": 450.90625,
+        "id": "driveVoiceToggle",
+        "x": 259,
+        "y": 603,
+        "width": 44,
+        "height": 44,
+        "right": 303,
+        "bottom": 647,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 307,
+        "y": 603,
+        "width": 44,
+        "height": 44,
+        "right": 351,
+        "bottom": 647,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 28,
         "width": 351,
-        "height": 76,
+        "height": 145.96875,
         "right": 363,
-        "bottom": 104
+        "bottom": 173.96875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 112,
+        "y": 386.03125,
         "width": 351,
-        "height": 93.375,
-        "right": 363,
-        "bottom": 205.375
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 213.375,
-        "width": 351,
-        "height": 99,
-        "right": 363,
-        "bottom": 312.375
-      },
-      {
-        "id": ".map-controls",
-        "x": 315,
-        "y": 402.90625,
-        "width": 48,
-        "height": 48,
-        "right": 363,
-        "bottom": 450.90625
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 458.90625,
-        "width": 351,
-        "height": 200.09375,
+        "height": 272.96875,
         "right": 363,
         "bottom": 659
       }
@@ -1208,78 +970,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 67,
-        "width": 290.890625,
-        "height": 46,
-        "right": 302.890625,
-        "bottom": 113,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 197,
-        "width": 118.640625,
+        "x": 24,
+        "y": 746,
+        "width": 78,
         "height": 44,
-        "right": 130.640625,
-        "bottom": 241,
+        "right": 102,
+        "bottom": 790,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 330,
-        "y": 563.828125,
-        "width": 48,
-        "height": 48,
-        "right": 378,
-        "bottom": 611.828125,
+        "id": "driveRepeat",
+        "x": 322,
+        "y": 123.390625,
+        "width": 44,
+        "height": 44,
+        "right": 366,
+        "bottom": 167.390625,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 274,
+        "y": 746,
+        "width": 44,
+        "height": 44,
+        "right": 318,
+        "bottom": 790,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 322,
+        "y": 746,
+        "width": 44,
+        "height": 44,
+        "right": 366,
+        "bottom": 790,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 67,
         "width": 366,
-        "height": 46,
+        "height": 156.796875,
         "right": 378,
-        "bottom": 113
+        "bottom": 223.796875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 121,
+        "y": 551.625,
         "width": 366,
-        "height": 68,
-        "right": 378,
-        "bottom": 189
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 197,
-        "width": 366,
-        "height": 44,
-        "right": 378,
-        "bottom": 241
-      },
-      {
-        "id": ".map-controls",
-        "x": 330,
-        "y": 563.828125,
-        "width": 48,
-        "height": 48,
-        "right": 378,
-        "bottom": 611.828125
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 619.828125,
-        "width": 366,
-        "height": 182.171875,
+        "height": 250.375,
         "right": 378,
         "bottom": 802
       }
@@ -1294,78 +1039,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 67,
-        "width": 247.78125,
-        "height": 76,
-        "right": 259.78125,
-        "bottom": 143,
+        "x": 24,
+        "y": 746,
+        "width": 78.25,
+        "height": 44,
+        "right": 102.25,
+        "bottom": 790,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 266,
-        "width": 217.28125,
-        "height": 45,
-        "right": 229.28125,
-        "bottom": 311,
+        "id": "driveRepeat",
+        "x": 322,
+        "y": 117.984375,
+        "width": 44,
+        "height": 44,
+        "right": 366,
+        "bottom": 161.984375,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 330,
-        "y": 519.625,
-        "width": 48,
-        "height": 48,
-        "right": 378,
-        "bottom": 567.625,
+        "id": "driveVoiceToggle",
+        "x": 274,
+        "y": 746,
+        "width": 44,
+        "height": 44,
+        "right": 318,
+        "bottom": 790,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 322,
+        "y": 746,
+        "width": 44,
+        "height": 44,
+        "right": 366,
+        "bottom": 790,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 67,
         "width": 366,
-        "height": 76,
+        "height": 145.96875,
         "right": 378,
-        "bottom": 143
+        "bottom": 212.96875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 151,
+        "y": 529.03125,
         "width": 366,
-        "height": 80,
-        "right": 378,
-        "bottom": 231
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 239,
-        "width": 366,
-        "height": 99,
-        "right": 378,
-        "bottom": 338
-      },
-      {
-        "id": ".map-controls",
-        "x": 330,
-        "y": 519.625,
-        "width": 48,
-        "height": 48,
-        "right": 378,
-        "bottom": 567.625
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 575.625,
-        "width": 366,
-        "height": 226.375,
+        "height": 272.96875,
         "right": 378,
         "bottom": 802
       }
@@ -1380,78 +1108,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 70,
-        "width": 340.890625,
-        "height": 46,
-        "right": 352.890625,
-        "bottom": 116,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 181,
-        "width": 118.640625,
+        "x": 24,
+        "y": 858,
+        "width": 78,
         "height": 44,
-        "right": 130.640625,
-        "bottom": 225,
+        "right": 102,
+        "bottom": 902,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 380,
-        "y": 675.828125,
-        "width": 48,
-        "height": 48,
-        "right": 428,
-        "bottom": 723.828125,
+        "id": "driveRepeat",
+        "x": 372,
+        "y": 126.390625,
+        "width": 44,
+        "height": 44,
+        "right": 416,
+        "bottom": 170.390625,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 324,
+        "y": 858,
+        "width": 44,
+        "height": 44,
+        "right": 368,
+        "bottom": 902,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 372,
+        "y": 858,
+        "width": 44,
+        "height": 44,
+        "right": 416,
+        "bottom": 902,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 70,
         "width": 416,
-        "height": 46,
+        "height": 156.796875,
         "right": 428,
-        "bottom": 116
+        "bottom": 226.796875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 124,
+        "y": 663.625,
         "width": 416,
-        "height": 49,
-        "right": 428,
-        "bottom": 173
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 181,
-        "width": 416,
-        "height": 44,
-        "right": 428,
-        "bottom": 225
-      },
-      {
-        "id": ".map-controls",
-        "x": 380,
-        "y": 675.828125,
-        "width": 48,
-        "height": 48,
-        "right": 428,
-        "bottom": 723.828125
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 731.828125,
-        "width": 416,
-        "height": 182.171875,
+        "height": 250.375,
         "right": 428,
         "bottom": 914
       }
@@ -1466,78 +1177,61 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 12,
-        "y": 70,
-        "width": 297.78125,
-        "height": 76,
-        "right": 309.78125,
-        "bottom": 146,
+        "x": 24,
+        "y": 858,
+        "width": 78.25,
+        "height": 44,
+        "right": 102.25,
+        "bottom": 902,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 12,
-        "y": 269,
-        "width": 217.28125,
-        "height": 45,
-        "right": 229.28125,
-        "bottom": 314,
+        "id": "driveRepeat",
+        "x": 372,
+        "y": 120.984375,
+        "width": 44,
+        "height": 44,
+        "right": 416,
+        "bottom": 164.984375,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 380,
-        "y": 660.21875,
-        "width": 48,
-        "height": 48,
-        "right": 428,
-        "bottom": 708.21875,
+        "id": "driveVoiceToggle",
+        "x": 324,
+        "y": 858,
+        "width": 44,
+        "height": 44,
+        "right": 368,
+        "bottom": 902,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 372,
+        "y": 858,
+        "width": 44,
+        "height": 44,
+        "right": 416,
+        "bottom": 902,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
+        "id": "#driveTop",
         "x": 12,
         "y": 70,
         "width": 416,
-        "height": 76,
+        "height": 145.96875,
         "right": 428,
-        "bottom": 146
+        "bottom": 215.96875
       },
       {
-        "id": ".map-top",
+        "id": "#driveBottom",
         "x": 12,
-        "y": 154,
+        "y": 641.03125,
         "width": 416,
-        "height": 80,
-        "right": 428,
-        "bottom": 234
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 12,
-        "y": 242,
-        "width": 416,
-        "height": 99,
-        "right": 428,
-        "bottom": 341
-      },
-      {
-        "id": ".map-controls",
-        "x": 380,
-        "y": 660.21875,
-        "width": 48,
-        "height": 48,
-        "right": 428,
-        "bottom": 708.21875
-      },
-      {
-        "id": ".next-card",
-        "x": 12,
-        "y": 716.21875,
-        "width": 416,
-        "height": 197.78125,
+        "height": 272.96875,
         "right": 428,
         "bottom": 914
       }
@@ -1552,79 +1246,62 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 59,
-        "y": 8,
-        "width": 642.96875,
-        "height": 46,
-        "right": 701.96875,
-        "bottom": 54,
-        "hit": true
-      },
-      {
-        "id": "activateNavVoice",
-        "x": 59,
-        "y": 74,
-        "width": 160.515625,
+        "x": 83,
+        "y": 305,
+        "width": 78,
         "height": 44,
-        "right": 219.515625,
-        "bottom": 118,
+        "right": 161,
+        "bottom": 349,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 737,
-        "y": 313,
-        "width": 48,
-        "height": 48,
-        "right": 785,
-        "bottom": 361,
+        "id": "driveRepeat",
+        "x": 295,
+        "y": 54.015625,
+        "width": 44,
+        "height": 44,
+        "right": 339,
+        "bottom": 98.015625,
+        "hit": true
+      },
+      {
+        "id": "driveVoiceToggle",
+        "x": 247,
+        "y": 305,
+        "width": 44,
+        "height": 44,
+        "right": 291,
+        "bottom": 349,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 295,
+        "y": 305,
+        "width": 44,
+        "height": 44,
+        "right": 339,
+        "bottom": 349,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
-        "x": 59,
+        "id": "#driveTop",
+        "x": 71,
         "y": 8,
-        "width": 726,
-        "height": 46,
-        "right": 785,
-        "bottom": 54
+        "width": 280,
+        "height": 136.046875,
+        "right": 351,
+        "bottom": 144.046875
       },
       {
-        "id": ".map-top",
-        "x": 426,
-        "y": 62,
-        "width": 359,
-        "height": 68,
-        "right": 785,
-        "bottom": 130
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 59,
-        "y": 62,
-        "width": 359,
-        "height": 68,
-        "right": 418,
-        "bottom": 130
-      },
-      {
-        "id": ".map-controls",
-        "x": 737,
-        "y": 313,
-        "width": 48,
-        "height": 48,
-        "right": 785,
-        "bottom": 361
-      },
-      {
-        "id": ".next-card",
-        "x": 59,
-        "y": 224.5,
-        "width": 359,
-        "height": 136.5,
-        "right": 418,
+        "id": "#driveBottom",
+        "x": 71,
+        "y": 179.8125,
+        "width": 280,
+        "height": 181.1875,
+        "right": 351,
         "bottom": 361
       }
     ]
@@ -1638,79 +1315,62 @@
     "buttons": [
       {
         "id": "exitNavigation",
-        "x": 59,
-        "y": 8,
-        "width": 603.78125,
-        "height": 51,
-        "right": 662.78125,
-        "bottom": 59,
+        "x": 83,
+        "y": 305,
+        "width": 78.25,
+        "height": 44,
+        "right": 161.25,
+        "bottom": 349,
         "hit": true
       },
       {
-        "id": "activateNavVoice",
-        "x": 59,
-        "y": 93,
-        "width": 223.28125,
-        "height": 47,
-        "right": 282.28125,
-        "bottom": 140,
+        "id": "driveRepeat",
+        "x": 295,
+        "y": 55.828125,
+        "width": 44,
+        "height": 44,
+        "right": 339,
+        "bottom": 99.828125,
         "hit": true
       },
       {
-        "id": "recenterBtn",
-        "x": 737,
-        "y": 313,
-        "width": 48,
-        "height": 48,
-        "right": 785,
-        "bottom": 361,
+        "id": "driveVoiceToggle",
+        "x": 247,
+        "y": 305,
+        "width": 44,
+        "height": 44,
+        "right": 291,
+        "bottom": 349,
+        "hit": true
+      },
+      {
+        "id": "driveRecenter",
+        "x": 295,
+        "y": 305,
+        "width": 44,
+        "height": 44,
+        "right": 339,
+        "bottom": 349,
         "hit": true
       }
     ],
     "panels": [
       {
-        "id": ".nav-fullscreen-bar",
-        "x": 59,
+        "id": "#driveTop",
+        "x": 71,
         "y": 8,
-        "width": 726,
-        "height": 51,
-        "right": 785,
-        "bottom": 59
+        "width": 280,
+        "height": 139.65625,
+        "right": 351,
+        "bottom": 147.65625
       },
       {
-        "id": ".map-top",
-        "x": 426,
-        "y": 67,
-        "width": 359,
-        "height": 78,
-        "right": 785,
-        "bottom": 145
-      },
-      {
-        "id": ".voice-navigation-controls",
-        "x": 59,
-        "y": 67,
-        "width": 359,
-        "height": 99,
-        "right": 418,
-        "bottom": 166
-      },
-      {
-        "id": ".map-controls",
-        "x": 737,
-        "y": 313,
-        "width": 48,
-        "height": 48,
-        "right": 785,
-        "bottom": 361
-      },
-      {
-        "id": ".next-card",
-        "x": 59,
-        "y": 224.5,
-        "width": 359,
-        "height": 136.5,
-        "right": 418,
+        "id": "#driveBottom",
+        "x": 71,
+        "y": 179.8125,
+        "width": 280,
+        "height": 181.1875,
+        "right": 351,
         "bottom": 361
       }
     ]
