@@ -61,6 +61,57 @@ struct TicketData: Decodable {
                 try c.decodeIfPresent([Int].self, forKey: .suggested) ?? [])
     }
 
+    init(labels: [String: String], lines: [Line], suggested: [Int]) {
+        self.labels = labels; self.lines = lines
+        self.suggested = suggested.filter { lines.indices.contains($0) }
+    }
+
+    /// The Academy route being driven, used to suggest its polimetrica.
+    struct RouteInfo: Decodable {
+        let category: String?
+        let line: String?
+        let name: String?
+    }
+
+    /// Data sent by the web layer; if missing, the copy bundled in the app. The line is
+    /// suggested here too when the web layer could not do it. Same rules as tickets.js.
+    static func resolve(sent: TicketData?, route: RouteInfo?, bundle: Bundle = .main) -> TicketData? {
+        var data = sent
+        if data?.isEmpty ?? true,
+           let url = bundle.resourceURL?.appendingPathComponent("Web/fares/polimetriche-padova.json"),
+           let raw = try? Data(contentsOf: url) {
+            data = try? JSONDecoder().decode(TicketData.self, from: raw)
+        }
+        guard let data, !data.isEmpty else { return nil }
+        guard data.suggested.isEmpty, let route else { return data }
+        return TicketData(labels: data.labels, lines: data.lines,
+                          suggested: suggestedLines(data.lines, category: route.category ?? "", line: route.line ?? "", name: route.name ?? ""))
+    }
+
+    private static let aliases = ["TD": ["T", "TL"], "AB": ["A", "AT"], "MLA": ["M"]]
+    /// Polimetrica lines for an Academy route, best first (indexes into `lines`).
+    static func suggestedLines(_ lines: [Line], category: String, line: String, name: String) -> [Int] {
+        if category.lowercased().hasPrefix("urban") { return [] }
+        let code = line.trimmingCharacters(in: .whitespaces).uppercased()
+        let all = lines.map(\.code)
+        var codes: [String] = []
+        if (1...3).contains(code.count), code.allSatisfy({ $0.isASCII && $0.isNumber }) {
+            let base = "E" + String(repeating: "0", count: 3 - code.count) + code
+            codes = all.filter { c in
+                c == base || (c.hasPrefix(base) && c.count == base.count + 1 && c.last.map { $0.isASCII && $0.isUppercase } == true)
+            }
+            // Line 19 also has the separate E019A polimetrica for the Liceo Galilei trips.
+            if name.uppercased().range(of: #"LICEO\s+GALI"#, options: .regularExpression) != nil {
+                codes = codes.filter { $0 != base } + codes.filter { $0 == base }
+            }
+        } else if all.contains(code) {
+            codes = [code]
+        } else if let alias = aliases[code] {
+            codes = alias.filter { all.contains($0) }
+        }
+        return codes.compactMap { all.firstIndex(of: $0) }
+    }
+
     var isEmpty: Bool { lines.isEmpty }
     /// Suggested lines first, then all the others.
     var otherLines: [Int] { lines.indices.filter { !suggested.contains($0) } }

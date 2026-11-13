@@ -65,6 +65,55 @@ final class TicketData {
         }
     }
 
+    /** Data sent by the web layer, otherwise the copy bundled in the APK assets. The line is
+     *  suggested here too when the web layer could not do it. Same rules as tickets.js. */
+    static TicketData resolve(android.content.Context context, JSONObject sent, JSONObject route) {
+        TicketData data = parse(sent);
+        if (data == null && context != null) {
+            try (java.io.InputStream in = context.getAssets().open("fares/polimetriche-padova.json")) {
+                java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+                byte[] buffer = new byte[16384]; int n;
+                while ((n = in.read(buffer)) > 0) out.write(buffer, 0, n);
+                data = parse(new JSONObject(out.toString("UTF-8")));
+            } catch (Exception e) {
+                data = null;
+            }
+        }
+        if (data == null || data.suggested.length > 0 || route == null) return data;
+        return new TicketData(data.labels, data.lines, suggestedLines(data.lines,
+                route.optString("category", ""), route.optString("line", ""), route.optString("name", "")));
+    }
+
+    private static final Map<String, String[]> ALIASES = new HashMap<>();
+    static {
+        ALIASES.put("TD", new String[]{"T", "TL"});
+        ALIASES.put("AB", new String[]{"A", "AT"});
+        ALIASES.put("MLA", new String[]{"M"});
+    }
+    /** Polimetrica lines for an Academy route, best first (indexes into {@code lines}). */
+    static int[] suggestedLines(List<Line> lines, String category, String line, String name) {
+        if (category.toLowerCase(Locale.ROOT).startsWith("urban")) return new int[0];
+        String code = line.trim().toUpperCase(Locale.ROOT);
+        List<String> all = new ArrayList<>();
+        for (Line l : lines) all.add(l.code);
+        List<String> codes = new ArrayList<>();
+        if (code.matches("[0-9]{1,3}")) {
+            String base = "E" + "000".substring(code.length()) + code;
+            for (String c : all) if (c.equals(base) || (c.length() == base.length() + 1 && c.startsWith(base) && c.substring(base.length()).matches("[A-Z]"))) codes.add(c);
+            // Line 19 also has the separate E019A polimetrica for the Liceo Galilei trips.
+            if (java.util.regex.Pattern.compile("LICEO\\s+GALI").matcher(name.toUpperCase(Locale.ROOT)).find()) {
+                List<String> first = new ArrayList<>();
+                for (String c : codes) if (!c.equals(base)) first.add(c);
+                for (String c : codes) if (c.equals(base)) first.add(c);
+                codes = first;
+            }
+        } else if (all.contains(code)) codes.add(code);
+        else if (ALIASES.containsKey(code)) for (String c : ALIASES.get(code)) if (all.contains(c)) codes.add(c);
+        int[] out = new int[codes.size()];
+        for (int i = 0; i < out.length; i++) out[i] = all.indexOf(codes.get(i));
+        return out;
+    }
+
     /** Suggested lines first, then all the others. */
     List<Integer> orderedLines() {
         List<Integer> out = new ArrayList<>();

@@ -16,10 +16,11 @@ final class NativeRoute {
     final List<Camera> cameras = new ArrayList<>();
     final double[][] points,stopCoordinates,ranges;
     final double[] offsets;final String[] stops;final List<Turn> turns=new ArrayList<>();final String name;
-    /** On-board ticket calculator data; null hides the calculator button. */
-    final TicketData tickets;
+    /** On-board ticket calculator data; null hides the calculator button. Set from
+     *  the payload, or from the APK assets by {@link MainActivity#startNavigation}. */
+    TicketData tickets;final JSONObject ticketRoute;
     NativeRoute(JSONObject raw)throws JSONException{
-        points=coordinates(raw.getJSONArray("points"));GPXTracker tracker=new GPXTracker(points);name=raw.optString("name","GPX ufficiale");tickets=TicketData.parse(raw.optJSONObject("tickets"));
+        points=coordinates(raw.getJSONArray("points"));GPXTracker tracker=new GPXTracker(points);name=raw.optString("name","GPX ufficiale");tickets=TicketData.parse(raw.optJSONObject("tickets"));ticketRoute=raw.optJSONObject("ticketRoute");
         JSONArray ss=raw.optJSONArray("stops"),ds=raw.optJSONArray("offsets");int n=ss==null?0:ss.length();stops=new String[n];offsets=new double[n];
         if(n>1000||ds==null||ds.length()!=n)throw new IllegalArgumentException("Fermate non valide");
         for(int i=0;i<n;i++){stops[i]=ss.getString(i);offsets[i]=ds.getDouble(i);if(!Double.isFinite(offsets[i])||offsets[i]<0||offsets[i]>tracker.total()+1||(i>0&&offsets[i]<offsets[i-1]))throw new IllegalArgumentException("Ordine fermate non valido");}

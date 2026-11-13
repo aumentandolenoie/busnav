@@ -312,10 +312,20 @@ function renderDriveStatus(){
 // On-board ticket calculator (polimetriche Busitalia, see tickets.js). It is an
 // overlay inside the drive view: navigation, GPS and voice keep running.
 let ticketData=null,ticketDataPromise=null,ticketState={route:null,line:-1,from:-1,to:-1};
+const TICKET_DATA_URL='fares/polimetriche-padova.json';
+// XMLHttpRequest fallback: some WKWebView custom-scheme loads fail with fetch().
+function ticketDataXHR(){
+ return new Promise((resolve,reject)=>{
+  const x=new XMLHttpRequest();x.open('GET',TICKET_DATA_URL);
+  x.onload=()=>{try{if(x.status&&x.status!==200)throw Error('HTTP '+x.status);resolve(JSON.parse(x.responseText))}catch(e){reject(e)}};
+  x.onerror=()=>reject(Error('rete'));x.send();
+ });
+}
 function loadTicketData(){
  if(ticketData)return Promise.resolve(ticketData);
- if(!ticketDataPromise)ticketDataPromise=fetch('fares/polimetriche-padova.json',{cache:'no-cache'})
+ if(!ticketDataPromise)ticketDataPromise=fetch(TICKET_DATA_URL)
   .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()})
+  .catch(()=>ticketDataXHR())
   .then(d=>{if(!Array.isArray(d?.lines)||!d.labels)throw Error('formato non valido');ticketData=d;return d})
   .catch(e=>{ticketDataPromise=null;console.info('Polimetriche non disponibili',e.message);return null});
  return ticketDataPromise;
@@ -384,6 +394,7 @@ $('ticketFrom').addEventListener('change',e=>{ticketState.from=Number(e.target.v
 $('ticketTo').addEventListener('change',e=>{ticketState.to=Number(e.target.value);renderTicketStops()});
 /** Same data for the native drive screens (iOS and Android). */
 function nativeTicketPayload(){
+ // Without data the native app reads its bundled copy and suggests the line itself.
  if(!ticketData)return null;
  return {labels:ticketData.labels,lines:ticketData.lines.map(l=>({code:l.code,title:l.title,stops:l.stops,fares:l.fares})),suggested:Tickets.suggestedLines(ticketData,current?.academy)};
 }
@@ -1607,7 +1618,8 @@ async function startGPS(simulated=false){
    offsets:current.offsets,
    stops:current.stops.map(s=>s.stop?.stop_name||''),
    turns:turns.filter(t=>t.verifiedRoad).map(t=>({at:t.at,side:t.side,kind:t.kind||'turn',text:t.verifiedRoad?t.text:null,verifiedRoad:!!t.verifiedRoad})),
-   tickets:nativeTicketPayload()
+   tickets:nativeTicketPayload(),
+   ticketRoute:{category:current.academy.category||'',line:String(current.academy.line||'').trim(),name:current.academy.name||''}
   };
   if(route.points.length<2){toast('Percorso non valido');return}
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();

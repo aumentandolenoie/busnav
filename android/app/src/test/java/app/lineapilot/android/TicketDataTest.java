@@ -49,6 +49,17 @@ public class TicketDataTest {
             int n = d.nearestStop(l, c.getDouble("lat"), c.getDouble("lng"));
             assertEquals(c.toString(), c.isNull("stop") ? null : c.getString("stop"), n < 0 ? null : d.lines.get(l).names[n]);
         }
+        JSONArray suggested = cases.getJSONArray("suggested");
+        for (int i = 0; i < suggested.length(); i++) {
+            JSONObject c = suggested.getJSONObject(i), r = c.getJSONObject("route");
+            int[] got = TicketData.suggestedLines(d.lines, r.optString("category", ""), r.optString("line", ""), r.optString("name", ""));
+            JSONArray want = c.getJSONArray("lines");
+            assertEquals(c.toString(), want.length(), got.length);
+            for (int k = 0; k < got.length; k++) assertEquals(c.toString(), want.getString(k), d.lines.get(got[k]).code);
+        }
+        JSONObject plain = new JSONObject(read("fares/polimetriche-padova.json"));
+        TicketData resolved = TicketData.resolve(null, plain, new JSONObject("{\"category\":\"Extraurbano\",\"line\":\"1\",\"name\":\"239 | Padova - Cavarzere\"}"));
+        assertEquals("E001", resolved.lines.get(resolved.suggested[0]).code);
         assertNull(d.fareText(0, -1, 2));
         assertNull(d.fareText(0, 0, 999));
         assertNull(d.fareText(-1, 0, 1));

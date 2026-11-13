@@ -14,6 +14,8 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     // Bottom-left, mirroring the speed sign: opens the on-board ticket calculator.
     private let ticketButton = UIButton(type: .system)
     private var ticketSheet: TicketSheetView?
+    /// Sent by the web layer, otherwise the copy bundled in the app.
+    private lazy var tickets: TicketData? = TicketData.resolve(sent: route.tickets, route: route.ticketRoute)
     private var ticketPortrait: [NSLayoutConstraint] = []
     private var ticketLandscape: [NSLayoutConstraint] = []
     private var portraitConstraints: [NSLayoutConstraint] = []
@@ -137,7 +139,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         ticketButton.accessibilityLabel = "Calcola biglietto a bordo"
         ticketButton.accessibilityIdentifier = "ticketButton"
         ticketButton.addTarget(self, action: #selector(toggleTicketSheet), for: .touchUpInside)
-        ticketButton.isHidden = route.tickets?.isEmpty ?? true
+        ticketButton.isHidden = tickets == nil
         view.addSubview(ticketButton)
 
         NSLayoutConstraint.activate([
@@ -357,7 +359,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     @objc private func finish() { onEnd?(); dismiss(animated:true) }
     @objc private func toggleTicketSheet() {
         if ticketSheet != nil { closeTicketSheet(); return }
-        guard let data = route.tickets, !data.isEmpty else { return }
+        guard let data = tickets else { return }
         let sheet = TicketSheetView(data: data)
         sheet.onClose = { [weak self] in self?.closeTicketSheet() }
         sheet.onLineChange = { [weak self, weak sheet] in

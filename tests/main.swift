@@ -92,6 +92,13 @@ if let raw = FileManager.default.contents(atPath: "fares/polimetriche-padova.jso
         let near = tickets.nearestStop(line: l, latitude: (c["lat"] as! NSNumber).doubleValue, longitude: (c["lng"] as! NSNumber).doubleValue)
         check(near.map { tickets.lines[l].stops[$0].name } == c["stop"] as? String, "nearest \(c)")
     }
+    for c in cases["suggested"] as? [[String: Any]] ?? [] {
+        let r = c["route"] as! [String: String]
+        let got = TicketData.suggestedLines(tickets.lines, category: r["category"] ?? "", line: r["line"] ?? "", name: r["name"] ?? "").map { tickets.lines[$0].code }
+        check(got == c["lines"] as? [String], "suggested \(r): \(got)")
+    }
+    let resolved = TicketData.resolve(sent: tickets, route: TicketData.RouteInfo(category: "Extraurbano", line: "1", name: "239 | Padova - Cavarzere"))
+    check(resolved.map { $0.suggested.map { tickets.lines[$0].code } } == ["E001"], "line suggested natively when the web layer did not")
     check(tickets.fareText(line: 0, from: -1, to: 2) == nil && tickets.fareText(line: 0, from: 0, to: 999) == nil, "ticket bounds")
     let withSuggestion = try! JSONDecoder().decode(TicketData.self, from: Data(#"{"labels":{"":"x"},"lines":[{"code":"A","title":"t","stops":[["P",45.4,11.8],["Q"]],"fares":[[""],["",""]]}],"suggested":[0,7]}"#.utf8))
     check(withSuggestion.suggested == [0] && withSuggestion.lines[0].stops[1].latitude == nil, "suggested lines and stops without position")

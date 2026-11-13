@@ -185,7 +185,7 @@ public final class MainActivity extends Activity {
     private void error(String text){JSONObject data=new JSONObject();try{data.put("message",text);}catch(Exception ignored){}send("error",data);}
     void startNavigation(JSONObject body){
         try{
-            NativeRoute route=new NativeRoute(body.getJSONObject("route"));endNavigation(false);
+            NativeRoute route=new NativeRoute(body.getJSONObject("route"));route.tickets=TicketData.resolve(this,body.getJSONObject("route").optJSONObject("tickets"),route.ticketRoute);endNavigation(false);
             ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.clearFocus();
             previewLocation.cancel();configureVoice(body);previewMap.pause();preview.setVisibility(View.INVISIBLE);web.setVisibility(View.INVISIBLE);
             session=new NavigationSession(this,route,body.optBoolean("voice",true),body.optBoolean("turnVoice",true),body.optBoolean("demo",false));

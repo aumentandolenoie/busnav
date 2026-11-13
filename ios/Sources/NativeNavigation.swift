@@ -102,6 +102,7 @@ struct NativeRoute: Decodable {
     let stops: [String]           // Busitalia GTFS names only, no MOM supplements
     let turns: [Turn]             // Validated road annotations only; geometry never routes
     let tickets: TicketData?      // On-board ticket calculator (polimetriche); optional
+    let ticketRoute: TicketData.RouteInfo?  // Academy line, to suggest the polimetrica
 }
 
 final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynthesizerDelegate {
