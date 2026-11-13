@@ -55,9 +55,9 @@ import static org.junit.Assert.*;
                 // Map credit beside the button and centred on it.
                 View credit=null;
                 for(int i=0;i<screen.nativeMap.getChildCount();i++)if(screen.nativeMap.getChildAt(i) instanceof android.widget.TextView)credit=screen.nativeMap.getChildAt(i);
-                if(credit!=null&&credit.getHeight()>0){Rect cr=new Rect();assertTrue(credit.getGlobalVisibleRect(cr));
-                    assertTrue("Map credit under the ticket button",cr.left>=ticketBounds.right);
-                    assertEquals("Map credit not on the ticket row",ticketBounds.centerY(),cr.centerY(),3*d);}
+                if(credit!=null&&credit.getHeight()>0){int[] at=new int[2];credit.getLocationOnScreen(at);
+                    assertTrue("Map credit under the ticket button",at[0]>=ticketBounds.right);
+                    assertEquals("Map credit not on the ticket row",ticketBounds.centerY(),at[1]+credit.getHeight()/2f,3*d);}
                 screen.progress(250,0,true,0);
                 assertEquals(View.INVISIBLE,sign.getVisibility());
                 screen.progress(25,0,true,0);

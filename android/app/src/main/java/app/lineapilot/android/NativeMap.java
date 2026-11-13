@@ -53,8 +53,6 @@ final class NativeMap extends FrameLayout {
         mapView=new MapView(c);addView(mapView,new LayoutParams(-1,-1));mapView.onCreate(state);
         attribution=new TextView(c);attribution.setMovementMethod(LinkMovementMethod.getInstance());setAttribution(false);attribution.setTextColor(Color.DKGRAY);attribution.setTextSize(10);attribution.setBackgroundColor(0xddffffff);attribution.setPadding(dp(4),dp(2),dp(4),dp(2));
         LayoutParams ap=new LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.START);ap.setMargins(dp(8),0,0,dp(8));addView(attribution,ap);
-        // Its height is known only after the first layout: re-centre it once measured.
-        attribution.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{if(b-t!=ob-ot&&creditCenter>=0)post(()->setInsets(mapLeftInset,mapTopInset,mapRightInset,mapBottomInset,creditLeft,creditCenter));});
         mapView.getMapAsync(m->{
             if (destroyed) return;
             map=m;map.setPrefetchZoomDelta(0);
@@ -181,18 +179,25 @@ final class NativeMap extends FrameLayout {
     void setInsets(int left,int top,int right,int bottom,int attributionLeft){setInsets(left,top,right,bottom,attributionLeft,-1);}
     /** {@code attributionLeft} keeps the map credit beside a bottom-left button instead of under it;
      *  {@code attributionCenterFromBottom} (if >= 0) centres it vertically on that button. */
-    private int creditLeft=-1,creditCenter=-1;
+    private int creditCenter=-1;
     void setInsets(int left,int top,int right,int bottom,int attributionLeft,int attributionCenterFromBottom){
-        creditLeft=attributionLeft;creditCenter=attributionCenterFromBottom;
+        creditCenter=attributionCenterFromBottom;
         if(map!=null&&!(left==mapLeftInset&&top==mapTopInset&&right==mapRightInset&&bottom==mapBottomInset))map.setPadding(left,top,right,bottom);
         mapLeftInset=left;mapTopInset=top;mapRightInset=right;mapBottomInset=bottom;
-        int creditBottom=attributionCenterFromBottom>=0&&attribution.getMeasuredHeight()>0
-                ?Math.max(0,attributionCenterFromBottom-attribution.getMeasuredHeight()/2):bottom;
+        centreCredit();
         LayoutParams p=(LayoutParams)attribution.getLayoutParams();
-        if(p.leftMargin!=attributionLeft||p.bottomMargin!=creditBottom){
-            p.leftMargin=attributionLeft;p.bottomMargin=creditBottom;
+        if(p.leftMargin!=attributionLeft||p.bottomMargin!=bottom){
+            p.leftMargin=attributionLeft;p.bottomMargin=bottom;
             attribution.setLayoutParams(p);
         }
+    }
+    // Vertical centring uses a translation, not the margins: it never requests a new
+    // layout, so it cannot disturb map gestures. Re-applied after every layout.
+    @Override protected void onLayout(boolean changed,int l,int t,int r,int b){super.onLayout(changed,l,t,r,b);centreCredit();}
+    private void centreCredit(){
+        if(creditCenter<0||attribution.getHeight()==0){attribution.setTranslationY(0);return;}
+        int wantedBottom=getHeight()-creditCenter+attribution.getHeight()/2;
+        attribution.setTranslationY(Math.min(0,wantedBottom-attribution.getBottom()));
     }
     void start(){if(started||destroyed)return;mapView.onStart();mapView.onResume();started=true;}void pause(){if(!started||destroyed)return;mapView.onPause();mapView.onStop();started=false;}void destroy(){if(destroyed)return;pause();destroyed=true;removeCallbacks(fallback);mapView.onDestroy();}void lowMemory(){mapView.onLowMemory();}
 }
