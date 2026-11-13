@@ -47,17 +47,17 @@ import static org.junit.Assert.*;
                 Rect signBounds=new Rect();assertTrue(sign.getGlobalVisibleRect(signBounds));
                 assertTrue(bounds.contains(signBounds));
                 for(Rect other:rectangles)assertFalse("Speed sign overlaps a control",Rect.intersects(signBounds,other));
-                // Ticket calculator: bottom-left on the speed sign row; its dialog leaves navigation running.
+                // Ticket calculator: bottom-left on the speed sign row.
                 View ticket=screen.findViewWithTag("nav-ticket");
                 Rect ticketBounds=new Rect();assertTrue(ticket.getGlobalVisibleRect(ticketBounds));
                 assertEquals(signBounds.centerY(),ticketBounds.centerY(),2);
                 assertTrue("Ticket button not on the left",ticketBounds.right<signBounds.left&&ticketBounds.left<bounds.left+16*d);
-                ticket.performClick();
-                assertTrue(screen.ticketsShowing());
-                screen.progress(40,0,true,0);
-                assertNotNull("Ticket dialog must not end navigation",a.session);
-                screen.dismissTickets();
-                assertFalse(screen.ticketsShowing());
+                // Map credit beside the button and centred on it.
+                View credit=null;
+                for(int i=0;i<screen.nativeMap.getChildCount();i++)if(screen.nativeMap.getChildAt(i) instanceof android.widget.TextView)credit=screen.nativeMap.getChildAt(i);
+                if(credit!=null&&credit.getHeight()>0){Rect cr=new Rect();assertTrue(credit.getGlobalVisibleRect(cr));
+                    assertTrue("Map credit under the ticket button",cr.left>=ticketBounds.right);
+                    assertEquals("Map credit not on the ticket row",ticketBounds.centerY(),cr.centerY(),3*d);}
                 screen.progress(250,0,true,0);
                 assertEquals(View.INVISIBLE,sign.getVisibility());
                 screen.progress(25,0,true,0);
@@ -89,6 +89,19 @@ import static org.junit.Assert.*;
                 assertTrue("GPS should sit below the center of the visible map: "+point+" between "+top+" and "+bottom,point.y>(top+bottom)*.5f);
                 assertTrue("GPS must stay above the stop panel: "+point+" between "+top+" and "+bottom,point.y<bottom);
             });
+            // The ticket dialog opens over the driving screen and leaves navigation running.
+            // Checked after the drag test: a dialog window closing would swallow the drag.
+            scenario.onActivity(a->{
+                DriverView screen=a.session.screen;
+                screen.findViewWithTag("nav-ticket").performClick();
+                assertTrue(screen.ticketsShowing());
+                screen.progress(40,0,true,0);
+                assertNotNull("Ticket dialog must not end navigation",a.session);
+                screen.dismissTickets();
+                assertFalse(screen.ticketsShowing());
+            });
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+            Thread.sleep(400);
             android.graphics.Bitmap screenshot=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
             scenario.onActivity(a->{
                 try{
