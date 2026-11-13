@@ -1630,7 +1630,7 @@ async function startGPS(simulated=false){
    stops:current.stops.map(s=>s.stop?.stop_name||''),
    turns:turns.filter(t=>t.verifiedRoad).map(t=>({at:t.at,side:t.side,kind:t.kind||'turn',text:t.verifiedRoad?t.text:null,verifiedRoad:!!t.verifiedRoad})),
    tickets:nativeTicketPayload(),
-   ticketRoute:{category:current.academy.category||'',line:String(current.academy.line||'').trim(),name:current.academy.name||''}
+   ticketRoute:{category:current.academy.category||'',line:String(current.academy.line||'').trim(),name:current.academy.name||'',aliases:Tickets.evidenceLines(current.academy)}
   };
   if(route.points.length<2){toast('Percorso non valido');return}
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();

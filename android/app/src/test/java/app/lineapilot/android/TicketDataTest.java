@@ -53,7 +53,10 @@ public class TicketDataTest {
         JSONArray suggested = cases.getJSONArray("suggested");
         for (int i = 0; i < suggested.length(); i++) {
             JSONObject c = suggested.getJSONObject(i), r = c.getJSONObject("route");
-            int[] got = TicketData.suggestedLines(d.lines, r.optString("category", ""), r.optString("line", ""), r.optString("name", ""));
+            java.util.List<String> aliases = new java.util.ArrayList<>();
+            JSONArray al = c.getJSONArray("aliases");
+            for (int k = 0; k < al.length(); k++) aliases.add(al.getString(k));
+            int[] got = TicketData.suggestedLines(d.lines, r.optString("category", ""), r.optString("line", ""), r.optString("name", ""), aliases);
             JSONArray want = c.getJSONArray("lines");
             assertEquals(c.toString(), want.length(), got.length);
             for (int k = 0; k < got.length; k++) assertEquals(c.toString(), want.getString(k), d.lines.get(got[k]).code);

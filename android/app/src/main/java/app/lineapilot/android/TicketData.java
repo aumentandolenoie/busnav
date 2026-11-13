@@ -86,8 +86,11 @@ final class TicketData {
             }
         }
         if (data == null || data.suggested.length > 0 || route == null) return data;
+        List<String> aliases = new ArrayList<>();
+        JSONArray a = route.optJSONArray("aliases");
+        if (a != null) for (int i = 0; i < a.length(); i++) aliases.add(a.optString(i, ""));
         return new TicketData(data.labels, data.notes, data.lines, suggestedLines(data.lines,
-                route.optString("category", ""), route.optString("line", ""), route.optString("name", "")));
+                route.optString("category", ""), route.optString("line", ""), route.optString("name", ""), aliases));
     }
 
     private static final Map<String, String[]> ALIASES = new HashMap<>();
@@ -98,6 +101,9 @@ final class TicketData {
     }
     /** Polimetrica lines for an Academy route, best first (indexes into {@code lines}). */
     static int[] suggestedLines(List<Line> lines, String category, String line, String name) {
+        return suggestedLines(lines, category, line, name, Collections.emptyList());
+    }
+    static int[] suggestedLines(List<Line> lines, String category, String line, String name, List<String> evidence) {
         if (category.toLowerCase(Locale.ROOT).startsWith("urban")) return new int[0];
         String code = line.trim().toUpperCase(Locale.ROOT);
         List<String> all = new ArrayList<>();
@@ -115,9 +121,21 @@ final class TicketData {
             }
         } else if (all.contains(code)) codes.add(code);
         else if (ALIASES.containsKey(code)) for (String c : ALIASES.get(code)) if (all.contains(c)) codes.add(c);
-        int[] out = new int[codes.size()];
-        for (int i = 0; i < out.length; i++) out[i] = all.indexOf(codes.get(i));
+        // Lines without a number of their own (Deviazioni mercatali…): the Academy evidence.
+        if (codes.isEmpty()) for (String c : evidence) { String p = polimetricaCode(c, all); if (p != null) codes.add(p); }
+        List<String> unique = new ArrayList<>(new LinkedHashSet<>(codes));
+        int[] out = new int[unique.size()];
+        for (int i = 0; i < out.length; i++) out[i] = all.indexOf(unique.get(i));
         return out;
+    }
+
+    /** GTFS/Academy code → polimetrica code: E005V → E005, E0092 → E009, EA → A. */
+    static String polimetricaCode(String raw, List<String> all) {
+        String c = raw == null ? "" : raw.trim().toUpperCase(Locale.ROOT);
+        if (all.contains(c)) return c;
+        if (c.matches("E[0-9]{3}.*") && all.contains(c.substring(0, 4))) return c.substring(0, 4);
+        if (c.matches("E[A-Z]+") && all.contains(c.substring(1))) return c.substring(1);
+        return null;
     }
 
     /** Suggested lines first, then all the others. */

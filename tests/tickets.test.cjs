@@ -46,9 +46,21 @@ test('boarding stop is the nearest fare node, only when close',()=>{
  }
 });
 test('running line suggests its polimetrica',()=>{
- for(const c of cases.suggested)assert.deepEqual(Tickets.suggestedLines(data,c.route).map(i=>data.lines[i].code),c.lines,JSON.stringify(c.route));
- // Every Academy extra-urban line with a polimetrica gets one.
- const routes=JSON.parse(fs.readFileSync('official-routes.json','utf8'));
+ for(const c of cases.suggested){
+  assert.deepEqual(Tickets.suggestedLines(data,c.route).map(i=>data.lines[i].code),c.lines,JSON.stringify(c.route));
+  assert.deepEqual(Tickets.evidenceLines(c.route),c.aliases,JSON.stringify(c.route));
+ }
+ // Every Academy extra-urban GPX gets a polimetrica, market-day detours included;
+ // only line 61 (Padova - Jesolo) has none.
+ const evidence=JSON.parse(fs.readFileSync('academy-evidence.json','utf8')).routes;
+ const routes=JSON.parse(fs.readFileSync('official-routes.json','utf8')).map(r=>({...r,_evidence:evidence[String(r.id)]}));
  const missing=new Set(routes.filter(r=>r.category!=='Urbano'&&!Tickets.suggestedLines(data,r).length).map(r=>r.line.trim()));
- assert.deepEqual([...missing].sort(),['61','Colli','Deviazioni mercatali']);
+ assert.deepEqual([...missing],['61']);
+ const code=id=>Tickets.suggestedLines(data,routes.find(r=>r.id===id)).map(i=>data.lines[i].code);
+ assert.deepEqual(code(18),['E074']);          // 225 Padova - Piazzola - Carmignano, venerdì
+ assert.deepEqual(code(24),['E074']);          // 622 Piazzola - Padova: no evidence, GPX on E074 stops
+ assert.deepEqual(code(11),['E073']);          // 906 Strà - Noventa P. - Ponte di Brenta - Padova
+ assert.deepEqual(code(29),['E036']);          // 777 Padova - S. Michele - Borgoricco - Trebaseleghe
+ assert.deepEqual(code(26),['E040','E074']);   // 656 Padova - Villafranca - Piazzola
+ for(const r of routes.filter(r=>/mercat/i.test(r.line)))assert.ok(code(r.id).length,r.name);
 });

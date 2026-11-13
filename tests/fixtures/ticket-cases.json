@@ -101,7 +101,8 @@
    },
    "lines": [
     "E001"
-   ]
+   ],
+   "aliases": []
   },
   {
    "route": {
@@ -112,7 +113,8 @@
    "lines": [
     "E019A",
     "E019"
-   ]
+   ],
+   "aliases": []
   },
   {
    "route": {
@@ -123,7 +125,8 @@
    "lines": [
     "E019",
     "E019A"
-   ]
+   ],
+   "aliases": []
   },
   {
    "route": {
@@ -134,7 +137,8 @@
    "lines": [
     "T",
     "TL"
-   ]
+   ],
+   "aliases": []
   },
   {
    "route": {
@@ -142,7 +146,8 @@
     "line": "61",
     "name": "x"
    },
-   "lines": []
+   "lines": [],
+   "aliases": []
   },
   {
    "route": {
@@ -150,7 +155,82 @@
     "line": "10",
     "name": "10 | x"
    },
-   "lines": []
+   "lines": [],
+   "aliases": []
+  },
+  {
+   "route": {
+    "category": "Extraurbano",
+    "line": "Deviazioni mercatali",
+    "name": "225 | Padova - Piazzola - Carmignano",
+    "_evidence": {
+     "lineAliases": [
+      "E074"
+     ],
+     "shiftMatches": [
+      {
+       "line": "E074"
+      }
+     ]
+    }
+   },
+   "aliases": [
+    "E074",
+    "E074"
+   ],
+   "lines": [
+    "E074"
+   ]
+  },
+  {
+   "route": {
+    "category": "Extraurbano",
+    "line": "Deviazioni mercatali",
+    "name": "589 | Strà - Noventa P. - Padova",
+    "_evidence": {
+     "lineAliases": [],
+     "shiftMatches": [
+      {
+       "line": "E005V"
+      },
+      {
+       "line": "E073"
+      },
+      {
+       "line": "E073"
+      }
+     ]
+    }
+   },
+   "aliases": [
+    "E073",
+    "E005V"
+   ],
+   "lines": [
+    "E073",
+    "E005"
+   ]
+  },
+  {
+   "route": {
+    "category": "Colli",
+    "line": "Colli",
+    "name": "1061 | Montegrotto - Monteortone - Mandria - Padova",
+    "_evidence": {
+     "lineAliases": [],
+     "shiftMatches": [
+      {
+       "line": "EA"
+      }
+     ]
+    }
+   },
+   "aliases": [
+    "EA"
+   ],
+   "lines": [
+    "A"
+   ]
   }
  ]
 }

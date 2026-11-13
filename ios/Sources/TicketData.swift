@@ -74,6 +74,8 @@ struct TicketData: Decodable {
         let category: String?
         let line: String?
         let name: String?
+        /// Lines named by the Academy evidence (indicators, duty sheets), e.g. for market-day detours.
+        let aliases: [String]?
     }
 
     /// Data sent by the web layer; if missing, the copy bundled in the app. The line is
@@ -88,12 +90,13 @@ struct TicketData: Decodable {
         guard let data, !data.isEmpty else { return nil }
         guard data.suggested.isEmpty, let route else { return data }
         return TicketData(labels: data.labels, notes: data.notes, lines: data.lines,
-                          suggested: suggestedLines(data.lines, category: route.category ?? "", line: route.line ?? "", name: route.name ?? ""))
+                          suggested: suggestedLines(data.lines, category: route.category ?? "", line: route.line ?? "",
+                                                    name: route.name ?? "", aliases: route.aliases ?? []))
     }
 
     private static let aliases = ["TD": ["T", "TL"], "AB": ["A", "AT"], "MLA": ["M"]]
     /// Polimetrica lines for an Academy route, best first (indexes into `lines`).
-    static func suggestedLines(_ lines: [Line], category: String, line: String, name: String) -> [Int] {
+    static func suggestedLines(_ lines: [Line], category: String, line: String, name: String, aliases evidence: [String] = []) -> [Int] {
         if category.lowercased().hasPrefix("urban") { return [] }
         let code = line.trimmingCharacters(in: .whitespaces).uppercased()
         let all = lines.map(\.code)
@@ -112,7 +115,24 @@ struct TicketData: Decodable {
         } else if let alias = aliases[code] {
             codes = alias.filter { all.contains($0) }
         }
-        return codes.compactMap { all.firstIndex(of: $0) }
+        // Lines without a number of their own (Deviazioni mercatali…): the Academy evidence.
+        if codes.isEmpty { codes = evidence.compactMap { polimetricaCode($0, in: all) } }
+        var seen = Set<String>()
+        return codes.filter { seen.insert($0).inserted }.compactMap { all.firstIndex(of: $0) }
+    }
+
+    /// GTFS/Academy code → polimetrica code: E005V → E005, E0092 → E009, EA → A.
+    static func polimetricaCode(_ raw: String, in all: [String]) -> String? {
+        let c = raw.trimmingCharacters(in: .whitespaces).uppercased()
+        if all.contains(c) { return c }
+        if c.count >= 4, c.hasPrefix("E"), c.dropFirst().prefix(3).allSatisfy({ $0.isASCII && $0.isNumber }) {
+            let base = String(c.prefix(4))
+            if all.contains(base) { return base }
+        }
+        if c.count >= 2, c.hasPrefix("E"), c.dropFirst().allSatisfy({ $0.isASCII && $0.isLetter }), all.contains(String(c.dropFirst())) {
+            return String(c.dropFirst())
+        }
+        return nil
     }
 
     var isEmpty: Bool { lines.isEmpty }
