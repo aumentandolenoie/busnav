@@ -1,4 +1,4 @@
-"""Extract bus speed limits (with their reliability) and directional fixed enforcement from OSM."""
+"""Extract bus speed limits (with their reliability) and fixed speed / red-light cameras from OSM."""
 import argparse
 import bisect
 import hashlib
@@ -105,6 +105,51 @@ def explicit_speed(tags, highway=""):
     return result[0] if result else None
 
 
+# Point cameras mapped as a single OSM node (far more common than enforcement
+# relations). "speed" = fixed speed camera, "redLight" = red-light camera.
+def point_camera_kind(tags):
+    if tags.get("mobile") == "yes" or tags.get("temporary") == "yes":
+        return None
+    if tags.get("highway") == "speed_camera":
+        return "speed"
+    if tags.get("highway") == "red_light_camera":
+        return "redLight"
+    if tags.get("man_made") == "surveillance" and (
+            tags.get("surveillance") == "red_light" or tags.get("surveillance:type") == "red_light_camera"):
+        return "redLight"
+    return None
+
+
+def oneway_sense(tags):
+    """+1 one-way along the way, -1 against it, 0 two-way."""
+    value = (tags.get("oneway") or "").lower()
+    if value in ("yes", "true", "1") or tags.get("junction") in ("roundabout", "circular") \
+            or tags.get("highway") in ("motorway", "motorway_link"):
+        return -1 if value == "-1" else 1
+    return -1 if value == "-1" else 0
+
+
+def point_camera_senses(direction, oneway):
+    """Driving directions a camera node on a way applies to, and whether that is certain.
+
+    Returns [(sense, certain)], sense +1 along the way nodes, -1 against them.
+    direction=forward/backward is relative to the way: certain. A one-way road has a
+    single possible direction: certain. direction=both: both, certain. Anything else
+    (absent, degrees, compass points, whose meaning in OSM is ambiguous between the
+    facing of the camera and the monitored traffic): both directions, NOT certain.
+    """
+    value = (direction or "").strip().lower()
+    if value == "forward":
+        return [(1, True)]
+    if value == "backward":
+        return [(-1, True)]
+    if oneway:
+        return [(oneway, True)]
+    if value == "both":
+        return [(1, True), (-1, True)]
+    return [(1, False), (-1, False)]
+
+
 def extract(pbf):
     import osmium
 
@@ -113,6 +158,8 @@ def extract(pbf):
     node_ways = defaultdict(list)
     limits = {}
     nodes = {}
+    point_tags = {}          # camera node id -> (kind, direction tag, location)
+    point_ways = defaultdict(list)   # camera node id -> [(way id, before ids, after ids, oneway)]
 
     class Relations(osmium.SimpleHandler):
         def relation(self, relation):
@@ -137,6 +184,13 @@ def extract(pbf):
             needed.update(roles.values())
             relations.append((relation.id, kind, roles))
 
+    class PointCameras(osmium.SimpleHandler):
+        def node(self, node):
+            tags = {tag.k: tag.v for tag in node.tags}
+            kind = point_camera_kind(tags)
+            if kind and node.location.valid():
+                point_tags[node.id] = (kind, tags.get("direction", ""), [node.location.lat, node.location.lon])
+
     class Ways(osmium.SimpleHandler):
         def way(self, way):
             tags = way.tags
@@ -146,9 +200,14 @@ def extract(pbf):
                                     tags.get("highway"))
             if result is not None:
                 limits[str(way.id)] = list(result)
-            for node in way.nodes:
-                if node.ref in needed:
-                    node_ways[node.ref].append(way.id)
+            refs = [node.ref for node in way.nodes]
+            for index, ref in enumerate(refs):
+                if ref in needed:
+                    node_ways[ref].append(way.id)
+                if ref in point_tags:
+                    # Up to 4 nodes each side, nearest first, to find an approach point.
+                    before, after = refs[max(0, index - 4):index][::-1], refs[index + 1:index + 5]
+                    point_ways[ref].append((way.id, before, after, oneway_sense({t.k: t.v for t in tags})))
 
     class Nodes(osmium.SimpleHandler):
         def node(self, node):
@@ -157,7 +216,14 @@ def extract(pbf):
                     nodes[node.id] = [node.location.lat, node.location.lon]
 
     Relations().apply_file(pbf)
+    PointCameras().apply_file(pbf)
+    # A node that is already the device of an enforcement relation keeps the relation.
+    for _, _, roles in relations:
+        point_tags.pop(roles["device"], None)
     Ways().apply_file(pbf)
+    for ref, entries in point_ways.items():
+        for _, before, after, _ in entries:
+            needed.update(before + after)
     Nodes().apply_file(pbf)
     cameras = []
     for identifier, kind, roles in relations:
@@ -168,9 +234,37 @@ def extract(pbf):
             continue
         cameras.append({"id": identifier, "kind": kind, "from": nodes[approach], "to": nodes[departure],
                         "device": nodes[device], "fromWays": node_ways[approach], "toWays": node_ways[departure]})
+    relation_sites = len(cameras)
+    cameras += point_cameras(point_tags, point_ways, nodes)
+    off_road = sum(1 for ref in point_tags if ref not in point_ways)
     tiers = {name: sum(1 for _, tier in limits.values() if tier == code) for code, name in TIER_NAMES.items()}
-    print(f"OSM road safety source: {len(limits)} ways with usable limits {tiers}, {len(cameras)} directional fixed sites", flush=True)
+    print(f"OSM road safety source: {len(limits)} ways with usable limits {tiers}, {relation_sites} enforcement relations, "
+          f"{len(point_tags)} point cameras ({off_road} not on a road way, unused), {len(cameras)} camera approaches", flush=True)
     return {"limits": limits, "cameras": cameras}
+
+
+def point_cameras(point_tags, point_ways, nodes):
+    """Turn camera nodes on road ways into approach records like enforcement relations.
+
+    For each applicable driving direction the approach ("from") is the first way node
+    8-150 m before the camera in that direction; the camera node is the "to"/device.
+    """
+    import enrich_road_guidance as road
+
+    out = []
+    for ref, (kind, direction, location) in point_tags.items():
+        for way, before, after, oneway in point_ways.get(ref, ()):
+            for sense, certain in point_camera_senses(direction, oneway):
+                upstream = before if sense > 0 else after
+                approach = next((nodes[n] for n in upstream if n in nodes and 8 <= road.distance(nodes[n], location) <= 150), None)
+                if approach is None:
+                    continue
+                record = {"id": f"n{ref}{'+' if sense > 0 else '-'}", "kind": kind, "from": approach, "to": location,
+                          "device": location, "fromWays": [way], "toWays": [way]}
+                if not certain:
+                    record["certain"] = False
+                out.append(record)
+    return out
 
 
 def index_catalog(data):
@@ -277,8 +371,19 @@ def annotate(catalog, attributes, matched, projected, official, distances, refer
                    any(a <= begin <= finish <= b for a, b in continuous)
                    for finish in departures):
                 if not any(x["id"] == camera["id"] and abs(x["at"] - begin) < 20 for x in alerts):
-                    alerts.append({"id": camera["id"], "at": begin, "kind": camera["kind"]})
-    return segments, alerts
+                    alert = {"id": camera["id"], "at": begin, "kind": camera["kind"]}
+                    if camera.get("certain") is False:
+                        alert["certain"] = False
+                    alerts.append(alert)
+    # The same device reached through two mappings (relation and node, or two ways)
+    # is announced once: keep the certain one within 40 m of the same kind.
+    alerts.sort(key=lambda x: (x["at"], x.get("certain", True) is False))
+    unique = []
+    for alert in alerts:
+        if any(u["kind"] == alert["kind"] and abs(u["at"] - alert["at"]) < 40 for u in unique):
+            continue
+        unique.append(alert)
+    return segments, unique
 
 
 def main():

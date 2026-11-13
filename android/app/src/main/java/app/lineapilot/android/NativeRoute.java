@@ -7,9 +7,11 @@ final class NativeRoute {
     static final class Camera {
         final double at;
         final String title;
-        Camera(double at, String kind) {
+        /** certain=false: mapped in OSM without the driving direction it checks (two-way road). */
+        Camera(double at, String kind, boolean certain) {
             this.at = at;
-            title = kind.equals("redLight") ? "Controllo semaforico" : "Autovelox fisso";
+            String base = kind.equals("redLight") ? "controllo semaforico" : "autovelox fisso";
+            title = certain ? Character.toUpperCase(base.charAt(0)) + base.substring(1) : "Possibile " + base;
         }
     }
     private final List<double[]> speedLimits = new ArrayList<>();
@@ -48,7 +50,7 @@ final class NativeRoute {
             double at = item.optDouble("at");
             String kind = item.optString("kind");
             if (at >= 0 && at <= tracker.total() && (kind.equals("speed") || kind.equals("redLight"))) {
-                cameras.add(new Camera(at, kind));
+                cameras.add(new Camera(at, kind, item.optBoolean("certain", true)));
             }
         }
         speedLimits.sort(Comparator.comparingDouble(segment -> segment[0]));

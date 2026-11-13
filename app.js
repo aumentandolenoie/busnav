@@ -242,7 +242,8 @@ function normalizeRoadGuidance(data,total){
  bridgeSpeedLimits(speedLimits);
  const roadCameras=(Array.isArray(data.roadCameras)?data.roadCameras:[]).filter(c=>
   c&&Number.isFinite(c.at)&&c.at>=0&&c.at<=sourceTotal+1&&['speed','redLight'].includes(c.kind))
-  .map(c=>({at:at(c.at),kind:c.kind}));
+  // certain:false = camera mapped without a driving direction on a two-way road.
+  .map(c=>({at:at(c.at),kind:c.kind,...(c.certain===false?{certain:false}:{})}));
  return {turns:data.turns.map(t=>({...t,at:at(t.at),verifiedRoad:true})),coverage,speedLimits,roadCameras};
 }
 async function loadRoadGuidance(chosen,dists){
@@ -1515,7 +1516,8 @@ function nextWebCamera(along,within,used=new Set()){
  });
  return best;
 }
-const cameraTitle=c=>c.kind==='redLight'?'Controllo semaforico':'Autovelox fisso';
+// "Possibile …" when OSM does not say which driving direction the camera checks.
+const cameraTitle=c=>(c.certain===false?'Possibile ':'')+(c.kind==='redLight'?(c.certain===false?'controllo semaforico':'Controllo semaforico'):(c.certain===false?'autovelox fisso':'Autovelox fisso'));
 function hideRoadSafety(){
  shownSpeedLimit=null;
  const sign=$('speedLimitSign'),alert=$('roadAlert');

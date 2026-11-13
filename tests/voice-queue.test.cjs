@@ -151,3 +151,14 @@ test('short gaps between equal speed limits are joined, never across another val
  assert.ok(joined.length<rows.length);
  for(let i=1;i<joined.length;i++)assert.ok(joined[i][2]!==joined[i-1][2]||joined[i][0]-joined[i-1][1]>100);
 });
+
+test('cameras without a mapped direction are announced as possible',()=>{
+ const js=fs.readFileSync('app.js','utf8');
+ const title=new Function(js.match(/const cameraTitle=.*;/)[0]+'\nreturn cameraTitle;')();
+ assert.equal(title({kind:'speed'}),'Autovelox fisso');
+ assert.equal(title({kind:'redLight'}),'Controllo semaforico');
+ assert.equal(title({kind:'speed',certain:false}),'Possibile autovelox fisso');
+ assert.equal(title({kind:'redLight',certain:false}),'Possibile controllo semaforico');
+ // The road-guidance loader keeps the flag (and only false).
+ assert.match(js,/kind:c\.kind,\.\.\.\(c\.certain===false\?\{certain:false\}:\{\}\)/);
+});

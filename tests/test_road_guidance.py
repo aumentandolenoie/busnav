@@ -235,6 +235,46 @@ class AcademyRoadTests(unittest.TestCase):
                 self.assertEqual(len(data["roadCameras"]), expected_count)
                 self.assertEqual([r[2] for r in data["speedLimits"]], [50] if way == 71 else [])
 
+    def test_point_camera_tags_and_directions(self):
+        from road_safety import point_camera_kind, oneway_sense, point_camera_senses
+        self.assertEqual(point_camera_kind({"highway":"speed_camera"}), "speed")
+        self.assertEqual(point_camera_kind({"highway":"red_light_camera"}), "redLight")
+        self.assertEqual(point_camera_kind({"man_made":"surveillance","surveillance":"red_light"}), "redLight")
+        self.assertIsNone(point_camera_kind({"highway":"speed_camera","mobile":"yes"}))
+        self.assertIsNone(point_camera_kind({"man_made":"surveillance","surveillance":"traffic"}))
+        self.assertEqual(oneway_sense({"oneway":"yes"}), 1)
+        self.assertEqual(oneway_sense({"oneway":"-1"}), -1)
+        self.assertEqual(oneway_sense({"junction":"roundabout"}), 1)
+        self.assertEqual(oneway_sense({"highway":"primary"}), 0)
+        self.assertEqual(point_camera_senses("forward", 0), [(1, True)])
+        self.assertEqual(point_camera_senses("backward", 0), [(-1, True)])
+        self.assertEqual(point_camera_senses("", 1), [(1, True)])
+        self.assertEqual(point_camera_senses("both", 0), [(1, True), (-1, True)])
+        # Degrees or no direction on a two-way road: both directions, flagged as not certain.
+        self.assertEqual(point_camera_senses("90", 0), [(1, False), (-1, False)])
+        self.assertEqual(point_camera_senses("", 0), [(1, False), (-1, False)])
+
+    def test_point_camera_on_the_driven_way_is_announced_in_its_direction(self):
+        import road_safety
+        points = [[45.0,11.0],[45.001,11.0],[45.002,11.0],[45.003,11.0]]
+        nodes = {1: points[0], 2: points[1], 4: points[3]}
+        for direction, track, expected in [("forward", points, [(1, True)]), ("forward", points[::-1], []),
+                                           ("backward", points[::-1], [(1, True)]), ("", points, [(1, False)]),
+                                           ("", points[::-1], [(1, False)])]:
+            with self.subTest(direction=direction, reverse=track is not points):
+                tags = {3: ("speed", direction, points[2])}
+                ways = {3: [(71, [2, 1], [4], 0)]}
+                cameras = road_safety.point_cameras(tags, ways, nodes)
+                catalog = road_safety.index_catalog({"limits": {"71": 50}, "cameras": cameras})
+                shape = encode_polyline6(track)
+                response = {"trip": {"language":"it-IT","legs":[{"shape":shape,"maneuvers":[]} ]},
+                            "_edgeAttributes": {"shape":shape,"edges":[{"way_id":71,"begin_shape_index":0,"end_shape_index":3}]}}
+                data = module.convert({"id":"camera","points":track}, response, allow_empty=True, safety=catalog)
+                found = [(1, c.get("certain", True)) for c in data["roadCameras"]]
+                self.assertEqual(found, expected)
+                for c in data["roadCameras"]:
+                    self.assertEqual(c["kind"], "speed")
+
     def test_speed_recovery_checks_attribute_geometry_in_travel_order(self):
         import road_safety
         points = [[45.0,11.0],[45.001,11.0],[45.002,11.0]]

@@ -59,7 +59,12 @@ struct NativeRoute: Decodable {
     struct Camera: Decodable {
         let at: Double
         let kind: String
-        var title: String { kind == "redLight" ? "Controllo semaforico" : "Autovelox fisso" }
+        /// false: mapped in OSM without the driving direction it checks (two-way road).
+        let certain: Bool?
+        var title: String {
+            let base = kind == "redLight" ? "controllo semaforico" : "autovelox fisso"
+            return certain == false ? "Possibile " + base : base.prefix(1).uppercased() + base.dropFirst()
+        }
     }
 
     let speedLimits: [[Double]]?

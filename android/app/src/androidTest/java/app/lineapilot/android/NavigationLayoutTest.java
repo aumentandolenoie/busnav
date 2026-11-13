@@ -165,6 +165,14 @@ import static org.junit.Assert.*;
         assertEquals(0,data.speedLimit(80,5,21,90));
         assertEquals(0,data.speedLimit(80,20,0,50));
     }
+    @Test public void camerasWithoutMappedDirectionAreAnnouncedAsPossible() throws Exception {
+        JSONObject route = new JSONObject("{\"points\":[[45,11],[45,11.01]],\"stops\":[],\"offsets\":[]}");
+        route.put("roadCameras",new JSONArray("[{\"at\":100,\"kind\":\"speed\"},{\"at\":200,\"kind\":\"redLight\",\"certain\":false},{\"at\":300,\"kind\":\"speed\",\"certain\":false}]"));
+        NativeRoute data = new NativeRoute(route);
+        assertEquals("Autovelox fisso",data.cameras.get(0).title);
+        assertEquals("Possibile controllo semaforico",data.cameras.get(1).title);
+        assertEquals("Possibile autovelox fisso",data.cameras.get(2).title);
+    }
 
     @Test public void voiceChainsTheNextEventInRouteOrder() throws Exception {
         NativeRoute stopFirst = voiceRoute(340, 360, "[[0,700]]");

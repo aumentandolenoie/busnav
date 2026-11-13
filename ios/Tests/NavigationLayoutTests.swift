@@ -130,6 +130,15 @@ import MapKit
         XCTAssertNil(route.speedLimit(at:80,accuracy:20,deviation:0,keeping:50))
     }
 
+    func testCamerasWithoutMappedDirectionAreAnnouncedAsPossible() throws {
+        let payload: [String: Any] = [
+            "points":[[45.0,11.0],[45.0,11.01]], "offsets":[], "stops":[], "turns":[],
+            "roadCameras":[["at":100,"kind":"speed"],["at":200,"kind":"redLight","certain":false],["at":300,"kind":"speed","certain":false]]
+        ]
+        let route = try JSONDecoder().decode(NativeRoute.self,from:JSONSerialization.data(withJSONObject:payload))
+        XCTAssertEqual(route.roadCameras?.map(\.title), ["Autovelox fisso","Possibile controllo semaforico","Possibile autovelox fisso"])
+    }
+
     func testPreparationUsesMapKitAndPreservesGpx() {
         let preview = RoutePreviewView(frame:CGRect(x:0,y:0,width:375,height:280))
         let points = [[45.0,11.0],[45.0,11.01],[45.01,11.01]]
