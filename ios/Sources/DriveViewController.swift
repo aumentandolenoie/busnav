@@ -63,6 +63,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         map.frame = view.bounds; map.autoresizingMask = [.flexibleWidth,.flexibleHeight]
         map.delegate = self
         map.showsUserLocation = false
+        map.insetsLayoutMarginsFromSafeArea = false   // margins below are already in view coordinates
         map.showsCompass = false
         map.showsTraffic = true
         map.pointOfInterestFilter = .excludingAll
