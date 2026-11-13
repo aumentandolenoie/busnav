@@ -150,6 +150,51 @@ def point_camera_senses(direction, oneway):
     return [(1, False), (-1, False)]
 
 
+VEHICLE_HIGHWAYS = {"motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link",
+                    "secondary", "secondary_link", "tertiary", "tertiary_link", "unclassified",
+                    "residential", "living_street", "road", "busway"}
+SNAP_LIMIT_M = 20     # a camera node beside the road is moved onto the nearest road within this
+_GRID = 500           # 1/500 degree cells (about 220 m x 160 m here)
+
+
+def _cell(lat, lon):
+    return int(lat * _GRID), int(lon * _GRID)
+
+
+def project_to_segment(p, a, b):
+    """Distance in metres from p to segment a-b and the nearest point on it."""
+    import math
+    k = math.cos(math.radians(p[0])) * 111320
+    ax, ay, bx, by, px, py = a[1] * k, a[0] * 111320, b[1] * k, b[0] * 111320, p[1] * k, p[0] * 111320
+    dx, dy = bx - ax, by - ay
+    t = 0.0 if dx == dy == 0 else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+    x, y = ax + t * dx, ay + t * dy
+    return math.hypot(px - x, py - y), [y / 111320, x / k]
+
+
+class RoadSnapper:
+    """Nearest vehicle road segment for camera nodes mapped beside the road."""
+    def __init__(self, points):
+        self.points = points                      # id -> [lat, lon]
+        self.cells = defaultdict(list)
+        for ref, (lat, lon) in points.items():
+            self.cells[_cell(lat, lon)].append(ref)
+        self.best = {}                            # id -> (distance, way, index, point)
+
+    def offer(self, way, locations):
+        for i in range(len(locations) - 1):
+            a, b = locations[i], locations[i + 1]
+            lo, hi = _cell(min(a[0], b[0]) - .0003, min(a[1], b[1]) - .0004), _cell(max(a[0], b[0]) + .0003, max(a[1], b[1]) + .0004)
+            if (hi[0] - lo[0] + 1) * (hi[1] - lo[1] + 1) > 64:
+                continue    # very long segment without intermediate nodes: no reliable snap
+            for cx in range(lo[0], hi[0] + 1):
+                for cy in range(lo[1], hi[1] + 1):
+                    for ref in self.cells.get((cx, cy), ()):
+                        d, point = project_to_segment(self.points[ref], a, b)
+                        if d <= SNAP_LIMIT_M and d < self.best.get(ref, (1e9,))[0]:
+                            self.best[ref] = (d, way, i, point)
+
+
 def extract(pbf):
     import osmium
 
@@ -207,7 +252,13 @@ def extract(pbf):
                 if ref in point_tags:
                     # Up to 4 nodes each side, nearest first, to find an approach point.
                     before, after = refs[max(0, index - 4):index][::-1], refs[index + 1:index + 5]
-                    point_ways[ref].append((way.id, before, after, oneway_sense({t.k: t.v for t in tags})))
+                    point_ways[ref].append((way.id, before, after, oneway_sense({t.k: t.v for t in tags}), None))
+            if tags.get("highway") in VEHICLE_HIGHWAYS and all(n.location.valid() for n in way.nodes):
+                locations = [[n.location.lat, n.location.lon] for n in way.nodes]
+                snapper.offer(way.id, locations)
+                # Keep the geometry of ways that are (still) the best for some camera.
+                if any(entry[1] == way.id for entry in snapper.best.values()):
+                    way_geometry[way.id] = (refs, locations, oneway_sense({t.k: t.v for t in tags}))
 
     class Nodes(osmium.SimpleHandler):
         def node(self, node):
@@ -220,9 +271,26 @@ def extract(pbf):
     # A node that is already the device of an enforcement relation keeps the relation.
     for _, _, roles in relations:
         point_tags.pop(roles["device"], None)
-    Ways().apply_file(pbf)
+    snapper = RoadSnapper({ref: value[2] for ref, value in point_tags.items()})
+    way_geometry = {}
+    Ways().apply_file(pbf, locations=True)
+    # Cameras mapped beside the road (not a node of any road way): use the nearest
+    # vehicle road within SNAP_LIMIT_M, projected onto it.
+    snapped = 0
+    for ref in point_tags:
+        if ref in point_ways or ref not in snapper.best:
+            continue
+        _, way, index, point = snapper.best[ref]
+        if way not in way_geometry:
+            continue
+        refs, locations, oneway = way_geometry[way]
+        for n, location in zip(refs, locations):
+            nodes[n] = location
+        before, after = refs[max(0, index - 3):index + 1][::-1], refs[index + 1:index + 5]
+        point_ways[ref].append((way, before, after, oneway, point))
+        snapped += 1
     for ref, entries in point_ways.items():
-        for _, before, after, _ in entries:
+        for _, before, after, _, _ in entries:
             needed.update(before + after)
     Nodes().apply_file(pbf)
     cameras = []
@@ -237,6 +305,7 @@ def extract(pbf):
     relation_sites = len(cameras)
     cameras += point_cameras(point_tags, point_ways, nodes)
     off_road = sum(1 for ref in point_tags if ref not in point_ways)
+    print(f"Point cameras beside the road snapped within {SNAP_LIMIT_M} m: {snapped}", flush=True)
     tiers = {name: sum(1 for _, tier in limits.values() if tier == code) for code, name in TIER_NAMES.items()}
     print(f"OSM road safety source: {len(limits)} ways with usable limits {tiers}, {relation_sites} enforcement relations, "
           f"{len(point_tags)} point cameras ({off_road} not on a road way, unused), {len(cameras)} camera approaches", flush=True)
@@ -252,8 +321,9 @@ def point_cameras(point_tags, point_ways, nodes):
     import enrich_road_guidance as road
 
     out = []
-    for ref, (kind, direction, location) in point_tags.items():
-        for way, before, after, oneway in point_ways.get(ref, ()):
+    for ref, (kind, direction, mapped) in point_tags.items():
+        for way, before, after, oneway, snapped in point_ways.get(ref, ()):
+            location = snapped or mapped     # beside the road: the point on the road
             for sense, certain in point_camera_senses(direction, oneway):
                 upstream = before if sense > 0 else after
                 approach = next((nodes[n] for n in upstream if n in nodes and 8 <= road.distance(nodes[n], location) <= 150), None)

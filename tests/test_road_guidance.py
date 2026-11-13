@@ -263,7 +263,7 @@ class AcademyRoadTests(unittest.TestCase):
                                            ("", points[::-1], [(1, False)])]:
             with self.subTest(direction=direction, reverse=track is not points):
                 tags = {3: ("speed", direction, points[2])}
-                ways = {3: [(71, [2, 1], [4], 0)]}
+                ways = {3: [(71, [2, 1], [4], 0, None)]}
                 cameras = road_safety.point_cameras(tags, ways, nodes)
                 catalog = road_safety.index_catalog({"limits": {"71": 50}, "cameras": cameras})
                 shape = encode_polyline6(track)
@@ -274,6 +274,23 @@ class AcademyRoadTests(unittest.TestCase):
                 self.assertEqual(found, expected)
                 for c in data["roadCameras"]:
                     self.assertEqual(c["kind"], "speed")
+
+    def test_camera_beside_the_road_is_snapped_onto_the_nearest_road(self):
+        import road_safety
+        road = [[45.0,11.0],[45.001,11.0],[45.002,11.0],[45.003,11.0]]
+        beside = [45.0015, 11.00012]           # about 9 m east of the road
+        far = [45.0015, 11.0004]               # about 31 m: too far
+        snapper = road_safety.RoadSnapper({7: beside, 8: far})
+        snapper.offer(71, road)
+        self.assertIn(7, snapper.best); self.assertNotIn(8, snapper.best)
+        d, way, index, point = snapper.best[7]
+        self.assertEqual((way, index), (71, 1)); self.assertLess(abs(d - 9.4), 1)
+        self.assertAlmostEqual(point[1], 11.0, places=6); self.assertAlmostEqual(point[0], 45.0015, places=6)
+        # The snapped point is used as the camera position on the road.
+        nodes = {1: road[0], 2: road[1], 3: road[2], 4: road[3]}
+        cameras = road_safety.point_cameras({7: ("speed", "", beside)}, {7: [(71, [2, 1], [3, 4], 1, point)]}, nodes)
+        self.assertEqual(len(cameras), 1)
+        self.assertEqual(cameras[0]["to"], point); self.assertNotIn("certain", cameras[0])
 
     def test_speed_recovery_checks_attribute_geometry_in_travel_order(self):
         import road_safety
