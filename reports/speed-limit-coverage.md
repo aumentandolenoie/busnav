@@ -6,9 +6,9 @@ Fonte: OpenStreetMap (estratto Geofabrik Nord-Est), abbinato ai GPX Academy. Pol
 | --- | ---: |
 | Percorsi GPX | 789 |
 | Distanza totale | 16,061 km |
-| Distanza con limite | 7,649 km (47.6%) |
+| Distanza con limite | 7,635 km (47.5%) |
 | di cui cartello | 969 km |
-| di cui mappato | 4,587 km |
+| di cui mappato | 4,574 km |
 | di cui legale | 2,093 km |
 
 ## Percorsi per copertura
@@ -17,8 +17,8 @@ Fonte: OpenStreetMap (estratto Geofabrik Nord-Est), abbinato ai GPX Academy. Pol
 | --- | ---: |
 | nessun limite | 5 |
 | meno del 25% | 111 |
-| 25-50% | 354 |
-| 50-75% | 254 |
+| 25-50% | 357 |
+| 50-75% | 251 |
 | 75-90% | 42 |
 | almeno 90% | 23 |
 
@@ -31,8 +31,8 @@ Fonte: OpenStreetMap (estratto Geofabrik Nord-Est), abbinato ai GPX Academy. Pol
 | 30 | 494 |
 | 40 | 97 |
 | 50 | 4,727 |
-| 60 | 214 |
-| 70 | 974 |
+| 60 | 200 |
+| 70 | 973 |
 | 80 | 944 |
 | 90 | 33 |
 | 100 | 166 |

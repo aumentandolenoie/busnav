@@ -1,11 +1,11 @@
 {
   "before": {
-    "sourceRelease": "ios-preview-95ea13e8e49c",
+    "sourceRelease": "ios-preview-ff8a1924d360",
     "routes": 789,
-    "maneuvers": 19953,
+    "maneuvers": 19950,
     "roundaboutExitHistogram": {
-      "1": 3432,
-      "2": 5642,
+      "1": 3431,
+      "2": 5643,
       "3": 1588,
       "4": 317,
       "5": 24,
@@ -13,37 +13,18 @@
       "9": 4
     },
     "roundaboutsWithoutVerifiedNumber": 369,
-    "verifiedNumberChecks": 11326,
+    "verifiedNumberChecks": 11328,
     "recovery": {
-      "local-trace-rejected": 167,
       "recovered": 518,
+      "local-trace-rejected": 167,
       "circle-deviation": 27,
       "arm-deviation": 141,
+      "different-local-exit-counts": 3,
       "incomplete-circle": 27,
       "arm-progression": 3,
-      "different-local-exit-counts": 3,
       "insufficient-arm-context": 1
     },
     "recoverySamples": [
-      {
-        "id": "458",
-        "at": 28373,
-        "recovered": false,
-        "exit": null,
-        "reason": "local-trace-rejected",
-        "methods": []
-      },
-      {
-        "id": "77",
-        "at": 19828,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
       {
         "id": "513",
         "at": 37848,
@@ -61,308 +42,6 @@
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
-        "methods": []
-      },
-      {
-        "id": "132",
-        "at": 4273,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "233",
-        "at": 17523,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "544",
-        "at": 1001,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "544",
-        "at": 18039,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "19",
-        "at": 4355,
-        "recovered": false,
-        "exit": null,
-        "reason": "circle-deviation",
-        "methods": []
-      },
-      {
-        "id": "19",
-        "at": 9943,
-        "recovered": true,
-        "exit": 3,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "41",
-        "at": 18208,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "41",
-        "at": 18267,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "41",
-        "at": 20509,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "41",
-        "at": 33125,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "250",
-        "at": 10472,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "250",
-        "at": 13421,
-        "recovered": false,
-        "exit": null,
-        "reason": "local-trace-rejected",
-        "methods": []
-      },
-      {
-        "id": "702",
-        "at": 4929,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "90",
-        "at": 660,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "90",
-        "at": 3014,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "90",
-        "at": 9036,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "689",
-        "at": 2439,
-        "recovered": true,
-        "exit": 4,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "689",
-        "at": 12232,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "689",
-        "at": 14859,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "689",
-        "at": 17009,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "757",
-        "at": 3586,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "397",
-        "at": 6512.333897776335,
-        "recovered": false,
-        "exit": null,
-        "reason": "local-trace-rejected",
-        "methods": [
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "397",
-        "at": 13985.985609579067,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "397",
-        "at": 16050.736570006147,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "301",
-        "at": 4196,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "301",
-        "at": 14772,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "301",
-        "at": 16756,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "229",
-        "at": 17447.529177292152,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "229",
-        "at": 35733.798823629055,
-        "recovered": false,
-        "exit": null,
-        "reason": "local-trace-rejected",
-        "methods": []
-      },
-      {
-        "id": "229",
-        "at": 40911.58227580787,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
         "methods": []
       },
       {
@@ -388,18 +67,18 @@
         ]
       },
       {
-        "id": "570",
-        "at": 17933.758977721147,
+        "id": "37",
+        "at": 15282,
         "recovered": false,
         "exit": null,
-        "reason": "arm-deviation",
+        "reason": "circle-deviation",
         "methods": []
       },
       {
-        "id": "282",
-        "at": 23052,
+        "id": "37",
+        "at": 47641,
         "recovered": true,
-        "exit": 4,
+        "exit": 1,
         "reason": null,
         "methods": [
           "verified-arms",
@@ -407,16 +86,83 @@
         ]
       },
       {
-        "id": "282",
-        "at": 31272,
+        "id": "460",
+        "at": 244.0,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "460",
+        "at": 4696.362922159741,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "137",
-        "at": 9536,
+        "id": "460",
+        "at": 5516.663015430307,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 5978.663015430307,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 6187.663015430307,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 12398.04592892907,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 12435.04592892907,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 16001.606152480317,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 17561.897504476507,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 20430.482866026432,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -426,57 +172,8 @@
         ]
       },
       {
-        "id": "137",
-        "at": 12980,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "137",
-        "at": 15179,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "369",
-        "at": 8105,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "369",
-        "at": 8266,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "369",
-        "at": 13688,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "276",
-        "at": 9882,
+        "id": "460",
+        "at": 21065.482866026432,
         "recovered": true,
         "exit": 3,
         "reason": null,
@@ -486,8 +183,27 @@
         ]
       },
       {
-        "id": "788",
-        "at": 15742.185927058772,
+        "id": "460",
+        "at": 28357.217362733132,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "138",
+        "at": 4272,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "669",
+        "at": 3506,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -497,8 +213,35 @@
         ]
       },
       {
-        "id": "788",
-        "at": 43266.05122745284,
+        "id": "34",
+        "at": 15334,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "50",
+        "at": 18209,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "50",
+        "at": 18268,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "50",
+        "at": 20510,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -508,135 +251,133 @@
         ]
       },
       {
-        "id": "10",
-        "at": 202,
+        "id": "50",
+        "at": 20870,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "526",
+        "at": 9115.449633174285,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "526",
+        "at": 27027.755876091633,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "108",
+        "at": 20940,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "108",
+        "at": 28763,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "10",
-        "at": 2157,
+        "id": "108",
+        "at": 36133,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "108",
+        "at": 40610,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "10",
-        "at": 3101,
+        "id": "93",
+        "at": 663,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "93",
+        "at": 1439,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "0",
+        "at": 1538,
         "recovered": false,
         "exit": null,
-        "reason": "local-trace-rejected",
+        "reason": "arm-deviation",
         "methods": []
       },
       {
-        "id": "448",
-        "at": 18277,
+        "id": "0",
+        "at": 20027,
+        "recovered": false,
+        "exit": null,
+        "reason": "different-local-exit-counts",
+        "methods": [
+          "verified-arms",
+          "strict-local-geometry"
+        ]
+      },
+      {
+        "id": "356",
+        "at": 6785,
         "recovered": false,
         "exit": null,
         "reason": "incomplete-circle",
         "methods": []
       },
       {
-        "id": "142",
-        "at": 24928,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "527",
-        "at": 8806,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "527",
-        "at": 26421,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "84",
-        "at": 9782,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "84",
-        "at": 15815,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "84",
-        "at": 18181,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "84",
-        "at": 18240,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "384",
-        "at": 3334,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "384",
-        "at": 3515,
-        "recovered": false,
-        "exit": null,
-        "reason": "circle-deviation",
-        "methods": []
-      },
-      {
-        "id": "452",
-        "at": 30793,
+        "id": "311",
+        "at": 37027,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "237",
-        "at": 2232,
+        "id": "129",
+        "at": 8327.342216341525,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -646,8 +387,8 @@
         ]
       },
       {
-        "id": "237",
-        "at": 10607,
+        "id": "129",
+        "at": 17037.82914957282,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -657,41 +398,8 @@
         ]
       },
       {
-        "id": "732",
-        "at": 2633,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "724",
-        "at": 3269,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "215",
-        "at": 2156.0,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "215",
-        "at": 12528.677028543785,
+        "id": "437",
+        "at": 2230.709859757307,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -701,8 +409,8 @@
         ]
       },
       {
-        "id": "215",
-        "at": 34576.276554161,
+        "id": "437",
+        "at": 2312.709859757307,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -712,41 +420,8 @@
         ]
       },
       {
-        "id": "215",
-        "at": 37656.88342533263,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "61",
-        "at": 3098,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "128",
-        "at": 7967.468807513264,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "128",
-        "at": 19998.837129713025,
+        "id": "134",
+        "at": 27447.896248383237,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -756,8 +431,8 @@
         ]
       },
       {
-        "id": "128",
-        "at": 23429.296634631348,
+        "id": "134",
+        "at": 29767.288985307605,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -767,8 +442,19 @@
         ]
       },
       {
-        "id": "128",
-        "at": 25628.456346977335,
+        "id": "134",
+        "at": 33198.28179585708,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "134",
+        "at": 35396.74667507848,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -778,8 +464,8 @@
         ]
       },
       {
-        "id": "553",
-        "at": 18905,
+        "id": "438",
+        "at": 27037.310165189458,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -789,72 +475,34 @@
         ]
       },
       {
-        "id": "553",
-        "at": 27180,
+        "id": "438",
+        "at": 34510.50232260582,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "188",
+        "at": 13842,
+        "recovered": true,
+        "exit": 3,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "188",
+        "at": 42644,
         "recovered": false,
         "exit": null,
-        "reason": "arm-deviation",
+        "reason": "local-trace-rejected",
         "methods": []
-      },
-      {
-        "id": "35",
-        "at": 18208,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "35",
-        "at": 18267,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "35",
-        "at": 20509,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "35",
-        "at": 20869,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "734",
-        "at": 236,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "734",
-        "at": 2862,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
       },
       {
         "id": "243",
@@ -880,6 +528,79 @@
         "at": 18785,
         "recovered": true,
         "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "294",
+        "at": 6624.117058957541,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "770",
+        "at": 7260,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "770",
+        "at": 9760,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "26",
+        "at": 2197.1990200258997,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "26",
+        "at": 2228.1990200258997,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "26",
+        "at": 2899.329454436208,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "651",
+        "at": 3400.93201728555,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "216",
+        "at": 362.0,
+        "recovered": true,
+        "exit": 5,
         "reason": null,
         "methods": [
           "verified-arms",
@@ -931,7 +652,233 @@
         ]
       },
       {
-        "id": "456",
+        "id": "164",
+        "at": 4273.025316099213,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "164",
+        "at": 13613.059498168015,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "370",
+        "at": 8105,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "370",
+        "at": 8266,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "370",
+        "at": 11484,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "370",
+        "at": 13682,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "370",
+        "at": 22044,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "370",
+        "at": 26045,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "715",
+        "at": 2345,
+        "recovered": false,
+        "exit": null,
+        "reason": "different-local-exit-counts",
+        "methods": [
+          "verified-arms",
+          "strict-local-geometry"
+        ]
+      },
+      {
+        "id": "715",
+        "at": 5056,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "715",
+        "at": 9430,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "749",
+        "at": 7344.013623652225,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "51",
+        "at": 1731,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "35",
+        "at": 18208,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "35",
+        "at": 18267,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "35",
+        "at": 20509,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "35",
+        "at": 20869,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "569",
+        "at": 6652,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "569",
+        "at": 6937,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "569",
+        "at": 11566,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "303",
+        "at": 34454,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "744",
+        "at": 7801.437038677627,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "354",
+        "at": 3239,
+        "recovered": false,
+        "exit": null,
+        "reason": "incomplete-circle",
+        "methods": []
+      },
+      {
+        "id": "457",
         "at": 29514,
         "recovered": false,
         "exit": null,
@@ -939,27 +886,8 @@
         "methods": []
       },
       {
-        "id": "58",
-        "at": 6579,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "453",
-        "at": 48655.47054927567,
-        "recovered": false,
-        "exit": null,
-        "reason": "circle-deviation",
-        "methods": []
-      },
-      {
-        "id": "442",
-        "at": 18016.737698179153,
+        "id": "693",
+        "at": 3274,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -969,56 +897,99 @@
         ]
       },
       {
-        "id": "442",
-        "at": 35753.39154267048,
+        "id": "554",
+        "at": 14795,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "10",
+        "at": 202,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "442",
-        "at": 41029.13460206819,
+        "id": "10",
+        "at": 2157,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "10",
+        "at": 3101,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "762",
+        "at": 4451,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "762",
+        "at": 8199,
         "recovered": false,
         "exit": null,
         "reason": "arm-deviation",
         "methods": []
       },
       {
-        "id": "669",
-        "at": 3506,
+        "id": "711",
+        "at": 749,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "173",
+        "at": 39312,
+        "recovered": false,
+        "exit": null,
+        "reason": "incomplete-circle",
+        "methods": []
+      },
+      {
+        "id": "239",
+        "at": 10473,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "239",
+        "at": 13415,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "239",
+        "at": 18779,
         "recovered": true,
         "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "351",
-        "at": 7180,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "351",
-        "at": 32421,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "351",
-        "at": 35294,
-        "recovered": true,
-        "exit": 2,
         "reason": null,
         "methods": [
           "verified-arms",
@@ -1027,342 +998,6 @@
       }
     ],
     "samples": [
-      {
-        "id": "614",
-        "at": 2240,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "614",
-        "at": 3350,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 3679,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "614",
-        "at": 5218,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "614",
-        "at": 5253,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 7471,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 7548,
-        "exit": 4,
-        "text": "Alla rotonda, prendi la quarta uscita"
-      },
-      {
-        "id": "614",
-        "at": 8138,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 8494,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "614",
-        "at": 9630,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "614",
-        "at": 10594,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 10782,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "614",
-        "at": 11483,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 1650,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 1967,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 2377,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 2558,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 3349,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 3896,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 4007,
-        "exit": 5,
-        "text": "Alla rotonda, prendi la quinta uscita"
-      },
-      {
-        "id": "458",
-        "at": 6148,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "458",
-        "at": 7606,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 7700,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 7915,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 8069,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 9118,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 9594,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "458",
-        "at": 10314,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 10808,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 12408,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 13914,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 17468,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 23581,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 23781,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 24270,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 25089,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 26450,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 28373,
-        "exit": null,
-        "text": "Alla rotonda, segui il percorso GPX ufficiale"
-      },
-      {
-        "id": "458",
-        "at": 38420,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 39032,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "77",
-        "at": 14271,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 15674,
-        "exit": 4,
-        "text": "Alla rotonda, prendi la quarta uscita"
-      },
-      {
-        "id": "77",
-        "at": 17140,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 18721,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 19828,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "77",
-        "at": 19989,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 20185,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 20487,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "77",
-        "at": 20717,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 21325,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "77",
-        "at": 21637,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "617",
-        "at": 980.0,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "617",
-        "at": 1162.0,
-        "exit": 4,
-        "text": "Alla rotonda, prendi la quarta uscita"
-      },
-      {
-        "id": "617",
-        "at": 3239.2666279815785,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "617",
-        "at": 4475.2666279815785,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "617",
-        "at": 4561.2666279815785,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
       {
         "id": "513",
         "at": 442,
@@ -1526,106 +1161,442 @@
         "text": "Alla rotonda, segui il percorso GPX ufficiale"
       },
       {
-        "id": "151",
-        "at": 3096,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 3648,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "673",
-        "at": 3700,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "673",
-        "at": 4226,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 5384,
+        "id": "368",
+        "at": 1113,
         "exit": 3,
         "text": "Alla rotonda, prendi la terza uscita"
       },
       {
-        "id": "673",
-        "at": 6349,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 6535,
+        "id": "368",
+        "at": 4613,
         "exit": 1,
         "text": "Alla rotonda, prendi la prima uscita"
       },
       {
-        "id": "673",
-        "at": 7235,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 7579,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 8110,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 8552,
+        "id": "368",
+        "at": 9006,
         "exit": 1,
         "text": "Alla rotonda, prendi la prima uscita"
       },
       {
-        "id": "673",
-        "at": 9626,
+        "id": "368",
+        "at": 10830,
         "exit": 2,
         "text": "Alla rotonda, prendi la seconda uscita"
       },
       {
-        "id": "673",
-        "at": 11058,
+        "id": "368",
+        "at": 11235,
         "exit": 2,
         "text": "Alla rotonda, prendi la seconda uscita"
       },
       {
-        "id": "673",
-        "at": 11253,
+        "id": "368",
+        "at": 12431,
         "exit": 2,
         "text": "Alla rotonda, prendi la seconda uscita"
       },
       {
-        "id": "132",
-        "at": 706,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "132",
-        "at": 1298,
+        "id": "368",
+        "at": 13725,
         "exit": 2,
         "text": "Alla rotonda, prendi la seconda uscita"
       },
       {
-        "id": "132",
-        "at": 1742,
+        "id": "368",
+        "at": 14471,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 14622,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 15160,
         "exit": 3,
         "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "368",
+        "at": 15513,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 16335,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 16729,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 17026,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "368",
+        "at": 19247,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 19281,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "368",
+        "at": 19750,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "80",
+        "at": 832,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "80",
+        "at": 2273,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "97",
+        "at": 337,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "97",
+        "at": 2183,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "97",
+        "at": 5885,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "97",
+        "at": 6386,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "97",
+        "at": 16371,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "97",
+        "at": 17510,
+        "exit": 4,
+        "text": "Alla rotonda, prendi la quarta uscita"
+      },
+      {
+        "id": "97",
+        "at": 25431,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 5024,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 5636,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 15282,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "37",
+        "at": 22056,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 24406,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 27673,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 35090,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 40346,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 41290,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 43274,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 46332,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 47480,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 47641,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 47836,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 48139,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 48368,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 48976,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 49418,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 49655,
+        "exit": 4,
+        "text": "Alla rotonda, prendi la quarta uscita"
+      },
+      {
+        "id": "460",
+        "at": 244.0,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 4696.362922159741,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 5516.663015430307,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 5978.663015430307,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 6187.663015430307,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 12398.04592892907,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 12435.04592892907,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 16001.606152480317,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 17561.897504476507,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 19184.482866026432,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 19676.482866026432,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "460",
+        "at": 20430.482866026432,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 21065.482866026432,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "460",
+        "at": 28357.217362733132,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 30228.481135296202,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "460",
+        "at": 30524.71153949514,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 30735.71153949514,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "460",
+        "at": 31450.71153949514,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 32001.71153949514,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 32475.71153949514,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 32876.50991410949,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 33541.50991410949,
+        "exit": 4,
+        "text": "Alla rotonda, prendi la quarta uscita"
+      },
+      {
+        "id": "460",
+        "at": 34238.50991410949,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "118",
+        "at": 5607.354716285288,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "118",
+        "at": 6573.354716285288,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "118",
+        "at": 13413.502484246694,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "118",
+        "at": 28589.086993124925,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "118",
+        "at": 30380.010700685147,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
       }
     ]
   },
@@ -1644,35 +1615,16 @@
     "roundaboutsWithoutVerifiedNumber": 369,
     "verifiedNumberChecks": 11328,
     "recovery": {
+      "recovered": 519,
       "local-trace-rejected": 167,
-      "recovered": 518,
       "circle-deviation": 27,
       "arm-deviation": 141,
+      "different-local-exit-counts": 3,
       "incomplete-circle": 27,
       "arm-progression": 3,
-      "different-local-exit-counts": 3,
       "insufficient-arm-context": 1
     },
     "recoverySamples": [
-      {
-        "id": "458",
-        "at": 28373,
-        "recovered": false,
-        "exit": null,
-        "reason": "local-trace-rejected",
-        "methods": []
-      },
-      {
-        "id": "77",
-        "at": 19828,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
       {
         "id": "513",
         "at": 37848,
@@ -1690,308 +1642,6 @@
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
-        "methods": []
-      },
-      {
-        "id": "132",
-        "at": 4273,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "233",
-        "at": 17523,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "544",
-        "at": 1001,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "544",
-        "at": 18039,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "19",
-        "at": 4355,
-        "recovered": false,
-        "exit": null,
-        "reason": "circle-deviation",
-        "methods": []
-      },
-      {
-        "id": "19",
-        "at": 9943,
-        "recovered": true,
-        "exit": 3,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "41",
-        "at": 18208,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "41",
-        "at": 18267,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "41",
-        "at": 20509,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "41",
-        "at": 33125,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "250",
-        "at": 10472,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "250",
-        "at": 13421,
-        "recovered": false,
-        "exit": null,
-        "reason": "local-trace-rejected",
-        "methods": []
-      },
-      {
-        "id": "702",
-        "at": 4929,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "90",
-        "at": 660,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "90",
-        "at": 3014,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "90",
-        "at": 9036,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "689",
-        "at": 2439,
-        "recovered": true,
-        "exit": 4,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "689",
-        "at": 12232,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "689",
-        "at": 14859,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "689",
-        "at": 17009,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "757",
-        "at": 3586,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "397",
-        "at": 6512.333897776335,
-        "recovered": false,
-        "exit": null,
-        "reason": "local-trace-rejected",
-        "methods": [
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "397",
-        "at": 13985.985609579067,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "397",
-        "at": 16050.736570006147,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "301",
-        "at": 4196,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "301",
-        "at": 14772,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "301",
-        "at": 16756,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "229",
-        "at": 17447.529177292152,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "229",
-        "at": 35733.798823629055,
-        "recovered": false,
-        "exit": null,
-        "reason": "local-trace-rejected",
-        "methods": []
-      },
-      {
-        "id": "229",
-        "at": 40911.58227580787,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
         "methods": []
       },
       {
@@ -2017,18 +1667,18 @@
         ]
       },
       {
-        "id": "570",
-        "at": 17933.758977721147,
+        "id": "37",
+        "at": 15282,
         "recovered": false,
         "exit": null,
-        "reason": "arm-deviation",
+        "reason": "circle-deviation",
         "methods": []
       },
       {
-        "id": "282",
-        "at": 23052,
+        "id": "37",
+        "at": 47641,
         "recovered": true,
-        "exit": 4,
+        "exit": 1,
         "reason": null,
         "methods": [
           "verified-arms",
@@ -2036,16 +1686,83 @@
         ]
       },
       {
-        "id": "282",
-        "at": 31272,
+        "id": "460",
+        "at": 244.0,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "460",
+        "at": 4696.362922159741,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "137",
-        "at": 9536,
+        "id": "460",
+        "at": 5516.663015430307,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 5978.663015430307,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 6187.663015430307,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 12398.04592892907,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 12435.04592892907,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 16001.606152480317,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 17561.897504476507,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "460",
+        "at": 20430.482866026432,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -2055,57 +1772,8 @@
         ]
       },
       {
-        "id": "137",
-        "at": 12980,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "137",
-        "at": 15179,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "369",
-        "at": 8105,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "369",
-        "at": 8266,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "369",
-        "at": 13688,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "276",
-        "at": 9882,
+        "id": "460",
+        "at": 21065.482866026432,
         "recovered": true,
         "exit": 3,
         "reason": null,
@@ -2115,8 +1783,27 @@
         ]
       },
       {
-        "id": "788",
-        "at": 15742.185927058772,
+        "id": "460",
+        "at": 28357.217362733132,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "138",
+        "at": 4272,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "669",
+        "at": 3506,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -2126,8 +1813,35 @@
         ]
       },
       {
-        "id": "788",
-        "at": 43266.05122745284,
+        "id": "34",
+        "at": 15334,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "50",
+        "at": 18209,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "50",
+        "at": 18268,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "50",
+        "at": 20510,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -2137,135 +1851,133 @@
         ]
       },
       {
-        "id": "10",
-        "at": 202,
+        "id": "50",
+        "at": 20870,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "526",
+        "at": 9115.449633174285,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "526",
+        "at": 27027.755876091633,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "108",
+        "at": 20940,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "108",
+        "at": 28763,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "10",
-        "at": 2157,
+        "id": "108",
+        "at": 36133,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "108",
+        "at": 40610,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "10",
-        "at": 3101,
+        "id": "93",
+        "at": 663,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "93",
+        "at": 1439,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "0",
+        "at": 1538,
         "recovered": false,
         "exit": null,
-        "reason": "local-trace-rejected",
+        "reason": "arm-deviation",
         "methods": []
       },
       {
-        "id": "448",
-        "at": 18277,
+        "id": "0",
+        "at": 20027,
+        "recovered": false,
+        "exit": null,
+        "reason": "different-local-exit-counts",
+        "methods": [
+          "verified-arms",
+          "strict-local-geometry"
+        ]
+      },
+      {
+        "id": "356",
+        "at": 6785,
         "recovered": false,
         "exit": null,
         "reason": "incomplete-circle",
         "methods": []
       },
       {
-        "id": "142",
-        "at": 24928,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "527",
-        "at": 8806,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "527",
-        "at": 26421,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "84",
-        "at": 9782,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "84",
-        "at": 15815,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "84",
-        "at": 18181,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "84",
-        "at": 18240,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "384",
-        "at": 3334,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "384",
-        "at": 3515,
-        "recovered": false,
-        "exit": null,
-        "reason": "circle-deviation",
-        "methods": []
-      },
-      {
-        "id": "452",
-        "at": 30793,
+        "id": "311",
+        "at": 37027,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "237",
-        "at": 2232,
+        "id": "129",
+        "at": 8327.342216341525,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -2275,8 +1987,8 @@
         ]
       },
       {
-        "id": "237",
-        "at": 10607,
+        "id": "129",
+        "at": 17037.82914957282,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -2286,41 +1998,8 @@
         ]
       },
       {
-        "id": "732",
-        "at": 2633,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "724",
-        "at": 3269,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "215",
-        "at": 2156.0,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "215",
-        "at": 12528.677028543785,
+        "id": "437",
+        "at": 2230.709859757307,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -2330,8 +2009,8 @@
         ]
       },
       {
-        "id": "215",
-        "at": 34576.276554161,
+        "id": "437",
+        "at": 2312.709859757307,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -2341,41 +2020,8 @@
         ]
       },
       {
-        "id": "215",
-        "at": 37656.88342533263,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "61",
-        "at": 3098,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "128",
-        "at": 7967.468807513264,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "128",
-        "at": 19998.837129713025,
+        "id": "134",
+        "at": 27447.896248383237,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -2385,8 +2031,8 @@
         ]
       },
       {
-        "id": "128",
-        "at": 23429.296634631348,
+        "id": "134",
+        "at": 29767.288985307605,
         "recovered": true,
         "exit": 1,
         "reason": null,
@@ -2396,8 +2042,19 @@
         ]
       },
       {
-        "id": "128",
-        "at": 25628.456346977335,
+        "id": "134",
+        "at": 33198.28179585708,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "134",
+        "at": 35396.74667507848,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -2407,8 +2064,8 @@
         ]
       },
       {
-        "id": "553",
-        "at": 18905,
+        "id": "438",
+        "at": 27037.310165189458,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -2418,72 +2075,34 @@
         ]
       },
       {
-        "id": "553",
-        "at": 27180,
+        "id": "438",
+        "at": 34510.50232260582,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "188",
+        "at": 13842,
+        "recovered": true,
+        "exit": 3,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "188",
+        "at": 42644,
         "recovered": false,
         "exit": null,
-        "reason": "arm-deviation",
+        "reason": "local-trace-rejected",
         "methods": []
-      },
-      {
-        "id": "35",
-        "at": 18208,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "35",
-        "at": 18267,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "35",
-        "at": 20509,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "35",
-        "at": 20869,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "734",
-        "at": 236,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "734",
-        "at": 2862,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
       },
       {
         "id": "243",
@@ -2509,6 +2128,79 @@
         "at": 18785,
         "recovered": true,
         "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "294",
+        "at": 6624.117058957541,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "770",
+        "at": 7260,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "770",
+        "at": 9760,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "26",
+        "at": 2197.1990200258997,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "26",
+        "at": 2228.1990200258997,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "26",
+        "at": 2899.329454436208,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "651",
+        "at": 3400.93201728555,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "216",
+        "at": 362.0,
+        "recovered": true,
+        "exit": 5,
         "reason": null,
         "methods": [
           "verified-arms",
@@ -2560,7 +2252,233 @@
         ]
       },
       {
-        "id": "456",
+        "id": "164",
+        "at": 4273.025316099213,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "164",
+        "at": 13613.059498168015,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "370",
+        "at": 8105,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "370",
+        "at": 8266,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "370",
+        "at": 11484,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "370",
+        "at": 13682,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "370",
+        "at": 22044,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "370",
+        "at": 26045,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "715",
+        "at": 2345,
+        "recovered": false,
+        "exit": null,
+        "reason": "different-local-exit-counts",
+        "methods": [
+          "verified-arms",
+          "strict-local-geometry"
+        ]
+      },
+      {
+        "id": "715",
+        "at": 5056,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "715",
+        "at": 9430,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "749",
+        "at": 7344.013623652225,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "51",
+        "at": 1731,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "35",
+        "at": 18208,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "35",
+        "at": 18267,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "35",
+        "at": 20509,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "35",
+        "at": 20869,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "569",
+        "at": 6652,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "569",
+        "at": 6937,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "569",
+        "at": 11566,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "303",
+        "at": 34454,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "744",
+        "at": 7801.437038677627,
+        "recovered": true,
+        "exit": 1,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "354",
+        "at": 3239,
+        "recovered": false,
+        "exit": null,
+        "reason": "incomplete-circle",
+        "methods": []
+      },
+      {
+        "id": "457",
         "at": 29514,
         "recovered": false,
         "exit": null,
@@ -2568,27 +2486,8 @@
         "methods": []
       },
       {
-        "id": "58",
-        "at": 6579,
-        "recovered": true,
-        "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "453",
-        "at": 48655.47054927567,
-        "recovered": false,
-        "exit": null,
-        "reason": "circle-deviation",
-        "methods": []
-      },
-      {
-        "id": "442",
-        "at": 18016.737698179153,
+        "id": "693",
+        "at": 3274,
         "recovered": true,
         "exit": 2,
         "reason": null,
@@ -2598,56 +2497,99 @@
         ]
       },
       {
-        "id": "442",
-        "at": 35753.39154267048,
+        "id": "554",
+        "at": 14795,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "10",
+        "at": 202,
         "recovered": false,
         "exit": null,
         "reason": "local-trace-rejected",
         "methods": []
       },
       {
-        "id": "442",
-        "at": 41029.13460206819,
+        "id": "10",
+        "at": 2157,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "10",
+        "at": 3101,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "762",
+        "at": 4451,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "762",
+        "at": 8199,
         "recovered": false,
         "exit": null,
         "reason": "arm-deviation",
         "methods": []
       },
       {
-        "id": "669",
-        "at": 3506,
+        "id": "711",
+        "at": 749,
+        "recovered": false,
+        "exit": null,
+        "reason": "arm-deviation",
+        "methods": []
+      },
+      {
+        "id": "173",
+        "at": 39312,
+        "recovered": false,
+        "exit": null,
+        "reason": "incomplete-circle",
+        "methods": []
+      },
+      {
+        "id": "239",
+        "at": 10473,
+        "recovered": true,
+        "exit": 2,
+        "reason": null,
+        "methods": [
+          "verified-arms",
+          "verified-arms"
+        ]
+      },
+      {
+        "id": "239",
+        "at": 13415,
+        "recovered": false,
+        "exit": null,
+        "reason": "local-trace-rejected",
+        "methods": []
+      },
+      {
+        "id": "239",
+        "at": 18779,
         "recovered": true,
         "exit": 1,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "351",
-        "at": 7180,
-        "recovered": false,
-        "exit": null,
-        "reason": "arm-deviation",
-        "methods": []
-      },
-      {
-        "id": "351",
-        "at": 32421,
-        "recovered": true,
-        "exit": 2,
-        "reason": null,
-        "methods": [
-          "verified-arms",
-          "verified-arms"
-        ]
-      },
-      {
-        "id": "351",
-        "at": 35294,
-        "recovered": true,
-        "exit": 2,
         "reason": null,
         "methods": [
           "verified-arms",
@@ -2656,342 +2598,6 @@
       }
     ],
     "samples": [
-      {
-        "id": "614",
-        "at": 2240,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "614",
-        "at": 3350,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 3679,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "614",
-        "at": 5218,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "614",
-        "at": 5253,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 7471,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 7548,
-        "exit": 4,
-        "text": "Alla rotonda, prendi la quarta uscita"
-      },
-      {
-        "id": "614",
-        "at": 8138,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 8494,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "614",
-        "at": 9630,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "614",
-        "at": 10594,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "614",
-        "at": 10782,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "614",
-        "at": 11483,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 1650,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 1967,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 2377,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 2558,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 3349,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 3896,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 4007,
-        "exit": 5,
-        "text": "Alla rotonda, prendi la quinta uscita"
-      },
-      {
-        "id": "458",
-        "at": 6148,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "458",
-        "at": 7606,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 7700,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 7915,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 8069,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 9118,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 9594,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "458",
-        "at": 10314,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 10808,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 12408,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 13914,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 17468,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 23581,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 23781,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "458",
-        "at": 24270,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 25089,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 26450,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 28373,
-        "exit": null,
-        "text": "Alla rotonda, segui il percorso GPX ufficiale"
-      },
-      {
-        "id": "458",
-        "at": 38420,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "458",
-        "at": 39032,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "77",
-        "at": 14271,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 15674,
-        "exit": 4,
-        "text": "Alla rotonda, prendi la quarta uscita"
-      },
-      {
-        "id": "77",
-        "at": 17140,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 18721,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 19828,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "77",
-        "at": 19989,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 20185,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 20487,
-        "exit": 3,
-        "text": "Alla rotonda, prendi la terza uscita"
-      },
-      {
-        "id": "77",
-        "at": 20717,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "77",
-        "at": 21325,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "77",
-        "at": 21637,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "617",
-        "at": 980.0,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "617",
-        "at": 1162.0,
-        "exit": 4,
-        "text": "Alla rotonda, prendi la quarta uscita"
-      },
-      {
-        "id": "617",
-        "at": 3239.2666279815785,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "617",
-        "at": 4475.2666279815785,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "617",
-        "at": 4561.2666279815785,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
       {
         "id": "513",
         "at": 442,
@@ -3155,106 +2761,442 @@
         "text": "Alla rotonda, segui il percorso GPX ufficiale"
       },
       {
-        "id": "151",
-        "at": 3096,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 3648,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "673",
-        "at": 3700,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "673",
-        "at": 4226,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 5384,
+        "id": "368",
+        "at": 1113,
         "exit": 3,
         "text": "Alla rotonda, prendi la terza uscita"
       },
       {
-        "id": "673",
-        "at": 6349,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 6535,
+        "id": "368",
+        "at": 4613,
         "exit": 1,
         "text": "Alla rotonda, prendi la prima uscita"
       },
       {
-        "id": "673",
-        "at": 7235,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 7579,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 8110,
-        "exit": 2,
-        "text": "Alla rotonda, prendi la seconda uscita"
-      },
-      {
-        "id": "673",
-        "at": 8552,
+        "id": "368",
+        "at": 9006,
         "exit": 1,
         "text": "Alla rotonda, prendi la prima uscita"
       },
       {
-        "id": "673",
-        "at": 9626,
+        "id": "368",
+        "at": 10830,
         "exit": 2,
         "text": "Alla rotonda, prendi la seconda uscita"
       },
       {
-        "id": "673",
-        "at": 11058,
+        "id": "368",
+        "at": 11235,
         "exit": 2,
         "text": "Alla rotonda, prendi la seconda uscita"
       },
       {
-        "id": "673",
-        "at": 11253,
+        "id": "368",
+        "at": 12431,
         "exit": 2,
         "text": "Alla rotonda, prendi la seconda uscita"
       },
       {
-        "id": "132",
-        "at": 706,
-        "exit": 1,
-        "text": "Alla rotonda, prendi la prima uscita"
-      },
-      {
-        "id": "132",
-        "at": 1298,
+        "id": "368",
+        "at": 13725,
         "exit": 2,
         "text": "Alla rotonda, prendi la seconda uscita"
       },
       {
-        "id": "132",
-        "at": 1742,
+        "id": "368",
+        "at": 14471,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 14622,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 15160,
         "exit": 3,
         "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "368",
+        "at": 15513,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 16335,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 16729,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 17026,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "368",
+        "at": 19247,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "368",
+        "at": 19281,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "368",
+        "at": 19750,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "80",
+        "at": 832,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "80",
+        "at": 2273,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "97",
+        "at": 337,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "97",
+        "at": 2183,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "97",
+        "at": 5885,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "97",
+        "at": 6386,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "97",
+        "at": 16371,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "97",
+        "at": 17510,
+        "exit": 4,
+        "text": "Alla rotonda, prendi la quarta uscita"
+      },
+      {
+        "id": "97",
+        "at": 25431,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 5024,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 5636,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 15282,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "37",
+        "at": 22056,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 24406,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 27673,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 35090,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 40346,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 41290,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 43274,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 46332,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 47480,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "37",
+        "at": 47641,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 47836,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 48139,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 48368,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 48976,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "37",
+        "at": 49418,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "37",
+        "at": 49655,
+        "exit": 4,
+        "text": "Alla rotonda, prendi la quarta uscita"
+      },
+      {
+        "id": "460",
+        "at": 244.0,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 4696.362922159741,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 5516.663015430307,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 5978.663015430307,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 6187.663015430307,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 12398.04592892907,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 12435.04592892907,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 16001.606152480317,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 17561.897504476507,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 19184.482866026432,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 19676.482866026432,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "460",
+        "at": 20430.482866026432,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 21065.482866026432,
+        "exit": 3,
+        "text": "Alla rotonda, prendi la terza uscita"
+      },
+      {
+        "id": "460",
+        "at": 28357.217362733132,
+        "exit": null,
+        "text": "Alla rotonda, segui il percorso GPX ufficiale"
+      },
+      {
+        "id": "460",
+        "at": 30228.481135296202,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "460",
+        "at": 30524.71153949514,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 30735.71153949514,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "460",
+        "at": 31450.71153949514,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 32001.71153949514,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 32475.71153949514,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 32876.50991410949,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "460",
+        "at": 33541.50991410949,
+        "exit": 4,
+        "text": "Alla rotonda, prendi la quarta uscita"
+      },
+      {
+        "id": "460",
+        "at": 34238.50991410949,
+        "exit": 1,
+        "text": "Alla rotonda, prendi la prima uscita"
+      },
+      {
+        "id": "118",
+        "at": 5607.354716285288,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "118",
+        "at": 6573.354716285288,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "118",
+        "at": 13413.502484246694,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "118",
+        "at": 28589.086993124925,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
+      },
+      {
+        "id": "118",
+        "at": 30380.010700685147,
+        "exit": 2,
+        "text": "Alla rotonda, prendi la seconda uscita"
       }
     ]
   },
