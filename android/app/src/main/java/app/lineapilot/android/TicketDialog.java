@@ -13,7 +13,7 @@ final class TicketDialog {
     private final TicketData data;
     private final AlertDialog dialog;
     private final Spinner line, from, to;
-    private final TextView result;
+    private final TextView result, fareNote;
     private final List<Integer> order;
     private int lineIndex, fromIndex = -1, toIndex = -1;
     private double[] fix;
@@ -32,6 +32,15 @@ final class TicketDialog {
         result.setTag("ticket-result");
         result.setPadding(0, dp(c, 10), 0, dp(c, 4));
         box.addView(result);
+        fareNote = new TextView(c);
+        fareNote.setTag("ticket-fare-note");
+        fareNote.setTextSize(14); fareNote.setTextColor(Color.BLACK);
+        fareNote.setPadding(dp(c, 10), dp(c, 8), dp(c, 10), dp(c, 8));
+        android.graphics.drawable.GradientDrawable tint = new android.graphics.drawable.GradientDrawable();
+        tint.setColor(Color.argb(26, 11, 110, 79)); tint.setCornerRadius(dp(c, 12));
+        fareNote.setBackground(tint); fareNote.setVisibility(View.GONE);
+        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, -2); np.setMargins(0, 0, 0, dp(c, 6));
+        box.addView(fareNote, np);
         TextView note = new TextView(c);
         note.setText("Prezzi a bordo, corsa semplice · polimetriche Busitalia 10/2024");
         note.setTextSize(11); note.setTextColor(Color.GRAY);
@@ -99,7 +108,7 @@ final class TicketDialog {
             for (int i = 0; i < l.names.length; i++) items.add((i + 1) + " · " + l.names[i]);
             fill(c, s, items, current < 0 ? 0 : current);
         }
-        String text; boolean priced = false;
+        String text, howTo = ""; boolean priced = false;
         if (l == null) text = "Scegli la linea della polimetrica";
         else if (fromIndex < 0) text = "Scegli la salita";
         else if (toIndex < 0) text = "Scegli la discesa";
@@ -108,7 +117,10 @@ final class TicketDialog {
             text = data.fareText(lineIndex, fromIndex, toIndex);
             if (text == null) text = data.labels.get("");
             priced = code != null && !code.isEmpty();
+            howTo = data.fareNote(lineIndex, fromIndex, toIndex);
         }
+        fareNote.setText(howTo);
+        fareNote.setVisibility(howTo.isEmpty() ? View.GONE : View.VISIBLE);
         result.setText(text);
         result.setTextSize(priced ? 22 : 16);
         result.setTypeface(Typeface.DEFAULT, priced ? Typeface.BOLD : Typeface.NORMAL);

@@ -24,12 +24,17 @@ test('polimetriche: 62 lines, complete lower triangles, every code priced',()=>{
  for(const [code,text] of Object.entries(data.labels))assert.ok(code===''||/ a bordo/.test(text),text);
  assert.equal(data.labels.C1,'Classe 1 = € 2,50 a bordo');
  assert.equal(data.labels.C13,'Classe 13 = € 11,50 a bordo');
+ // Comunicato n.634/2026: dedicated € 13,00 ticket, € 13,00 + € 2,00 from Montegrotto.
+ assert.match(data.notes['PD-TESSERA'],/^Solo biglietto dedicato da € 13,00\./);
+ assert.match(data.notes['ABANO-TESSERA'],/^Biglietto dedicato da € 13,00 \+ biglietto da € 2,00\./);
+ for(const code of Object.keys(data.notes))assert.ok(code in data.labels,code);
 });
 test('fares match the polimetrica cells checked against the PDF',()=>{
  for(const c of cases.fares){
   const l=line(c.line),from=stop(l,c.from),to=stop(l,c.to);
   assert.ok(from>=0&&to>=0,c.line+' '+c.from+' '+c.to);
   assert.equal(Tickets.fare(data,l,from,to).text,c.text,c.line+' '+c.from+'→'+c.to);
+  assert.equal(Tickets.fare(data,l,from,to).note,c.note,c.line+' '+c.from+'→'+c.to+' note');
  }
  assert.equal(Tickets.fare(data,line('E001'),-1,3),null);
  assert.equal(Tickets.fare(data,line('E001'),0,99),null);

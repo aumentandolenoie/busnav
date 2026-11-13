@@ -40,6 +40,7 @@ public class TicketDataTest {
             int l = line(d, c.getString("line")), a = stop(d, l, c.getString("from")), b = stop(d, l, c.getString("to"));
             assertTrue(c.toString(), l >= 0 && a >= 0 && b >= 0);
             assertEquals(c.toString(), c.getString("text"), d.fareText(l, a, b));
+            assertEquals(c.toString(), c.getString("note"), d.fareNote(l, a, b));
         }
         assertEquals(11, fares.length());
         JSONArray nearest = cases.getJSONArray("nearest");

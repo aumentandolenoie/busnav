@@ -25,10 +25,23 @@ LABELS = {f'C{k}': f'Classe {k} = € {v} a bordo' for k, v in CLASS_PRICES.item
 LABELS.update({
     'TU1': 'TU1 = € 2,50 a bordo',
     'TU2': 'TU2 = € 3,00 a bordo',
-    'PD-TESSERA': 'Tariffa turistica = € 13,00 a bordo (bambini fino a 11 anni € 6,50)',
-    'ABANO-TESSERA': 'Tariffa turistica = € 15,00 a bordo (bambini fino a 11 anni € 7,50)',
+    'PD-TESSERA': 'Tariffa turistica = € 13,00 a bordo',
+    'ABANO-TESSERA': 'Tariffa turistica = € 15,00 a bordo',
     '': 'Classe non indicata nella polimetrica di questa linea',
 })
+
+# How to sell the fare on board, shown under the price. Comunicato n.634 del
+# 10/11/2026 (in vigore dal 12/11/2026): Padova–Aeroporto Venezia Marco Polo only
+# with the dedicated € 13,00 ticket; Montegrotto € 13,00 + € 2,00; children up to 11
+# with € 2,00 / € 2,50 / € 5,00 tickets; under 4 free; extra luggage € 2,50 on board.
+_TESSERA_COMMON = ('Bambini sotto i 4 anni gratis. Senza biglietti dedicati chiamare la Centrale Operativa. '
+                   'Bagaglio oltre franchigia € 2,50. Convalidare nell’obliteratrice di bordo.')
+NOTES = {
+    'PD-TESSERA': 'Solo biglietto dedicato da € 13,00. Bambini fino a 11 anni € 6,50 '
+                  '(biglietti da € 2,00, € 2,50, € 5,00: es. 2,50 + 2,00 + 2,00). ' + _TESSERA_COMMON,
+    'ABANO-TESSERA': 'Biglietto dedicato da € 13,00 + biglietto da € 2,00. Bambini fino a 11 anni € 7,50 '
+                     '(biglietti da € 2,00, € 2,50, € 5,00: es. 5,00 + 2,50). ' + _TESSERA_COMMON,
+}
 
 # Fare nodes whose municipality is certain: Padova (TU1) and the other 12
 # municipalities of the Conurbazione (TU2), as listed on page 1 of the PDF.
@@ -218,9 +231,10 @@ def build(pdf_path, gtfs_zip):
                     'fares': fares, **({'droppedCells': dropped} if dropped else {})})
     return {
         'version': 1,
-        'source': 'Busitalia Veneto: Polimetriche servizio extraurbano Provincia di Padova (agg. 10/2024) e Prezziario biglietti a bordo; Comunicazione n.478 del 27.08.2024 per Tessera.',
+        'source': 'Busitalia Veneto: Polimetriche servizio extraurbano Provincia di Padova (agg. 10/2024) e Prezziario biglietti a bordo; Comunicazione n.478 del 27.08.2024 e Comunicato n.634 del 10.11.2026 per Tessera.',
         'note': 'Solo prezzi del biglietto a bordo, corsa semplice. Le classi vanno da salita e discesa sulla stessa linea.',
         'labels': LABELS,
+        'notes': NOTES,
         'lines': out,
     }, report
 

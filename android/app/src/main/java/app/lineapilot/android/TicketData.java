@@ -21,11 +21,14 @@ final class TicketData {
     }
 
     final Map<String, String> labels;
+    /** How to sell a fare on board (e.g. which tickets to combine); may be empty. */
+    final Map<String, String> notes;
     final List<Line> lines;
     final int[] suggested;
 
-    TicketData(Map<String, String> labels, List<Line> lines, int[] suggested) {
-        this.labels = labels; this.lines = lines;
+    TicketData(Map<String, String> labels, List<Line> lines, int[] suggested) { this(labels, new HashMap<>(), lines, suggested); }
+    TicketData(Map<String, String> labels, Map<String, String> notes, List<Line> lines, int[] suggested) {
+        this.labels = labels; this.notes = notes; this.lines = lines;
         int[] valid = new int[suggested.length]; int n = 0;
         for (int i : suggested) if (i >= 0 && i < lines.size()) valid[n++] = i;
         this.suggested = Arrays.copyOf(valid, n);
@@ -38,6 +41,9 @@ final class TicketData {
             Map<String, String> labels = new HashMap<>();
             JSONObject l = raw.getJSONObject("labels");
             for (Iterator<String> keys = l.keys(); keys.hasNext(); ) { String k = keys.next(); labels.put(k, l.getString(k)); }
+            Map<String, String> notes = new HashMap<>();
+            JSONObject ns = raw.optJSONObject("notes");
+            if (ns != null) for (Iterator<String> keys = ns.keys(); keys.hasNext(); ) { String k = keys.next(); notes.put(k, ns.optString(k, "")); }
             JSONArray ls = raw.getJSONArray("lines");
             List<Line> lines = new ArrayList<>();
             for (int i = 0; i < ls.length(); i++) {
@@ -59,7 +65,7 @@ final class TicketData {
             JSONArray sg = raw.optJSONArray("suggested");
             int[] suggested = new int[sg == null ? 0 : sg.length()];
             for (int i = 0; i < suggested.length; i++) suggested[i] = sg.getInt(i);
-            return lines.isEmpty() ? null : new TicketData(labels, lines, suggested);
+            return lines.isEmpty() ? null : new TicketData(labels, notes, lines, suggested);
         } catch (JSONException e) {
             return null; // bad ticket data must never block navigation
         }
@@ -80,7 +86,7 @@ final class TicketData {
             }
         }
         if (data == null || data.suggested.length > 0 || route == null) return data;
-        return new TicketData(data.labels, data.lines, suggestedLines(data.lines,
+        return new TicketData(data.labels, data.notes, data.lines, suggestedLines(data.lines,
                 route.optString("category", ""), route.optString("line", ""), route.optString("name", "")));
     }
 
@@ -138,6 +144,13 @@ final class TicketData {
         if (code == null) return null;
         String text = labels.get(code);
         return text != null ? text : labels.get("");
+    }
+
+    /** How to sell that fare on board, or "" when there is nothing to add. */
+    String fareNote(int line, int from, int to) {
+        String code = code(line, from, to);
+        String note = code == null ? null : notes.get(code);
+        return note == null ? "" : note;
     }
 
     /** Nearest fare node with a known position within {@code limit} metres, or -1. */

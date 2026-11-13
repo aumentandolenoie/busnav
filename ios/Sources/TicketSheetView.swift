@@ -13,6 +13,7 @@ final class TicketSheetView: UIVisualEffectView {
     private let fromButton = UIButton(type: .system)
     private let toButton = UIButton(type: .system)
     private let result = UILabel()
+    private let fareNote = UILabel()
 
     init(data: TicketData) {
         self.data = data
@@ -34,12 +35,14 @@ final class TicketSheetView: UIVisualEffectView {
 
         result.font = .systemFont(ofSize: 22, weight: .heavy); result.numberOfLines = 0
         result.accessibilityIdentifier = "ticketResult"
+        fareNote.font = .systemFont(ofSize: 14, weight: .medium); fareNote.numberOfLines = 0
+        fareNote.accessibilityIdentifier = "ticketFareNote"; fareNote.isHidden = true
         let note = UILabel(); note.text = "Prezzi a bordo, corsa semplice · polimetriche Busitalia 10/2024"
         note.font = .systemFont(ofSize: 11); note.textColor = .secondaryLabel; note.numberOfLines = 0
 
         let stack = UIStackView(arrangedSubviews: [head,
             row("Linea", lineButton, id: "ticketLine"), row("Salita", fromButton, id: "ticketFrom"),
-            row("Discesa", toButton, id: "ticketTo"), result, note])
+            row("Discesa", toButton, id: "ticketTo"), result, fareNote, note])
         stack.axis = .vertical; stack.spacing = 8
         stack.translatesAutoresizingMaskIntoConstraints = false
         // Scrolls when the screen is short or the text is very large.
@@ -126,7 +129,7 @@ final class TicketSheetView: UIVisualEffectView {
             })
         }
 
-        var text = "", priced = false
+        var text = "", priced = false, howTo = ""
         if data.isEmpty { text = "Polimetriche non disponibili" }
         else if !lines.indices.contains(line) { text = "Scegli la linea della polimetrica" }
         else if from == nil { text = "Scegli la salita" }
@@ -134,7 +137,10 @@ final class TicketSheetView: UIVisualEffectView {
         else if let from, let to {
             text = data.fareText(line: line, from: from, to: to) ?? (data.labels[""] ?? "")
             priced = (data.code(line: line, from: from, to: to) ?? "") != ""
+            howTo = data.fareNote(line: line, from: from, to: to)
         }
+        fareNote.text = howTo
+        fareNote.isHidden = howTo.isEmpty
         result.text = text
         result.font = .systemFont(ofSize: priced ? 22 : 16, weight: priced ? .heavy : .semibold)
         result.textColor = priced ? UIColor(red: 0.04, green: 0.43, blue: 0.31, alpha: 1) : .secondaryLabel
@@ -148,6 +154,7 @@ final class TicketSheetView: UIVisualEffectView {
 
     /// For tests and VoiceOver checks: what the sheet shows now.
     var resultText: String { result.text ?? "" }
+    var noteText: String { fareNote.isHidden ? "" : (fareNote.text ?? "") }
     var boardingTitle: String { fromButton.configuration?.title ?? "" }
     /// Same effect as picking the items in the menus.
     func choose(line: Int? = nil, from: Int? = nil, to: Int? = nil) {

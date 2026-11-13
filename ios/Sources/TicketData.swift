@@ -41,28 +41,31 @@ struct TicketData: Decodable {
     static let nearestLimit = 6000.0
 
     let labels: [String: String]
+    /// How to sell a fare on board (e.g. which tickets to combine); optional.
+    let notes: [String: String]
     let lines: [Line]
     let suggested: [Int]
 
-    private enum Keys: String, CodingKey { case labels, lines, suggested }
+    private enum Keys: String, CodingKey { case labels, notes, lines, suggested }
     init(from decoder: Decoder) throws {
         // Bad ticket data must never block navigation: it only disables the calculator.
         if let parts = try? Self.parts(decoder) {
-            labels = parts.labels; lines = parts.lines
+            labels = parts.labels; notes = parts.notes; lines = parts.lines
             suggested = parts.suggested.filter { parts.lines.indices.contains($0) }
         } else {
-            labels = [:]; lines = []; suggested = []
+            labels = [:]; notes = [:]; lines = []; suggested = []
         }
     }
-    private static func parts(_ decoder: Decoder) throws -> (labels: [String: String], lines: [Line], suggested: [Int]) {
+    private static func parts(_ decoder: Decoder) throws -> (labels: [String: String], notes: [String: String], lines: [Line], suggested: [Int]) {
         let c = try decoder.container(keyedBy: Keys.self)
         return (try c.decode([String: String].self, forKey: .labels),
+                (try? c.decodeIfPresent([String: String].self, forKey: .notes)) ?? [:],
                 try c.decode([Line].self, forKey: .lines),
                 try c.decodeIfPresent([Int].self, forKey: .suggested) ?? [])
     }
 
-    init(labels: [String: String], lines: [Line], suggested: [Int]) {
-        self.labels = labels; self.lines = lines
+    init(labels: [String: String], notes: [String: String] = [:], lines: [Line], suggested: [Int]) {
+        self.labels = labels; self.notes = notes; self.lines = lines
         self.suggested = suggested.filter { lines.indices.contains($0) }
     }
 
@@ -84,7 +87,7 @@ struct TicketData: Decodable {
         }
         guard let data, !data.isEmpty else { return nil }
         guard data.suggested.isEmpty, let route else { return data }
-        return TicketData(labels: data.labels, lines: data.lines,
+        return TicketData(labels: data.labels, notes: data.notes, lines: data.lines,
                           suggested: suggestedLines(data.lines, category: route.category ?? "", line: route.line ?? "", name: route.name ?? ""))
     }
 
@@ -130,6 +133,11 @@ struct TicketData: Decodable {
     func fareText(line: Int, from: Int, to: Int) -> String? {
         guard let code = code(line: line, from: from, to: to) else { return nil }
         return labels[code] ?? labels[""]
+    }
+
+    /// How to sell that fare on board, or "" when there is nothing to add.
+    func fareNote(line: Int, from: Int, to: Int) -> String {
+        code(line: line, from: from, to: to).flatMap { notes[$0] } ?? ""
     }
 
     /// Nearest fare node with a known position, if within `limit` metres.

@@ -4,67 +4,78 @@
    "line": "E001",
    "from": "PADOVA",
    "to": "LEGNARO C.",
-   "text": "Classe 2 = € 3,50 a bordo"
+   "text": "Classe 2 = € 3,50 a bordo",
+   "note": ""
   },
   {
    "line": "E001",
    "from": "ADRIA AUTOSTAZIONE",
    "to": "PADOVA",
-   "text": "Classe 7 = € 7,00 a bordo"
+   "text": "Classe 7 = € 7,00 a bordo",
+   "note": ""
   },
   {
    "line": "E001",
    "from": "PADOVA",
    "to": "ADRIA AUTOSTAZIONE",
-   "text": "Classe 7 = € 7,00 a bordo"
+   "text": "Classe 7 = € 7,00 a bordo",
+   "note": ""
   },
   {
    "line": "E001",
    "from": "PADOVA",
    "to": "RONCAGLIA",
-   "text": "TU2 = € 3,00 a bordo"
+   "text": "TU2 = € 3,00 a bordo",
+   "note": ""
   },
   {
    "line": "E001",
    "from": "PADOVA",
    "to": "PADOVA",
-   "text": "TU1 = € 2,50 a bordo"
+   "text": "TU1 = € 2,50 a bordo",
+   "note": ""
   },
   {
    "line": "E015",
    "from": "PADOVA",
    "to": "TESSERA AEROPORTO",
-   "text": "Tariffa turistica = € 13,00 a bordo (bambini fino a 11 anni € 6,50)"
+   "text": "Tariffa turistica = € 13,00 a bordo",
+   "note": "Solo biglietto dedicato da € 13,00. Bambini fino a 11 anni € 6,50 (biglietti da € 2,00, € 2,50, € 5,00: es. 2,50 + 2,00 + 2,00). Bambini sotto i 4 anni gratis. Senza biglietti dedicati chiamare la Centrale Operativa. Bagaglio oltre franchigia € 2,50. Convalidare nell’obliteratrice di bordo."
   },
   {
    "line": "E015",
    "from": "MONTEGROTTO TURRI",
    "to": "TESSERA AEROPORTO",
-   "text": "Tariffa turistica = € 15,00 a bordo (bambini fino a 11 anni € 7,50)"
+   "text": "Tariffa turistica = € 15,00 a bordo",
+   "note": "Biglietto dedicato da € 13,00 + biglietto da € 2,00. Bambini fino a 11 anni € 7,50 (biglietti da € 2,00, € 2,50, € 5,00: es. 5,00 + 2,50). Bambini sotto i 4 anni gratis. Senza biglietti dedicati chiamare la Centrale Operativa. Bagaglio oltre franchigia € 2,50. Convalidare nell’obliteratrice di bordo."
   },
   {
    "line": "E015",
    "from": "PADOVA",
    "to": "VENEZIA P.LE ROMA",
-   "text": "Classe 5 = € 5,50 a bordo"
+   "text": "Classe 5 = € 5,50 a bordo",
+   "note": ""
   },
   {
    "line": "E031",
    "from": "MESTRINO",
    "to": "LISSARO",
-   "text": "Classe 1 = € 2,50 a bordo"
+   "text": "Classe 1 = € 2,50 a bordo",
+   "note": ""
   },
   {
    "line": "E031",
    "from": "PADOVA",
    "to": "BEVADORO",
-   "text": "Classe non indicata nella polimetrica di questa linea"
+   "text": "Classe non indicata nella polimetrica di questa linea",
+   "note": ""
   },
   {
    "line": "M",
    "from": "TORREGLIA",
    "to": "LUVIGLIANO",
-   "text": "Classe 1 = € 2,50 a bordo"
+   "text": "Classe 1 = € 2,50 a bordo",
+   "note": ""
   }
  ],
  "nearest": [

@@ -85,6 +85,7 @@ if let raw = FileManager.default.contents(atPath: "fares/polimetriche-padova.jso
         let l = line(c["line"] as! String), a = stop(l, c["from"] as! String), b = stop(l, c["to"] as! String)
         check(l >= 0 && a >= 0 && b >= 0, "ticket case \(c)")
         check(tickets.fareText(line: l, from: a, to: b) == c["text"] as? String, "fare \(c): \(tickets.fareText(line: l, from: a, to: b) ?? "nil")")
+        check(tickets.fareNote(line: l, from: a, to: b) == c["note"] as? String, "note \(c)")
     }
     check(fares.count == 11, "ticket fixture complete")
     for c in cases["nearest"] as? [[String: Any]] ?? [] {

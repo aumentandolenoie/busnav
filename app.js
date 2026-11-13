@@ -357,13 +357,14 @@ function renderTicketStops(){
 }
 function renderTicketResult(){
  const out=$('ticketResult'),line=ticketData?.lines[ticketState.line];
- let text='',empty=true;
+ let text='',empty=true,note='';
  if(!ticketData)text='Polimetriche non disponibili: controlla la connessione e riprova';
  else if(!line)text='Scegli la linea della polimetrica';
  else if(ticketState.from<0)text='Scegli la salita';
  else if(ticketState.to<0)text='Scegli la discesa';
- else{const f=Tickets.fare(ticketData,line,ticketState.from,ticketState.to);text=f?.text||ticketData.labels[''];empty=!f||f.code===''}
+ else{const f=Tickets.fare(ticketData,line,ticketState.from,ticketState.to);text=f?.text||ticketData.labels[''];empty=!f||f.code==='';note=f?.note||''}
  out.textContent=text;out.dataset.empty=empty?'yes':'no';
+ $('ticketFareNote').textContent=note;$('ticketFareNote').hidden=!note;
 }
 async function openTicketSheet(){
  const sheet=$('ticketSheet');
@@ -396,7 +397,7 @@ $('ticketTo').addEventListener('change',e=>{ticketState.to=Number(e.target.value
 function nativeTicketPayload(){
  // Without data the native app reads its bundled copy and suggests the line itself.
  if(!ticketData)return null;
- return {labels:ticketData.labels,lines:ticketData.lines.map(l=>({code:l.code,title:l.title,stops:l.stops,fares:l.fares})),suggested:Tickets.suggestedLines(ticketData,current?.academy)};
+ return {labels:ticketData.labels,notes:ticketData.notes||{},lines:ticketData.lines.map(l=>({code:l.code,title:l.title,stops:l.stops,fares:l.fares})),suggested:Tickets.suggestedLines(ticketData,current?.academy)};
 }
 function renderDriveVoiceButton(){
  const on=$('voiceToggle').checked,b=$('driveVoiceToggle');

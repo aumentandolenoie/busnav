@@ -46,7 +46,8 @@
   if(!data||!line||!(from>=0)||!(to>=0)||from>=line.stops.length||to>=line.stops.length)return null;
   const code=line.fares[Math.max(from,to)]?.[Math.min(from,to)];
   if(code==null)return null;
-  return {code,text:data.labels[code]??data.labels['']};
+  // note: how to sell it on board (e.g. which tickets to combine), may be ''.
+  return {code,text:data.labels[code]??data.labels[''],note:data.notes?.[code]||''};
  }
  function lineLabel(line){return line.code+' · '+line.title}
  return {NEAREST_LIMIT,suggestedLines,nearestStop,fare,lineLabel,metres};

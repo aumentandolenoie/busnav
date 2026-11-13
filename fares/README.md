@@ -11,6 +11,9 @@
 - **Prezziario biglietti** (scansione): colonna *Biglietto a bordo*. Solo prezzi a bordo:
   quelli a terra non sono usati.
 - **Comunicazione n.478 del 27.08.2024**: nuove tariffe per l'aeroporto di Tessera.
+- **Comunicato n.634 del 10.11.2026** (dal 12/11/2026): come vendere a bordo le corse
+  Padova – Aeroporto Venezia Marco Polo. Sotto il prezzo la scheda mostra queste istruzioni
+  (`notes` nel JSON).
 
 I PDF non sono nel repository: il JSON si rigenera con
 
@@ -26,8 +29,8 @@ python3 scripts/build_polimetriche.py Polimetriche_Padova_2410.pdf \
 | `C1`…`C13` | `Classe N = € X a bordo` (classe 1 € 2,50 … classe 13 € 11,50) |
 | `TU1` | entrambe le fermate nel comune di Padova: € 2,50 |
 | `TU2` | entrambe nella Conurbazione (Padova, Abano T., Albignasego, Cadoneghe, Limena, Noventa P., Ponte San Nicolò, Rubano, Saonara, Selvazzano D., Vigodarzere, Vigonza, Villafranca P.): € 3,00 |
-| `PD-TESSERA` | Padova – Tessera aeroporto: € 13,00 (bambini fino a 11 anni € 6,50) |
-| `ABANO-TESSERA` | Montegrotto/Abano – Tessera: € 15,00 (bambini € 7,50) |
+| `PD-TESSERA` | Padova – Tessera aeroporto: € 13,00, **solo biglietto dedicato da € 13,00**; bambini fino a 11 anni € 6,50 con biglietti da € 2,00/2,50/5,00 |
+| `ABANO-TESSERA` | Montegrotto/Abano – Tessera: € 15,00 = **biglietto dedicato € 13,00 + € 2,00**; bambini € 7,50 con biglietti da € 2,00/2,50/5,00 |
 | `""` | classe non indicata nella polimetrica di questa linea |
 
 - La classe vale solo per salita e discesa **sulla stessa linea** della polimetrica.
@@ -39,6 +42,10 @@ python3 scripts/build_polimetriche.py Polimetriche_Padova_2410.pdf \
 - Nel prezziario Padova–Tessera è ancora € 10,00 e Montegrotto/Abano–Tessera € 13,00:
   si usano i valori più recenti (€ 13,00 / € 15,00) della comunicazione n.478 e della
   polimetrica 10/2024.
+
+Per entrambe le tratte Tessera la nota ricorda anche: bambini sotto i 4 anni gratis, senza
+biglietti dedicati telefonare alla Centrale Operativa, bagaglio oltre franchigia € 2,50 a
+bordo, convalida solo nell'obliteratrice.
 
 ## Salita automatica
 
