@@ -332,7 +332,7 @@ function layoutDriveView(){
  const topBottom=top.offsetTop+top.offsetHeight;
  bottom.style.maxHeight=Math.max(120,landscape?H-safe.bottom-8-(topBottom+8):Math.min(.48*(H-safe.top-safe.bottom),H-safe.bottom-8-(topBottom+60)))+'px';
  const bottomTop=bottom.offsetTop;
- tools.style.bottom=landscape?'':(H-bottomTop+9)+'px';
+ tools.style.bottom=landscape?'':(H-bottomTop+9)+'px';tools.dataset.placed='yes';
  const view=landscape?{left:top.offsetLeft+top.offsetWidth+8,top:safe.top+8,right:W-safe.right-8,bottom:H-safe.bottom-8}
   :{left:safe.left+8,top:topBottom+8,right:W-safe.right-8,bottom:bottomTop-8};
  const ax=(view.left+view.right)/2,ay=view.top+Math.max(0,view.bottom-view.top)*DRIVE_POSITION_ANCHOR;
@@ -347,7 +347,7 @@ function layoutDriveView(){
  if(lastCameraPoint)map.setView([lastCameraPoint.lat,lastCameraPoint.lng],map.getZoom(),{animate:false});
 }
 function scheduleDriveLayout(){if(!driveLayoutFrame)driveLayoutFrame=requestAnimationFrame(layoutDriveView)}
-function resetDriveMapBox(){driveMapBox='';const el=$('map');['position','inset','left','top','width','height'].forEach(k=>el.style[k]='')}
+function resetDriveMapBox(){driveMapBox='';delete $('driveTools').dataset.placed;const el=$('map');['position','inset','left','top','width','height'].forEach(k=>el.style[k]='')}
 if(window.ResizeObserver){const ro=new ResizeObserver(scheduleDriveLayout);['driveTop','driveBottom'].forEach(id=>$(id)&&ro.observe($(id)))}
 addEventListener('resize',scheduleDriveLayout);
 window.visualViewport?.addEventListener('resize',scheduleDriveLayout);
@@ -386,7 +386,7 @@ function enterNavigationView(){
  document.body.classList.add('navigating');
  $('driveView').hidden=false;
  driveNorthUp=false;$('driveCompass').setAttribute('aria-pressed','false');
- $('driveRepeat').innerHTML=DRIVE_ICONS.speaker;$('driveRecenter').innerHTML=DRIVE_ICONS.location;renderDriveVoiceButton();
+ renderDriveVoiceButton();
  const verified=turns.some(t=>t.verifiedRoad);
  setDriveTurn('Attesa GPS',verified?'Segui il percorso ufficiale':'Manovre stradali non disponibili','up');
  setDriveStop(current?.stops?.[0]?.stop?.stop_name||'Solo percorso GPX','');
