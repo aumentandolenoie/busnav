@@ -670,6 +670,15 @@ const ACADEMY_DOCUMENTS={
 };
 const sortIt=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true,sensitivity:'base'});
 function academyGroupName(r){return String(r.line||'Altri percorsi').trim();}
+// Market-day detours: the Academy folder ("…/Deviazioni mercatali /5 Venerdì /…") gives the day.
+function academyMarketDay(route){
+ for(const path of route?._evidence?.sourcePaths||[]){
+  const m=/deviazioni mercatali\s*\/\s*\d+\s+([^/]+?)\s*\//i.exec(path);
+  if(m)return m[1].trim();
+ }
+ return '';
+}
+function academyLineLabel(route){const day=academyMarketDay(route);return academyGroupName(route)+(day?' ('+day+')':'')}
 // These Academy files share the same ordered coordinates, service evidence
 // and stop proposals. Keep the source IDs and group only the picker options.
 const ACADEMY_ROUTE_ALIASES=new Map([[2,3],[55,56],[76,75],[103,101],[110,109],[208,209]]);
@@ -693,7 +702,8 @@ function academyRouteChoices(routes,query){
   const code=String(route.variant??'').trim();
   const distinctCode=code&&homonyms.filter(r=>normalize(r.variant)===normalize(code)).length===1;
   const label=homonyms.length<=1?route.name:route.name+(distinctCode?' · cod. '+code:' · GPX '+route.id);
-  choices.push([String(route.id),label]);
+  const day=academyMarketDay(route);
+  choices.push([String(route.id),day?label+' · '+day:label]);
  }
  return choices.sort((a,b)=>sortIt(a[1],b[1]));
 }
@@ -1091,7 +1101,7 @@ function searchAcademyRoutes(routes,query){
  for(const route of routes){
   if(ACADEMY_ROUTE_ALIASES.has(route.id)||ACADEMY_DOCUMENTS[route.category])continue;
   const name=academySearchText(route.name),code=academySearchText(route.variant);
-  const words=academySearchText([route.variant,route.name,route.line,route.category,route.filename].join(' ')).split(' ');
+  const words=academySearchText([route.variant,route.name,route.line,route.category,route.filename,academyMarketDay(route)].join(' ')).split(' ');
   // Every typed word must start a word of the route (numbers too: "20" finds 201).
   // GTFS-style codes are accepted as well: "U15" / "E201" also find 15 / 201.
   const matches=t=>words.some(w=>w.startsWith(t))||/^[ue]\d/.test(t)&&words.some(w=>w.startsWith(t.slice(1)));
@@ -1104,7 +1114,7 @@ function searchAcademyRoutes(routes,query){
 }
 function academySearchLabel(route){
  const code=String(route.variant??'').trim();
- return [route.category,'linea '+academyGroupName(route),code&&'cod. '+code,'GPX '+route.id].filter(Boolean).join(' · ');
+ return [route.category,'linea '+academyLineLabel(route),code&&'cod. '+code,'GPX '+route.id].filter(Boolean).join(' · ');
 }
 function renderAcademySearch(){
  const box=$('academySearchResults'),query=$('academySearch').value;

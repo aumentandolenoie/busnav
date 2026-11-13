@@ -502,3 +502,14 @@ test('native preview keeps feedback visible outside the hidden web map',()=>{
  assert.ok(classes.has('native-preview'));assert.equal(notice.parentElement,body);
 });
 
+
+test('market-day detours show the day of their Academy folder',()=>{
+ const evidence=JSON.parse(fs.readFileSync('academy-evidence.json','utf8'));
+ const routes=JSON.parse(fs.readFileSync('official-routes.json','utf8')).map(r=>({...r,_evidence:evidence.routes[String(r.id)]}));
+ const {academyMarketDay,academySearchLabel}=vm.runInNewContext([sourceOf('academyGroupName'),sourceOf('academyMarketDay'),sourceOf('academyLineLabel'),sourceOf('academySearchLabel')].join('\n')+';({academyMarketDay,academySearchLabel})');
+ const r18=routes.find(r=>r.id===18);
+ assert.equal(academySearchLabel(r18),'Extraurbano · linea Deviazioni mercatali (Venerdì) · cod. 225 · GPX 18');
+ const days=new Set(routes.filter(r=>/mercat/i.test(r.line)).map(academyMarketDay));
+ assert.deepEqual([...days].sort(),['Giovedì','Lunedì','Martedì','Mercoledì','Sabato','Venerdì']);
+ assert.equal(routes.filter(r=>!/mercat/i.test(r.line)&&academyMarketDay(r)).length,0);
+});

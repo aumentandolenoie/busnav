@@ -117,7 +117,7 @@ test('Academy selection groups only confirmed duplicate files and keeps homonymo
  const js=fs.readFileSync('app.js','utf8');
  const aliases=js.match(/const ACADEMY_ROUTE_ALIASES=new Map\(.*\);/)[0];
  const api=new Function(aliases+'\nconst sortIt=(a,b)=>a.localeCompare(b,"it",{numeric:true});\n'+
-  appFunction('academyRouteChoices')+'\nreturn {academyRouteChoices,ACADEMY_ROUTE_ALIASES};')();
+  appFunction('academyMarketDay')+'\n'+appFunction('academyRouteChoices')+'\nreturn {academyRouteChoices,ACADEMY_ROUTE_ALIASES};')();
  const evidence=JSON.parse(fs.readFileSync('academy-evidence.json')).routes;
  const supplemental=JSON.parse(fs.readFileSync('academy-supplemental-routes.json'));
  const routes=[...catalog,...supplemental],byId=new Map(routes.map(r=>[r.id,r]));
@@ -147,7 +147,7 @@ test('catalogue search finds lines directly, ignoring accents, apostrophes and s
  const js=fs.readFileSync('app.js','utf8');
  const constant=name=>js.match(new RegExp('const '+name+'=[\\s\\S]*?;\\n'))[0];
  const api=new Function(constant('ACADEMY_ROUTE_ALIASES')+constant('ACADEMY_DOCUMENTS')+constant('sortIt')+
-  ['academyGroupName','academySearchText','searchAcademyRoutes'].map(appFunction).join('\n')+
+  ['academyGroupName','academyMarketDay','academySearchText','searchAcademyRoutes'].map(appFunction).join('\n')+
   '\nreturn {searchAcademyRoutes,academySearchText};')();
  const routes=[...catalog,...JSON.parse(fs.readFileSync('academy-supplemental-routes.json'))];
  const names=query=>api.searchAcademyRoutes(routes,query).map(r=>r.name);
