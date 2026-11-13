@@ -306,8 +306,9 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     }
     func message(_ message: String) { status.text = message }
     func update(along:Double,deviation:Double,stop:Int,reliable:Bool) {
+        let shown = speedSign.isHidden ? nil : speedSign.text.flatMap { Int($0) }
         let limit = reliable ? fix.flatMap {
-            route.speedLimit(at: along, accuracy: $0.horizontalAccuracy, deviation: deviation)
+            route.speedLimit(at: along, accuracy: $0.horizontalAccuracy, deviation: deviation, keeping: shown)
         } : nil
         speedSign.text = limit.map { String($0) }
         speedSign.accessibilityLabel = limit.map { "Limite di velocità \($0) chilometri orari" }

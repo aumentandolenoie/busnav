@@ -66,7 +66,7 @@ test('partial road guidance never claims full coverage or accepts a maneuver in 
 });
 
 test('road offsets and coverage are normalized to the same distance model as GPS/stops',()=>{
- const api=new Function(['academyFingerprint','validRoadGuidance','normalizeRoadGuidance'].map(appFunction).join('\n')+';return {academyFingerprint,validRoadGuidance,normalizeRoadGuidance}')();
+ const api=new Function('const SPEED_BRIDGE_M=100;'+['academyFingerprint','validRoadGuidance','bridgeSpeedLimits','normalizeRoadGuidance'].map(appFunction).join('\n')+';return {academyFingerprint,validRoadGuidance,normalizeRoadGuidance}')();
  const points=[[45,11],[45,12]],chosen={id:'long',points},total=80000,sourceTotal=80090;
  const data={version:1,source:'valhalla-osm',language:'it-IT',academyId:'long',fingerprint:api.academyFingerprint(points),officialLengthM:sourceTotal,
   validation:{passed:true,maxDeviationM:5,p95DeviationM:3},turns:[{at:40045,kind:'turn',side:'destra',text:'Svolta a destra'}],

@@ -239,6 +239,7 @@ function normalizeRoadGuidance(data,total){
  const speedLimits=([2,3].includes(data.speedLimitPolicy)&&Array.isArray(data.speedLimits)?data.speedLimits:[]).filter(r=>
   Array.isArray(r)&&(r.length===3||r.length===4&&[1,2,3].includes(r[3]))&&r.every(Number.isFinite)&&r[0]>=0&&r[0]<r[1]&&r[1]<=sourceTotal+1&&
   Number.isInteger(r[2])&&r[2]>=5&&r[2]<=130).map(([a,b,k])=>[at(a),at(b),k]);
+ bridgeSpeedLimits(speedLimits);
  const roadCameras=(Array.isArray(data.roadCameras)?data.roadCameras:[]).filter(c=>
   c&&Number.isFinite(c.at)&&c.at>=0&&c.at<=sourceTotal+1&&['speed','redLight'].includes(c.kind))
   .map(c=>({at:at(c.at),kind:c.kind}));
@@ -1474,15 +1475,37 @@ function guidanceCovers(from,to){
  if(!coverage)return true;
  return (coverage.ranges||[]).some(r=>r[0]<=from&&from<=r[1]&&r[0]<=to&&to<=r[1]);
 }
-function webSpeedLimit(along,accuracy,deviation){
- if(!Number.isFinite(along)||!(accuracy>=0&&accuracy<=15)||!(deviation>=0&&deviation<=8))return null;
+// OSM splits a road at every junction and roundabout and often leaves those short
+// ways without maxspeed: the sign used to vanish for a few metres and come back.
+// A gap of at most SPEED_BRIDGE_M between two stretches with the SAME limit is
+// joined (never across a different value). Rows are [from, to, km/h], in place.
+const SPEED_BRIDGE_M=100;
+function bridgeSpeedLimits(rows){
+ rows.sort((a,b)=>a[0]-b[0]);
+ for(let i=rows.length-1;i>0;i--){
+  const p=rows[i-1],r=rows[i];
+  if(p[2]===r[2]&&r[0]-p[1]<=SPEED_BRIDGE_M&&r[0]>=p[1]-1){p[1]=Math.max(p[1],r[1]);rows.splice(i,1)}
+ }
+ return rows;
+}
+// To SHOW a limit: precise GPS (±15 m), on the GPX (≤8 m) and one value all around.
+// To KEEP the limit already shown (keeping): GPS up to ±30 m and up to 20 m from the
+// GPX, as long as the bus is still inside a stretch with that same value.
+function webSpeedLimit(along,accuracy,deviation,keeping=null){
+ if(!Number.isFinite(along))return null;
+ const keep=()=>{
+  if(keeping===null||!(accuracy>=0&&accuracy<=30)||!(deviation>=0&&deviation<=20)||!guidanceCovers(along,along))return null;
+  const row=(current?.speedLimits||[]).find(r=>r[0]<=along&&r[1]>along);
+  return row&&row[2]===keeping?keeping:null;
+ };
+ if(!(accuracy>=0&&accuracy<=15)||!(deviation>=0&&deviation<=8))return keep();
  const radius=Math.max(8,accuracy+deviation),lower=along-radius,upper=along+radius;
- if(!guidanceCovers(lower,upper))return null;
+ if(!guidanceCovers(lower,upper))return keep();
  const rows=(current?.speedLimits||[]).filter(r=>r[0]<=upper&&r[1]>lower).sort((a,b)=>a[0]-b[0]);
- if(!rows.length)return null;
+ if(!rows.length)return keep();
  const limit=rows[0][2];let through=lower;
- for(const r of rows){if(r[2]!==limit||r[0]>through)return null;through=Math.max(through,r[1])}
- return through>upper?limit:null;
+ for(const r of rows){if(r[2]!==limit||r[0]>through)return keep();through=Math.max(through,r[1])}
+ return through>upper?limit:keep();
 }
 function nextWebCamera(along,within,used=new Set()){
  let best=-1;
@@ -1494,12 +1517,15 @@ function nextWebCamera(along,within,used=new Set()){
 }
 const cameraTitle=c=>c.kind==='redLight'?'Controllo semaforico':'Autovelox fisso';
 function hideRoadSafety(){
+ shownSpeedLimit=null;
  const sign=$('speedLimitSign'),alert=$('roadAlert');
  if(sign){sign.hidden=true;sign.textContent='';sign.removeAttribute('aria-label')}
  if(alert)alert.hidden=true;
 }
+let shownSpeedLimit=null;
 function updateRoadSafety(along,accuracy,deviation,speed){
- const limit=webSpeedLimit(along,accuracy,deviation),sign=$('speedLimitSign');
+ const limit=webSpeedLimit(along,accuracy,deviation,shownSpeedLimit),sign=$('speedLimitSign');
+ shownSpeedLimit=limit;
  sign.hidden=limit===null;sign.textContent=limit??'';
  if(limit===null)sign.removeAttribute('aria-label');else sign.setAttribute('aria-label','Limite di velocità '+limit+' chilometri orari');
  const shown=deviation<45?nextWebCamera(along,350):-1,alert=$('roadAlert');

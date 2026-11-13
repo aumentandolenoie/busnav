@@ -58,6 +58,20 @@ final class NativeRoute {
     static double[][] coordinates(JSONArray a)throws JSONException{if(a==null)return new double[0][2];double[][] out=new double[a.length()][2];for(int i=0;i<a.length();i++){JSONArray p=a.getJSONArray(i);if(p.length()!=2)throw new IllegalArgumentException("Coppia di coordinate non valida");out[i][0]=p.getDouble(0);out[i][1]=p.getDouble(1);}return out;}
     boolean covered(double along,double maneuver){return GuidanceCoverage.contains(ranges,along,maneuver);}
     Turn nextTurn(double along){for(Turn t:turns)if(t.at>along-12&&covered(along,t.at))return t;return null;}
+    /** To SHOW a limit: precise GPS (±15 m), on the GPX (≤8 m) and one value all around.
+     *  To KEEP the limit already shown ({@code keeping} > 0): GPS up to ±30 m and up to 20 m
+     *  from the GPX, while the bus is still inside a stretch with that same value.
+     *  Same rule as webSpeedLimit in app.js and NativeRoute.speedLimit on iOS. */
+    int speedLimit(double along, double accuracy, double deviation, int keeping) {
+        int strict = speedLimit(along, accuracy, deviation);
+        if (strict > 0 || keeping <= 0 || !Double.isFinite(along)) return strict;
+        if (!(accuracy >= 0 && accuracy <= 30) || !(deviation >= 0 && deviation <= 20) || !covered(along, along)) return 0;
+        for (double[] segment : speedLimits) {
+            if (segment[0] > along) break;
+            if (segment[1] > along) return (int) segment[2] == keeping ? keeping : 0;
+        }
+        return 0;
+    }
     int speedLimit(double along, double accuracy, double deviation) {
         if (!Double.isFinite(along) || !(accuracy >= 0 && accuracy <= 15)
                 || !(deviation >= 0 && deviation <= 8)) return 0;

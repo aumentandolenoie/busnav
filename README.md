@@ -198,3 +198,15 @@ sotto `Classe N = € X a bordo`. Solo prezzi a bordo. iOS, Android e web usano 
 dati (`fares/polimetriche-padova.json`) e gli stessi casi di prova
 (`tests/fixtures/ticket-cases.json`). Fonti, regole TU1/TU2/Tessera e limiti in
 [`fares/README.md`](fares/README.md).
+
+## Limiti di velocità: continuità del cartello (novembre 2026)
+
+Il cartello spariva a tratti anche restando sulla stessa strada. Cause misurate sui 789 GPX:
+OpenStreetMap divide la strada a ogni incrocio e rotatoria e spesso lascia quei pezzi corti
+senza `maxspeed` (9.111 buchi tra tratti con lo stesso limite, la metà sotto i 70 m), e il GPS
+oltre ±15 m o a più di 8 m dal GPX nascondeva il cartello. Ora:
+- un buco di al massimo 100 m fra due tratti con **lo stesso** limite viene unito (mai fra
+  valori diversi): le scomparse brevi passano da circa 5.200 a circa 900;
+- per **mostrare** un limite servono ancora GPS ±15 m e 8 m dal GPX; per **mantenere** quello
+  già visibile bastano ±30 m e 20 m, finché il bus resta nel tratto con quel valore.
+Stesse regole su web (`webSpeedLimit`), iOS e Android.

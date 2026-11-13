@@ -156,6 +156,14 @@ import static org.junit.Assert.*;
         assertEquals(0,data.speedLimit(235,5,0));
         assertEquals(0,data.speedLimit(80,16,0));
         assertEquals(0,data.speedLimit(80,5,9));
+        // A sign already on screen stays while the bus is in the same stretch (looser GPS).
+        assertEquals(90,data.speedLimit(80,20,0,90));
+        assertEquals(90,data.speedLimit(96,5,0,90));
+        assertEquals(90,data.speedLimit(80,5,15,90));
+        assertEquals(0,data.speedLimit(205,5,0,50));
+        assertEquals(0,data.speedLimit(80,31,0,90));
+        assertEquals(0,data.speedLimit(80,5,21,90));
+        assertEquals(0,data.speedLimit(80,20,0,50));
     }
 
     @Test public void voiceChainsTheNextEventInRouteOrder() throws Exception {

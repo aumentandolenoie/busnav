@@ -120,6 +120,14 @@ import MapKit
         XCTAssertNil(route.speedLimit(at:235,accuracy:5,deviation:0))
         XCTAssertNil(route.speedLimit(at:80,accuracy:16,deviation:0))
         XCTAssertNil(route.speedLimit(at:80,accuracy:5,deviation:9))
+        // A sign already on screen stays while the bus is in the same stretch (looser GPS).
+        XCTAssertEqual(route.speedLimit(at:80,accuracy:20,deviation:0,keeping:90),90)
+        XCTAssertEqual(route.speedLimit(at:96,accuracy:5,deviation:0,keeping:90),90)
+        XCTAssertEqual(route.speedLimit(at:80,accuracy:5,deviation:15,keeping:90),90)
+        XCTAssertNil(route.speedLimit(at:205,accuracy:5,deviation:0,keeping:50))
+        XCTAssertNil(route.speedLimit(at:80,accuracy:31,deviation:0,keeping:90))
+        XCTAssertNil(route.speedLimit(at:80,accuracy:5,deviation:21,keeping:90))
+        XCTAssertNil(route.speedLimit(at:80,accuracy:20,deviation:0,keeping:50))
     }
 
     func testPreparationUsesMapKitAndPreservesGpx() {

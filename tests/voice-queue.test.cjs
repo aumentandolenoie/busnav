@@ -117,6 +117,13 @@ test('web speed limit and camera rules match the native apps',()=>{
  assert.equal(api.webSpeedLimit(200,5,12),null,'Far from the GPX hides the sign');
  assert.equal(api.webSpeedLimit(495,5,2),null,'Two values in the uncertainty window');
  assert.equal(api.webSpeedLimit(700,5,2),null,'Outside validated guidance');
+ // A sign already on screen stays while the bus is in the same stretch (looser GPS).
+ assert.equal(api.webSpeedLimit(200,20,2,50),50,'Kept with a less precise GPS');
+ assert.equal(api.webSpeedLimit(495,5,2,50),50,'Kept up to the change of value');
+ assert.equal(api.webSpeedLimit(505,5,2,50),null,'Never kept beyond the change of value');
+ assert.equal(api.webSpeedLimit(200,31,2,50),null);
+ assert.equal(api.webSpeedLimit(200,5,21,50),null);
+ assert.equal(api.webSpeedLimit(700,5,2,80),null,'Never kept outside validated guidance');
  assert.equal(api.nextWebCamera(100,350),0);
  assert.equal(api.nextWebCamera(100,350,new Set([0])),-1,'Camera beyond validated guidance');
  assert.equal(api.nextWebCamera(310,350),-1);
@@ -129,4 +136,18 @@ test('distances: 50 m steps from 100 m, 10 m from 50 m, 5 m below (same table as
   assert.equal(api.niceDistance(metres),display,'display '+metres);
   assert.equal(api.speechDistance(metres),spoken,'voice '+metres);
  }
+});
+
+test('short gaps between equal speed limits are joined, never across another value',()=>{
+ const js=fs.readFileSync('app.js','utf8');
+ const bridge=new Function(js.match(/const SPEED_BRIDGE_M=\d+;/)[0]+sourceOf('bridgeSpeedLimits')+'\nreturn bridgeSpeedLimits;')();
+ assert.deepEqual(bridge([[300,400,50],[0,200,50],[230,250,50]]),[[0,400,50]],'Roundabout and junction gaps');
+ assert.deepEqual(bridge([[0,200,50],[350,400,50]]),[[0,200,50],[350,400,50]],'Gap over 100 m stays');
+ assert.deepEqual(bridge([[0,200,50],[220,250,30],[260,400,50]]),[[0,200,50],[220,250,30],[260,400,50]],'Different value in between');
+ assert.deepEqual(bridge([[0,200,50],[210,400,70]]),[[0,200,50],[210,400,70]],'Different values are not joined');
+ // On the real data this removes most short drop-outs of the sign.
+ const rows=JSON.parse(fs.readFileSync('road-guidance/18.json','utf8')).speedLimits.map(r=>r.slice(0,3));
+ const joined=bridge(rows.map(r=>[...r]));
+ assert.ok(joined.length<rows.length);
+ for(let i=1;i<joined.length;i++)assert.ok(joined[i][2]!==joined[i-1][2]||joined[i][0]-joined[i-1][1]>100);
 });

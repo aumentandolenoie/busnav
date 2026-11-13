@@ -18,6 +18,8 @@ final class DriverView extends FrameLayout {
     /** Bottom-left, mirroring the speed sign: on-board ticket calculator (null without data). */
     private final ImageButton ticket;
     private TicketDialog tickets;
+    /** Limit currently on screen (0 = none): kept with a looser GPS check, see NativeRoute. */
+    private int shownSpeedLimit;
     private boolean landscape;
     private final double[] followPadding=new double[4];
     private final BoundedScroll topText,bottomText;private final LinearLayout top,bottom;
@@ -132,7 +134,8 @@ final class DriverView extends FrameLayout {
     void message(String text){status.setText(text);}
     void progress(double along,int stop,boolean reliable,double deviation){
         int limit = reliable && lastFix != null && lastFix.hasAccuracy()
-                ? session.route.speedLimit(along,lastFix.getAccuracy(),deviation) : 0;
+                ? session.route.speedLimit(along,lastFix.getAccuracy(),deviation,shownSpeedLimit) : 0;
+        shownSpeedLimit = limit;
         speedSign.setVisibility(limit > 0 ? VISIBLE : INVISIBLE);
         speedSign.setText(limit > 0 ? Integer.toString(limit) : "");
         speedSign.setContentDescription(limit > 0 ? "Limite di velocità " + limit + " chilometri orari" : null);

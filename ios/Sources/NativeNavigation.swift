@@ -65,17 +65,33 @@ struct NativeRoute: Decodable {
     let speedLimits: [[Double]]?
     let roadCameras: [Camera]?
 
-    func speedLimit(at along: Double, accuracy: Double, deviation: Double) -> Int? {
-        guard along.isFinite, (0...15).contains(accuracy), (0...8).contains(deviation) else { return nil }
+    /// To SHOW a limit: precise GPS (±15 m), on the GPX (≤8 m) and one value all around.
+    /// To KEEP the limit already shown (`keeping`): GPS up to ±30 m and up to 20 m from
+    /// the GPX, while the bus is still inside a stretch with that same value. Same rule
+    /// as webSpeedLimit in app.js and NativeRoute.speedLimit on Android.
+    func speedLimit(at along: Double, accuracy: Double, deviation: Double, keeping: Int? = nil) -> Int? {
+        guard along.isFinite else { return nil }
+        if let strict = strictSpeedLimit(at: along, accuracy: accuracy, deviation: deviation) { return strict }
+        guard let keeping, (0...30).contains(accuracy), (0...20).contains(deviation),
+              supportsGuidance(at: along, maneuver: along) else { return nil }
+        let here = validSpeedRows.first { $0[0] <= along && $0[1] > along }
+        return here.map { Int($0[2]) } == keeping ? keeping : nil
+    }
+
+    private var validSpeedRows: [[Double]] {
+        (speedLimits ?? []).filter { row in
+            row.count == 3 && row.allSatisfy(\.isFinite) && row[0] >= 0 && row[0] < row[1] &&
+                (5...130).contains(row[2]) && row[2].rounded() == row[2]
+        }
+    }
+
+    private func strictSpeedLimit(at along: Double, accuracy: Double, deviation: Double) -> Int? {
+        guard (0...15).contains(accuracy), (0...8).contains(deviation) else { return nil }
         let radius = max(8, accuracy + deviation)
         let lower = along - radius, upper = along + radius
         guard supportsGuidance(at: lower, maneuver: upper) else { return nil }
 
-        let candidates = (speedLimits ?? []).filter { row in
-            row.count == 3 && row.allSatisfy(\.isFinite) && row[0] >= 0 &&
-                row[0] < row[1] && row[0] <= upper && row[1] > lower &&
-                (5...130).contains(row[2]) && row[2].rounded() == row[2]
-        }.sorted { $0[0] < $1[0] }
+        let candidates = validSpeedRows.filter { $0[0] <= upper && $0[1] > lower }.sorted { $0[0] < $1[0] }
         guard let limit = candidates.first.map({ $0[2] }) else { return nil }
         var coveredThrough = lower
         for row in candidates {
