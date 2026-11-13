@@ -74,7 +74,7 @@ import MapKit
                 for _ in 0..<4 { RunLoop.main.run(until: Date().addingTimeInterval(0.15)); drive.view.layoutIfNeeded() }
                 let legal = descendants(drive.view).filter { v in
                     let name = String(describing: type(of: v))
-                    return (name.contains("Attribution") || name.contains("Legal")) && !v.isHidden && !v.bounds.isEmpty
+                    return (name.contains("Attribution") || name.contains("Legal") || name.contains("AppleLogo")) && !v.isHidden && !v.bounds.isEmpty
                 }.map { $0.convert($0.bounds, to: drive.view) }.min { $0.minX < $1.minX }
                 if let legal, category == .large {
                     XCTAssertEqual(legal.midY, ticketFrame.midY, accuracy: 3, "legal label not on the ticket row at \(size): \(legal) vs \(ticketFrame)")
