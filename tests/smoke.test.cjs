@@ -98,8 +98,12 @@ test('advance stop calls are queued once and another stop is announced',()=>{
 });
 test('navigation keeps voice reactivation and turns available',()=>{
  const markup=fs.readFileSync('index.html','utf8');
- assert.match(markup,/id="activateNavVoice"/);
- assert.match(markup,/id="voiceNavStatus"/);
+ // iOS-style driving view: the top speaker repeats the instruction and, being a
+ // tap, re-enables Safari speech; voice problems appear in the status line.
+ assert.match(markup,/id="driveRepeat"/);
+ assert.match(markup,/id="driveStatus"/);
+ assert.match(js,/function repeatNavigationInstruction/);
+ assert.match(js,/primeSpeech\(\); \/\/ still inside the tap/);
  assert.match(markup,/id="voiceAvailability"/);
  assert.match(js,/function activateNavigationVoice/);
  assert.match(js,/renderAcademyStopComparison/);
@@ -372,7 +376,7 @@ test('Academy remains the ONLY navigation route for web and native while Italian
  assert.match(js,/turns=\[\];roadGuidanceReady=loadRoadGuidance/);
  assert.match(js,/String\(current\.academy\.id\)!==id/);
  assert.match(js,/verifiedRoad:true/);
- assert.match(js,/turn\.verifiedRoad\?turn\.text:'Possibile svolta a '/);
+ assert.match(js,/if\(!turn\?\.verifiedRoad\)return;/); // only verified road manoeuvres are spoken
  assert.match(js,/points:current\.points\.map\(p=>\[p\.lat,p\.lng\]\)/);
  const swift=fs.readFileSync('ios/Sources/NativeNavigation.swift','utf8');
  assert.match(swift,/verifiedRoad: Bool\?/);

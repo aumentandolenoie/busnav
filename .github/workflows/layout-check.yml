@@ -2,7 +2,7 @@ name: iPhone web layout checks
 on:
   workflow_dispatch:
   push:
-    paths: ['style.css', 'index.html', 'tests/layout-browser.py', '.github/workflows/layout-check.yml']
+    paths: ['style.css', 'index.html', 'app.js', 'tests/layout-browser.py', 'tests/safari-voice-browser.py', '.github/workflows/layout-check.yml']
 permissions:
   contents: write
 jobs:
@@ -14,6 +14,8 @@ jobs:
       - run: python3 -m pip install playwright
       - run: python3 -m playwright install --with-deps chromium webkit
       - run: python3 tests/layout-browser.py
+      # Web app on iPhone Safari: voice unlock rule and driving view with the real JS (WebKit + Chromium).
+      - run: python3 tests/safari-voice-browser.py
       - name: Save browser screenshots without Actions artifact storage
         if: always()
         env:

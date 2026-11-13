@@ -17,22 +17,23 @@ with sync_playwright() as p:
      doc=html
      if mode=='navigation':
       doc=doc.replace('<body>','<body class="navigating">')
-      doc=doc.replace('id="navFullscreenBar" class="nav-fullscreen-bar" hidden','id="navFullscreenBar" class="nav-fullscreen-bar"')
-      doc=doc.replace('id="voiceNavigationControls" hidden','id="voiceNavigationControls"')
-      doc=doc.replace('id="navStatus">Seleziona una corsa','id="navStatus">GPS in verifica: seguire il percorso ufficiale')
-      doc=doc.replace('id="nextName">—','id="nextName">PADOVA AUTOSTAZIONE – CAPOLINEA PROVVISORIO VIALE DELLA STAZIONE')
-      doc=doc.replace('id="turnHint">Percorso non attivo','id="turnHint">Alla prossima rotonda prendi la terza uscita in direzione Aeroporto Marco Polo')
-      doc=doc.replace('>Voce in attesa<','>App riaperta: controlla gli annunci vocali e la precisione della posizione<')
+      # iOS-style driving view (the JS-positioned speed/compass row is checked by tests/safari-voice-browser.py)
+      doc=doc.replace('id="driveView" class="drive-view" hidden','id="driveView" class="drive-view"')
+      doc=doc.replace('id="driveDistance" class="drive-distance">Attesa GPS','id="driveDistance" class="drive-distance">1,2 km')
+      doc=doc.replace('id="driveInstruction" class="drive-instruction">Segui il percorso ufficiale','id="driveInstruction" class="drive-instruction">Alla prossima rotonda prendi la terza uscita in direzione Aeroporto Marco Polo')
+      doc=doc.replace('id="driveStopName" class="drive-stop-name">—','id="driveStopName" class="drive-stop-name">PADOVA AUTOSTAZIONE – CAPOLINEA PROVVISORIO VIALE DELLA STAZIONE')
+      doc=doc.replace('id="driveStopDistance" class="drive-stop-distance">','id="driveStopDistance" class="drive-stop-distance">450 m · fermata 12 di 31')
+      doc=doc.replace('>GPX ufficiale · GPS in primo piano<','>GPS ±6 m · App riaperta: controlla gli annunci vocali e la precisione della posizione<')
      else:doc=doc.replace('<details class="panel advanced-panel">','<details class="panel advanced-panel" open>')
      overrides=f':root{{--safe-top:{top}px;--safe-bottom:{bottom}px;--safe-left:{left}px;--safe-right:{right}px}}'
-     if large:overrides+='button,.map-top strong,#nextName,#voiceNavStatus,#headingStatus{font-size:22px!important}'
+     if large:overrides+='button,.map-top strong,#nextName,.drive-instruction,.drive-stop-name,.drive-status,.drive-stop-distance{font-size:22px!important}'
      page.set_content(doc.replace('</head>','<style>'+css+overrides+'</style></head>'))
      name=f'{engine}-{mode}-{w}x{h}-{int(large)}'
      if mode=='navigation':
       report=page.evaluate('''() => {
-       const ids=['exitNavigation','activateNavVoice','recenterBtn'];
+       const ids=['exitNavigation','driveRepeat','driveVoiceToggle','driveRecenter'];
        const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}};
-       return {buttons:ids.map(id=>{const e=document.getElementById(id),r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {id,...rect(e),hit:e===hit||e.contains(hit)}}),panels:['.nav-fullscreen-bar','.map-top','.voice-navigation-controls','.map-controls','.next-card'].map(s=>({id:s,...rect(document.querySelector(s))}))};
+       return {buttons:ids.map(id=>{const e=document.getElementById(id),r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {id,...rect(e),hit:e===hit||e.contains(hit)}}),panels:['#driveTop','#driveBottom'].map(s=>({id:s,...rect(document.querySelector(s))}))};
       }''')
       for b in report['buttons']:
        assert b['width']>=43.9 and b['height']>=43.9,(name,'small button',b)

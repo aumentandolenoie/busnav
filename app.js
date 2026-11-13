@@ -71,6 +71,16 @@ function applyVoiceOptions(list,source){
  dropdown.disabled=!availableItalianVoices.length;
  updateVoiceQualityInfo();
 }
+// Safari on iPhone exposes the iOS voices: prefer Premium, then Enhanced
+// ("Avanzata"), then the compact ones; skip Eloquence and novelty voices,
+// which are hard to understand while driving.
+function safariVoiceQuality(v){
+ const uri=String(v.voiceURI||'').toLowerCase(),name=String(v.name||'').toLowerCase();
+ if(uri.includes('eloquence')||uri.includes('speech.synthesis.voice')||/\b(rocko|shelley|grandma|grandpa|eddy|flo|reed|sandy)\b/.test(name))return 0;
+ if(uri.includes('premium')||name.includes('premium'))return 4;
+ if(uri.includes('enhanced')||name.includes('avanzat')||name.includes('enhanced')||name.includes('migliorat'))return 3;
+ return v.localService?2:1;
+}
 function loadItalianVoices(){
  if(window.LineaPilotAndroid){
   try{const voices=JSON.parse(window.LineaPilotAndroid.listVoices());applyVoiceOptions(voices,'android')}catch(e){console.warn('Voci Android:',e)}
@@ -79,7 +89,8 @@ function loadItalianVoices(){
  if(nativeMode){nativePost({type:'listVoices'});return}
  if(!('speechSynthesis'in window))return;
  applyVoiceOptions(speechSynthesis.getVoices().filter(v=>String(v.lang).toLowerCase().startsWith('it'))
-  .map(v=>({id:v.voiceURI,name:v.name,lang:v.lang,quality:v.localService?2:1,enhanced:false})),'web');
+  .map(v=>({id:v.voiceURI,name:v.name,lang:v.lang,quality:safariVoiceQuality(v),enhanced:safariVoiceQuality(v)>=3}))
+  .filter(v=>v.quality>0),'web');
 }
 function syncVoiceSettings(){
  voicePreferences.id=$('voiceSelect').value;
@@ -273,29 +284,129 @@ async function loadRoadGuidance(chosen,dists){
 }
 
 let navigationFullscreen=false,lastNavHeading=null,lastCameraAt=0,lastCameraPoint=null,lastMatchedAt=0,hasMatchedFix=false,realGpsFix=null,realGpsFixAt=0,recoveryCandidate=null;
+
+// ---- Driving view (same layout and wording as the iOS app's DriveViewController) ----
+const DRIVE_ICONS={
+ up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5V4.5M5.5 11 12 4.5 18.5 11"/></svg>',
+ left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-7.5a4.5 4.5 0 0 0-4.5-4.5H4.5M9 4.5 4.5 9 9 13.5"/></svg>',
+ right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21v-7.5A4.5 4.5 0 0 1 11.5 9h8M15 4.5 19.5 9 15 13.5"/></svg>',
+ roundabout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19.4 9.6A7.6 7.6 0 0 0 5.7 6.8M4.6 2.9v4.6h4.6M4.6 14.4a7.6 7.6 0 0 0 13.7 2.8M19.4 21.1v-4.6h-4.6"/></svg>',
+ warning:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 4.2 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.6M12 17.4v.2"/></svg>',
+ speaker:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.2h3.7L12 5v14l-4.8-4.2H3.5z" fill="currentColor"/><path d="M15.6 9a4.2 4.2 0 0 1 0 6M18.4 6.3a8 8 0 0 1 0 11.4"/></svg>',
+ speakerOff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.2h3.7L12 5v14l-4.8-4.2H3.5z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>',
+ location:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.6 3.4 3.7 10.6c-.8.4-.7 1.5.1 1.7l6.6 1.4 1.4 6.6c.2.8 1.3.9 1.7.1z"/></svg>'
+};
+let driveVoiceProblem=false,driveVoiceText='Voce in attesa',driveNorthUp=false,driveLayoutFrame=0,driveMapBox='',wakeLock=null;
+function setDriveTurn(distance,text,icon){
+ if(!$('driveView'))return;
+ $('driveDistance').textContent=distance;$('driveInstruction').textContent=text;
+ const el=$('driveSymbol');if(el.dataset.icon!==icon){el.dataset.icon=icon;el.innerHTML=DRIVE_ICONS[icon]||DRIVE_ICONS.up}
+}
+function setDriveStop(name,distance){$('driveStopName').textContent=name;$('driveStopDistance').textContent=distance}
+function renderDriveStatus(){
+ const el=$('driveStatus');if(!el)return;
+ const gps=$('gpsStatus')?.textContent||'';
+ el.textContent=driveVoiceProblem?driveVoiceText+' · tocca 🔊 in alto per riattivare':[gps,driveVoiceText].filter(Boolean).join(' · ');
+ el.dataset.problem=driveVoiceProblem?'yes':'no';
+}
+function renderDriveVoiceButton(){
+ const on=$('voiceToggle').checked,b=$('driveVoiceToggle');
+ b.innerHTML=on?DRIVE_ICONS.speaker:DRIVE_ICONS.speakerOff;b.setAttribute('aria-pressed',String(on));
+}
+// Reads the safe-area insets, which CSS exposes only through env().
+function driveSafeArea(){
+ const c=getComputedStyle($('driveSafeProbe'));
+ return {top:parseFloat(c.paddingTop)||0,right:parseFloat(c.paddingRight)||0,bottom:parseFloat(c.paddingBottom)||0,left:parseFloat(c.paddingLeft)||0};
+}
+// Like the iOS app: the vehicle sits at 75 % of the free map area between the
+// panels (right of the panel column in landscape), so more road ahead is visible.
+// The Leaflet map is enlarged so that its centre - followed fix and rotation pivot -
+// lands exactly there.
+const DRIVE_POSITION_ANCHOR=.75;
+function layoutDriveView(){
+ driveLayoutFrame=0;
+ if(!navigationFullscreen)return;
+ const wrap=document.querySelector('.map-wrap'),W=wrap.clientWidth,H=wrap.clientHeight;
+ if(!W||!H)return;
+ const safe=driveSafeArea(),landscape=W>H,top=$('driveTop'),bottom=$('driveBottom'),tools=$('driveTools');
+ const topBottom=top.offsetTop+top.offsetHeight;
+ bottom.style.maxHeight=Math.max(120,landscape?H-safe.bottom-8-(topBottom+8):Math.min(.48*(H-safe.top-safe.bottom),H-safe.bottom-8-(topBottom+60)))+'px';
+ const bottomTop=bottom.offsetTop;
+ tools.style.bottom=landscape?'':(H-bottomTop+9)+'px';
+ const view=landscape?{left:top.offsetLeft+top.offsetWidth+8,top:safe.top+8,right:W-safe.right-8,bottom:H-safe.bottom-8}
+  :{left:safe.left+8,top:topBottom+8,right:W-safe.right-8,bottom:bottomTop-8};
+ const ax=(view.left+view.right)/2,ay=view.top+Math.max(0,view.bottom-view.top)*DRIVE_POSITION_ANCHOR;
+ wrap.style.setProperty('--nav-anchor-x',ax+'px');wrap.style.setProperty('--nav-anchor-y',ay+'px');
+ wrap.style.setProperty('--drive-top-bottom',topBottom+'px');
+ const w=Math.ceil(2*Math.max(ax,W-ax)),h=Math.ceil(2*Math.max(ay,H-ay));
+ const box=[Math.round(ax-w/2),Math.round(ay-h/2),w,h].join();
+ if(box===driveMapBox)return;
+ driveMapBox=box;
+ Object.assign($('map').style,{position:'absolute',inset:'auto',left:Math.round(ax-w/2)+'px',top:Math.round(ay-h/2)+'px',width:w+'px',height:h+'px'});
+ map.invalidateSize({pan:false});
+ if(lastCameraPoint)map.setView([lastCameraPoint.lat,lastCameraPoint.lng],map.getZoom(),{animate:false});
+}
+function scheduleDriveLayout(){if(!driveLayoutFrame)driveLayoutFrame=requestAnimationFrame(layoutDriveView)}
+function resetDriveMapBox(){driveMapBox='';const el=$('map');['position','inset','left','top','width','height'].forEach(k=>el.style[k]='')}
+if(window.ResizeObserver){const ro=new ResizeObserver(scheduleDriveLayout);['driveTop','driveBottom'].forEach(id=>$(id)&&ro.observe($(id)))}
+addEventListener('resize',scheduleDriveLayout);
+window.visualViewport?.addEventListener('resize',scheduleDriveLayout);
+if(window.MutationObserver&&$('gpsStatus'))new MutationObserver(renderDriveStatus).observe($('gpsStatus'),{childList:true,characterData:true,subtree:true});
+// Safari: keep the screen on while driving (locked screen pauses GPS and speech).
+async function keepScreenOn(){
+ if(!navigationFullscreen||!('wakeLock'in navigator)||wakeLock)return;
+ try{wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null})}catch(e){console.info('Wake lock non disponibile',e.message)}
+}
+function releaseScreen(){try{wakeLock?.release()}catch(e){}wakeLock=null}
+// Top-panel speaker, like the iOS repeat button. Being a tap, it also
+// re-enables speech on Safari after the app was in the background.
+function repeatNavigationInstruction(){
+ if(nativeActive){nativePost({type:'testVoice'});return}
+ if(!$('voiceToggle').checked){setVoiceStatus('Annunci disattivati: tocca l’altoparlante in basso');return}
+ resetVoiceGuidance();primeSpeech();
+ if(!setupVoice()||!current)return;
+ const along=voiceAlong??lastAlong,stops=current.stops||[];
+ const stopAt=nextStopIdx<stops.length?current.offsets[nextStopIdx]:Infinity;
+ const covered=current.guidanceCoverage?.ranges?.find(r=>along>=r[0]&&along<=r[1]);
+ const turn=turns.find(t=>t.verifiedRoad&&t.at>along+5&&(!current.guidanceCoverage||covered&&t.at<=covered[1]));
+ let message='Segui il percorso ufficiale.';
+ if(turn&&turn.at<stopAt){const d=turn.at-along;message=d>20?'Tra circa '+speechDistance(d)+', '+turnSpeechLabel(turn)+'.':turn.text.replace(/[.!?\s]+$/,'')+'.'}
+ else if(nextStopIdx<stops.length)message='Prossima fermata: '+stops[nextStopIdx].stop.stop_name+'.';
+ enqueueVoice(message,'normal',{key:'manual'});
+}
+function turnSpeechLabel(turn){const t=turn.text.replace(/[.!?\s]+$/,'');return t.charAt(0).toLowerCase()+t.slice(1)}
+// Safari speaks only if the first utterance starts inside a tap: call this
+// synchronously in the tap handler, before any await.
+function primeSpeech(){
+ if(nativeMode||window.LineaPilotAndroid||!('speechSynthesis'in window))return;
+ try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='it-IT';speechSynthesis.speak(u)}catch(e){console.warn(e)}
+}
 function enterNavigationView(){
  navigationFullscreen=true;
  document.body.classList.add('navigating');
- $('navFullscreenBar').hidden=false;
- $('headingStatus').textContent='↑ Attesa direzione';
+ $('driveView').hidden=false;
+ driveNorthUp=false;$('driveCompass').setAttribute('aria-pressed','false');
+ $('driveRepeat').innerHTML=DRIVE_ICONS.speaker;$('driveRecenter').innerHTML=DRIVE_ICONS.location;renderDriveVoiceButton();
+ const verified=turns.some(t=>t.verifiedRoad);
+ setDriveTurn('Attesa GPS',verified?'Segui il percorso ufficiale':'Manovre stradali non disponibili','up');
+ setDriveStop(current?.stops?.[0]?.stop?.stop_name||'Solo percorso GPX','');
  $('followToggle').checked=true;
  // Keep the map locked to the route while driving. No free dragging that
  // leaves the position icon away from the map's tracked center.
  map.dragging.disable();
  $('navigationPosition').hidden=true;
- $('voiceNavigationControls').hidden=false;
  refreshStopVoiceAvailability();
+ keepScreenOn();
  setVoiceStatus('Voce in attesa');
  if(locationMarker)locationMarker.setStyle({opacity:0,fillOpacity:0});
  if(accuracyCircle&&map.hasLayer(accuracyCircle))map.removeLayer(accuracyCircle);
- requestAnimationFrame(()=>{map.invalidateSize({pan:false});/* Await first reliable GPS fix before centring; avoid jumping to the GPX origin. */});
+ resetDriveMapBox();scheduleDriveLayout();/* Await first reliable GPS fix before centring; avoid jumping to the GPX origin. */
 }
 function leaveNavigationView(){
  if(!navigationFullscreen)return;
  navigationFullscreen=false;document.body.classList.remove('navigating');
- $('navFullscreenBar').hidden=true;lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;recoveryCandidate=null;
+ $('driveView').hidden=true;resetDriveMapBox();releaseScreen();lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;recoveryCandidate=null;
  $('navigationPosition').hidden=true;
- $('voiceNavigationControls').hidden=true;
  map.dragging.enable();
  if(locationMarker)locationMarker.setStyle({opacity:1,fillOpacity:1});
  if(accuracyCircle&&!map.hasLayer(accuracyCircle))accuracyCircle.addTo(map);
@@ -327,9 +438,17 @@ function updateNavigationHeading(points,dists,along){
   const step=Math.max(-12,Math.min(12,diff*.22));
   lastNavHeading=(lastNavHeading+step+360)%360;
  }
- if(typeof map.setHeading==='function')map.setHeading(lastNavHeading,{ease:0.12,deadzone:2});
- else if(typeof map.setBearing==='function')map.setBearing(-lastNavHeading);
- $('headingStatus').textContent='GPX · '+Math.round(lastNavHeading)+'°';
+ applyDriveHeading();
+}
+// Heading-up like the iOS app; the compass button switches to north-up and back.
+function applyDriveHeading(){
+ const heading=driveNorthUp||lastNavHeading===null?0:lastNavHeading;
+ if(typeof map.setHeading==='function')map.setHeading(heading,{ease:0.12,deadzone:2});
+ else if(typeof map.setBearing==='function')map.setBearing(-heading);
+ $('driveNeedle')?.setAttribute('transform','rotate('+(-heading)+' 18 18)');
+ // The arrow keeps pointing along the road when the map is north-up.
+ const arrow=$('navigationPosition').querySelector('svg');
+ if(arrow)arrow.style.transform=driveNorthUp&&lastNavHeading!==null?'rotate('+lastNavHeading+'deg)':'';
 }
 function stableRouteMatch(p,points,dists,speed,isDemo){
  const now=Date.now(),global=nearestOnShape(p,points,dists);
@@ -1003,8 +1122,7 @@ function resetVoiceGuidance(){
  }catch(e){console.warn(e)}
 }
 function setVoiceStatus(message,problem=false){
- const el=$('voiceNavStatus');
- if(el){el.textContent=message;el.dataset.problem=problem?'yes':'no'}
+ driveVoiceText=message;driveVoiceProblem=problem;renderDriveStatus();
 }
 function refreshStopVoiceAvailability(){
  const available=(current?.stops?.length||0)>0;
@@ -1090,7 +1208,7 @@ function drainVoice(){
   else{
    voiceFailures++;console.warn('Voce:',reason);
    // A failed cue no longer empties the queue: the next one is tried anyway.
-   setVoiceStatus(voiceFailures>=3?'Audio non riprodotto · Premi Riattiva voce':'Annuncio non riprodotto · passo al successivo',true);
+   setVoiceStatus(voiceFailures>=3?'Audio non riprodotto':'Annuncio non riprodotto · passo al successivo',true);
   }
   drainVoice();
  };
@@ -1112,8 +1230,10 @@ function drainVoice(){
   activeUtterance=speech; // keep a reference: garbage-collected utterances never fire onend
   speech.lang='it-IT';speech.rate=voicePreferences.rate;speech.pitch=1;
   const voices=speechSynthesis.getVoices();
+  // Chosen voice, otherwise the best Italian voice installed (Premium > Avanzata > base).
   const italian=voices.find(v=>v.voiceURI===voicePreferences.id&&v.lang.toLowerCase().startsWith('it'))||
-   voices.find(v=>v.lang.toLowerCase()==='it-it')||voices.find(v=>v.lang.toLowerCase().startsWith('it'));
+   voices.filter(v=>v.lang.toLowerCase().startsWith('it')&&safariVoiceQuality(v)>0)
+    .sort((a,b)=>safariVoiceQuality(b)-safariVoiceQuality(a)||Number(b.lang.toLowerCase()==='it-it')-Number(a.lang.toLowerCase()==='it-it'))[0];
   if(italian)speech.voice=italian;
   const abandon=(ok,reason)=>{
    // Our own cancel() fires onerror synchronously in some browsers: ignore it.
@@ -1201,7 +1321,8 @@ function planTurnVoice(turn,turnIndex,remaining,speed,distanceFromGPX,stopRemain
  // These are indicative geometry changes, not confirmed road manoeuvres.
  if(Number.isFinite(stopRemaining)&&stopRemaining>=0&&stopRemaining<170)return;
  const lead=turnAlertDistance(speed),stage=spokenTurnStages.get(turnIndex)||0;
- const label=turn.verifiedRoad?turn.text:'Possibile svolta a '+turn.side;
+ // Lower-case after "Tra circa 250 metri, …" like the iOS/Android voice ("alla rotonda").
+ const text=String(turn.text||'').replace(/[.!?\s]+$/,''),label=text.charAt(0).toLocaleLowerCase('it')+text.slice(1);
  if(stage===0&&remaining<=lead){
   if(speak('Tra circa '+speechDistance(remaining)+', '+label+'.','turn',{key:'turn:'+turnIndex,target:turn.at,
      build:left=>left!==null&&left<=85?'Tra poco, '+label+'.':'Tra circa '+speechDistance(left??remaining)+', '+label+'.'})){
@@ -1262,7 +1383,7 @@ function updateRoadSafety(along,accuracy,deviation,speed){
 function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){
  if(!current)return;
  const {points,dists,offsets,stops}=current;
- if(!isDemo&&accuracy>110){voicePositionOk=false;hideRoadSafety();$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
+ if(!isDemo&&accuracy>110){voicePositionOk=false;hideRoadSafety();setDriveTurn('Annunci sospesi','Verifica posizione GPS','warning');$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
  lastFix=p;
  if(!isDemo){realGpsFix={lat:p.lat,lng:p.lng};realGpsFixAt=Date.now();}
  const speed=speedEstimate(p,reportedSpeed,isDemo);
@@ -1271,14 +1392,14 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  followStableCamera(p,isDemo);
  let near=stableRouteMatch(p,points,dists,speed,isDemo);
  if(near.offRoute||near.d>180){
-  voicePositionOk=false;hideRoadSafety();
+  voicePositionOk=false;hideRoadSafety();setDriveTurn('Annunci sospesi','Fuori dal percorso ufficiale','warning');
   $('gpsStatus').textContent='GPS fuori dal GPX · '+Math.round(near.d)+' m';
   $('navStatus').textContent='Posizione distante dal percorso Academy';
   $('turnHint').textContent='Avvisi sospesi finché la posizione non torna affidabile';
   return;
  }
  if(near.recovering||near.waiting){
-  voicePositionOk=false;hideRoadSafety();
+  voicePositionOk=false;hideRoadSafety();setDriveTurn('Annunci sospesi',near.d>85?'Fuori dal percorso ufficiale':'Verifica posizione GPS','warning');
   $('gpsStatus').textContent='GPS · riallineamento al GPX';
   $('navStatus').textContent='Verifica avanzamento sul percorso';
   $('turnHint').textContent='Ricalcolo posizione: avvisi in attesa';
@@ -1310,6 +1431,9 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  $('nextDistance').textContent=!stops.length?'—':done?'✓':niceDistance(remaining);
  $('progressBar').style.width=Math.min(100,Math.max(0,along/(dists.at(-1)||1)*100))+'%';
  $('progressLabel').textContent=nextStopIdx+' / '+stops.length+' fermate';
+ const toEnd=Math.max(0,(dists.at(-1)||0)-along);
+ if(stops.length&&!done)setDriveStop(stops[nextStopIdx].stop.stop_name,niceDistance(remaining)+' · fermata '+(nextStopIdx+1)+' di '+stops.length);
+ else setDriveStop(stops.length?'Capolinea raggiunto':'Solo percorso GPX',niceDistance(toEnd)+' al termine');
  if(stops.length&&!done&&near.d<100){
   planStopVoice(nextStopIdx,remaining,speed,false,isDemo);
  }
@@ -1322,6 +1446,11 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
    'Possibile svolta a '+turn.side+' tra '+niceDistance(d)+' (GPX indicativo)';
   planTurnVoice(turn,turnIndex,d,speed,near.d,stops.length&&!done?remaining:Infinity);
  }else $('turnHint').textContent=done?'Corsa completata':current.guidanceCoverage&&!covered?'Manovre non disponibili in questo tratto · segui il GPX':'Segui il tracciato GPX';
+ // Driving panel: next verified manoeuvre inside validated guidance, as in the iOS app.
+ const driveTurn=turns.find(t=>t.verifiedRoad&&t.at>along&&(!current.guidanceCoverage||covered&&t.at<=covered[1]));
+ if(driveTurn)setDriveTurn(niceDistance(driveTurn.at-along),driveTurn.text,driveTurn.kind==='roundabout'?'roundabout':driveTurn.side==='sinistra'?'left':'right');
+ else if(!current.guidanceCoverage||covered)setDriveTurn(niceDistance(toEnd),'Segui il GPX ufficiale','up');
+ else setDriveTurn('Tratto non coperto','Manovre non disponibili qui: segui il GPX ufficiale','up');
  updateRoadSafety(along,isDemo?0:accuracy,near.d,speed);
  // Cues held during a GPS dropout resume as soon as the position is reliable again.
  drainVoice();
@@ -1347,6 +1476,7 @@ function stopNavigation(){
 async function startGPS(simulated=false){
  const demo=simulated===true;
  if(!current?.academy){toast('Seleziona un GPX ufficiale');return}
+ primeSpeech(); // still inside the tap: Safari needs it before the await below
  const selection=current;
  $('startNav').disabled=true;
  await roadGuidanceReady;
@@ -1393,7 +1523,7 @@ async function startGPS(simulated=false){
  },{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
  $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
 }
-async function startDemo(){if(!current)return;if(nativeMode){await startGPS(true);return}stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
+async function startDemo(){if(!current)return;primeSpeech();if(nativeMode){await startGPS(true);return}stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 // Native GTFS transfer: URLSession downloads the ZIP, then sends base64 chunks
 // over WKScriptMessageHandler. No fetch/XHR to a WebKit custom URL scheme.
 let nativeGtfsPending=null;
@@ -1450,12 +1580,25 @@ document.addEventListener('visibilitychange',()=>{
  if(document.hidden)setVoiceStatus('Schermo non attivo: GPS e voce potrebbero sospendersi',true);
  else{
   setVoiceStatus('App riaperta · verifica gli annunci');
-  try{if('speechSynthesis'in window&&speechSynthesis.paused)speechSynthesis.resume()}catch(e){console.warn(e)}
+  keepScreenOn();
+  try{
+   if('speechSynthesis'in window&&!window.LineaPilotAndroid){
+    if(speechSynthesis.paused)speechSynthesis.resume();
+    // After a lock/background Safari can keep a dead utterance "speaking".
+    if(!voiceBusy&&(speechSynthesis.speaking||speechSynthesis.pending)){speechSynthesis.cancel();voiceLastCancel=Date.now()}
+   }
+  }catch(e){console.warn(e)}
  }
 });
-$('activateNavVoice').addEventListener('click',activateNavigationVoice);
+$('driveRepeat').addEventListener('click',repeatNavigationInstruction);
+$('driveRecenter').addEventListener('click',recenterOnRealGPS);
+$('driveCompass').addEventListener('click',()=>{driveNorthUp=!driveNorthUp;$('driveCompass').setAttribute('aria-pressed',String(driveNorthUp));$('driveCompass').setAttribute('aria-label',driveNorthUp?'Orienta nella direzione di marcia':'Orienta a nord');applyDriveHeading()});
+$('driveVoiceToggle').addEventListener('click',()=>{
+ const toggle=$('voiceToggle');toggle.checked=!toggle.checked;toggle.dispatchEvent(new Event('change'));renderDriveVoiceButton();
+ if(toggle.checked){primeSpeech();if(!nativeActive){resetVoiceGuidance();if(setupVoice())enqueueVoice('Annunci attivi.','normal')}}
+});
 $('testVoice').addEventListener('click',()=>{resetVoiceGuidance();if(!$('voiceToggle').checked){toast('Attiva prima gli annunci vocali');return}if(nativeMode){syncVoiceSettings();nativePost({type:'testVoice'});return}if(!speak('Prova audio LineaPilot. Tra duecento metri, prossima fermata.','stop'))toast('Sintesi vocale non disponibile: controlla il volume e le impostazioni di Safari');});
-$('voiceToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked});if(!$('voiceToggle').checked){resetVoiceGuidance();setVoiceStatus('Voce disattivata')}else setVoiceStatus('Premi Riattiva voce')});
+$('voiceToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked});if(!$('voiceToggle').checked){resetVoiceGuidance();setVoiceStatus('Voce disattivata')}else setVoiceStatus('Voce attiva')});
 $('turnToggle').addEventListener('change',()=>{if(nativeActive)nativePost({type:'settings',voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked})});
 $('showRoute').addEventListener('click',selectTrip);$('startNav').addEventListener('click',startGPS);$('stopNav').addEventListener('click',()=>{stopNavigation();$('navStatus').textContent='Navigazione terminata'});$('demoBtn').addEventListener('click',startDemo);$('recenterBtn').addEventListener('click',recenterOnRealGPS);
 function openDB(){return new Promise((resolve,reject)=>{
