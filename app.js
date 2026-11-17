@@ -328,7 +328,7 @@ function loadTicketData(){
  if(!ticketDataPromise)ticketDataPromise=fetch(TICKET_DATA_URL)
   .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()})
   .catch(()=>ticketDataXHR())
-  .then(d=>{if(!Array.isArray(d?.lines)||!d.labels)throw Error('formato non valido');ticketData=d;return d})
+  .then(d=>{if(!Array.isArray(d?.lines)||!d.labels)throw Error('formato non valido');ticketData=d;if(typeof refreshReadySummary==='function')refreshReadySummary();return d})
   .catch(e=>{ticketDataPromise=null;console.info('Polimetriche non disponibili',e.message);return null});
  return ticketDataPromise;
 }
@@ -1847,6 +1847,9 @@ initializeGTFS();
 let wizardStep=0;
 function refreshReadySummary(){
  $('readyRoute').textContent=current?.academy?.name||'Scegli un percorso';
+ // Departure bay of the line (corsie.js); hidden for urban lines and lines not in the table.
+ const corsia=current?.academy&&globalThis.Corsie?Corsie.label(current.academy,ticketData):'';
+ $('readyCorsia').textContent=corsia;$('readyCorsia').hidden=!corsia;
  $('readyStops').textContent=current?.academy?._evidence?.serviceStatus==='out-of-service'?'Trasferimento fuori servizio: nessuna fermata passeggeri prevista.':current?.stops?.length?current.stops.length+' fermate associate'+(current.stopProposal?.reviewRequired?' · proposta confermata ('+Math.round(current.stopProposal.coverage*100)+'% del GPX)':'')+' · '+niceDistance(current.dists.at(-1)):'Nessuna fermata associata: annunci fermata non disponibili.';
  const count=turns.filter(t=>t.verifiedRoad).length,coverage=current?.guidanceCoverage;
  $('readyGuidance').textContent=coverage?(coverage.complete?

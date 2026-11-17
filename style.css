@@ -267,3 +267,5 @@ body.navigating .leaflet-control-attribution{display:none}
  .ticket-result[data-empty="yes"]{color:rgba(235,235,245,.7)}
 }
 body.navigating .toast.show{position:absolute;z-index:760;inset:auto;left:calc(var(--safe-left) + 12px);right:calc(var(--safe-right) + 12px);top:calc(var(--drive-top-bottom,140px) + 8px);max-width:none}
+.ready-corsia{display:inline-block;margin:2px 0 6px;padding:6px 12px;border-radius:12px;background:#e9f2ff;color:#0058c4;font-size:17px;font-weight:800;line-height:1.3}
+.ready-corsia[hidden]{display:none}

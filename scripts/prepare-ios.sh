@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p ios/Web
 # Copy originals, never alter the Academy catalog.
-cp index.html app.js route-stops.js tickets.js style.css sw.js manifest.webmanifest icon.svg official-routes.json academy-supplemental-routes.json academy-evidence.json ios/Web/
+cp index.html app.js route-stops.js tickets.js corsie.js style.css sw.js manifest.webmanifest icon.svg official-routes.json academy-supplemental-routes.json academy-evidence.json ios/Web/
 cp apple-touch-icon.png "ios/Web/"
 # On-board ticket calculator data (polimetriche), read by the web layer.
 mkdir -p "ios/Web/fares"

@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 DEST="android/app/src/main/assets"
 mkdir -p "$DEST"
-cp index.html app.js route-stops.js tickets.js style.css sw.js manifest.webmanifest icon.svg official-routes.json academy-supplemental-routes.json academy-evidence.json "$DEST/"
+cp index.html app.js route-stops.js tickets.js corsie.js style.css sw.js manifest.webmanifest icon.svg official-routes.json academy-supplemental-routes.json academy-evidence.json "$DEST/"
 cp apple-touch-icon.png "$DEST/"
 # On-board ticket calculator data (polimetriche), read by the web layer.
 mkdir -p "$DEST/fares"
