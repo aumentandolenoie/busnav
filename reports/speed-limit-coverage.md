@@ -1,41 +1,41 @@
 # Copertura dei limiti di velocità
 
-Fonte: OpenStreetMap (estratto Geofabrik Nord-Est), abbinato ai GPX Academy. Policy dati: {3: 789}.
+Fonte: OpenStreetMap (estratto Geofabrik Nord-Est), abbinato ai GPX Academy. Policy dati: {3: 966}.
 
 | Misura | Valore |
 | --- | ---: |
-| Percorsi GPX | 789 |
-| Distanza totale | 16,061 km |
-| Distanza con limite | 7,635 km (47.5%) |
-| di cui cartello | 969 km |
-| di cui mappato | 4,574 km |
-| di cui legale | 2,093 km |
+| Percorsi GPX | 966 |
+| Distanza totale | 19,818 km |
+| Distanza con limite | 9,718 km (49.0%) |
+| di cui cartello | 1,242 km |
+| di cui mappato | 5,725 km |
+| di cui legale | 2,750 km |
 
 ## Percorsi per copertura
 
 | Copertura | Percorsi |
 | --- | ---: |
-| nessun limite | 5 |
-| meno del 25% | 111 |
-| 25-50% | 357 |
-| 50-75% | 251 |
-| 75-90% | 42 |
-| almeno 90% | 23 |
+| nessun limite | 7 |
+| meno del 25% | 127 |
+| 25-50% | 406 |
+| 50-75% | 329 |
+| 75-90% | 72 |
+| almeno 90% | 25 |
 
 ## Valori mostrati (km)
 
 | km/h | km |
 | ---: | ---: |
-| 10 | 2 |
+| 10 | 18 |
 | 20 | 0 |
-| 30 | 494 |
-| 40 | 97 |
-| 50 | 4,727 |
-| 60 | 200 |
-| 70 | 973 |
-| 80 | 944 |
-| 90 | 33 |
-| 100 | 166 |
+| 30 | 564 |
+| 40 | 115 |
+| 50 | 5,945 |
+| 60 | 388 |
+| 70 | 1,222 |
+| 80 | 1,270 |
+| 90 | 39 |
+| 100 | 156 |
 
 Livelli di affidabilità:
 - **cartello**: in OSM il valore è dichiarato letto da un cartello (`source:maxspeed=sign/markings`);
