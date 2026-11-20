@@ -131,7 +131,7 @@ jobs:
             cp reports/stop-coverage.json reports/stop-coverage.csv "$REPORT_PUBLISH_DIR/reports/"
             git -C "$REPORT_PUBLISH_DIR" add reports/stop-coverage.json reports/stop-coverage.csv
             git -C "$REPORT_PUBLISH_DIR" diff --cached --quiet && exit 0
-            git -C "$REPORT_PUBLISH_DIR" commit -m 'Update stop coverage audit for all 789 immutable GPX'
+            git -C "$REPORT_PUBLISH_DIR" commit -m 'Update stop coverage audit for all official GPX'
             if git -C "$REPORT_PUBLISH_DIR" push origin HEAD:main; then exit 0; fi
           done
           echo 'Unable to publish audit after concurrent updates.'

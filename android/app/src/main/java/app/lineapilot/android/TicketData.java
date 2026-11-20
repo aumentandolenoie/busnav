@@ -104,7 +104,9 @@ final class TicketData {
         return suggestedLines(lines, category, line, name, Collections.emptyList());
     }
     static int[] suggestedLines(List<Line> lines, String category, String line, String name, List<String> evidence) {
-        if (category.toLowerCase(Locale.ROOT).startsWith("urban")) return new int[0];
+        String kind = category.toLowerCase(Locale.ROOT);
+        // Urban lines, concert shuttles and Padova Marathon have no polimetrica.
+        if (kind.startsWith("urban") || kind.startsWith("navett") || kind.startsWith("padova marathon")) return new int[0];
         String code = line.trim().toUpperCase(Locale.ROOT);
         List<String> all = new ArrayList<>();
         for (Line l : lines) all.add(l.code);

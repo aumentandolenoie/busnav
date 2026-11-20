@@ -25,17 +25,18 @@ test('label under the route name',()=>{
  assert.equal(Corsie.label({category:'Extraurbano',line:'1',name:'x'},tickets),'Corsia 4');
  assert.equal(Corsie.label({category:'Urbano',line:'10',name:'x'},tickets),'');
  assert.equal(Corsie.label({category:'Extraurbano',line:'61',name:'Padova - Jesolo'},tickets),'');
- // Market detour without a line number: the line comes from the Academy evidence.
- assert.equal(Corsie.label(byId(18),tickets),'Corsia 14');
- // Two possible lines with different bays.
- assert.equal(Corsie.label(byId(26),tickets),'Corsia 5 o 14');
+ const find=(name,line)=>{const r=routes.find(r=>r.name===name&&(!line||r.line===line));assert.ok(r,name);return r};
+ // Market detour without a line number: the line comes from the evidence.
+ assert.equal(Corsie.label(find('225 | Padova - Piazzola - Carmignano','Deviazioni mercatali'),tickets),'Corsia 14');
  // School trips: the institute bay is added when it differs from the line.
- assert.equal(Corsie.label(byId(355),tickets),'Corsia 13 · Ist. Valle: corsia 8');
- assert.equal(Corsie.label(byId(363),tickets),'Corsia 13');
- assert.equal(Corsie.label(byId(212),tickets),'Corsia 9 · Istituti via Cave: corsia 14');
+ assert.equal(Corsie.label(find('1026 | Ist. Valle - Padova','36'),tickets),'Corsia 13 · Ist. Valle: corsia 8');
+ assert.equal(Corsie.label(find('366 | Padova - Ist. Severi','36'),tickets),'Corsia 13');
+ assert.equal(Corsie.label(find('1026 | Ist. Via Cave - Padova','17'),tickets),'Corsia 9 · Istituti via Cave: corsia 14');
+ // Concert shuttles and Padova Marathon have no bay in the table.
+ for(const r of routes.filter(r=>/Navette|Marathon|Urbano/.test(r.category)))assert.equal(Corsie.label(r,tickets),'',r.name);
 });
 
 test('every extra-urban and Colli route except the lines missing in the table has a bay',()=>{
- const missing=new Set(routes.filter(r=>r.category!=='Urbano'&&!Corsie.info(r,tickets).bays.length).map(r=>r.line.trim()));
- assert.deepEqual([...missing].sort((a,b)=>a.localeCompare(b,'it',{numeric:true})),['24','33','34','43','44','46','61','98','101','102','103','105']);
+ const missing=new Set(routes.filter(r=>['Extraurbano','Colli'].includes(r.category)&&!Corsie.info(r,tickets).bays.length).map(r=>r.line.trim()));
+ assert.deepEqual([...missing].sort((a,b)=>a.localeCompare(b,'it',{numeric:true})),['24','33','34','42','43','44','46','47','61','98','101','102','103','105','AM','Colli']);
 });

@@ -665,25 +665,35 @@ $('exitNavigation').addEventListener('click',()=>{stopNavigation();$('navStatus'
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&navigationFullscreen){stopNavigation();$('navStatus').textContent='Navigazione terminata'}});
 
 
-const ACADEMY_EXPECTED={Extraurbano:559,Colli:29,Urbano:201};
+// Category counts come from academy-evidence.json (scripts/import_mappe.py).
+const ACADEMY_CATEGORY_ORDER=['Extraurbano','Colli','Urbano','Navette Concerti','Padova Marathon'];
 const ACADEMY_DOCUMENTS={
   'Turni Invernali':{'Feriale':['1 FERIALE dal 02_11_2026 - _27-5.pdf'],'Sabato':['2 SABATO  anno scolastico 2026 - _27-2.pdf'],'Festivo':['3 FESTIVO EXTRAURBANO anno scolastico 2026 - _27-1.pdf']},
   'Indicatori di percorso':{'Colli':['Linee Colli.pdf'],'Extraurbano':['Linee Extraurbanee.pdf'],'Urbano':['Linee Urbane.pdf']}
 };
 const sortIt=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true,sensitivity:'base'});
 function academyGroupName(r){return String(r.line||'Altri percorsi').trim();}
-// Market-day detours: the Academy folder ("…/Deviazioni mercatali /5 Venerdì /…") gives the day.
+// Market-day detours: the folder ("…/DEVIAZIONI MERCATALI/VENERDÌ/…") gives the day.
 function academyMarketDay(route){
+ if(route?._evidence?.marketDay)return route._evidence.marketDay;
  for(const path of route?._evidence?.sourcePaths||[]){
   const m=/deviazioni mercatali\s*\/\s*\d+\s+([^/]+?)\s*\//i.exec(path);
   if(m)return m[1].trim();
  }
  return '';
 }
+// Town and hours of the market from the folder name: "PIAZZOLA (fino alle ore 15)" → "Piazzola, fino alle ore 15".
+function academyMarketPlace(route){
+ const place=String(route?._evidence?.marketPlace||'').trim();
+ if(!place)return '';
+ const m=/^(.*?)\s*\(([^)]*)\)\s*$/.exec(place),town=(m?m[1]:place).toLocaleLowerCase('it').replace(/(^|[\s.'’-])(\p{L})/gu,(x,a,b)=>a+b.toLocaleUpperCase('it'));
+ const hours=m?m[2].trim():'';
+ return town+(hours?', '+(/^\d/.test(hours)?'ore '+hours.replace('-','–'):hours):'');
+}
 function academyLineLabel(route){const day=academyMarketDay(route);return academyGroupName(route)+(day?' ('+day+')':'')}
-// These Academy files share the same ordered coordinates, service evidence
-// and stop proposals. Keep the source IDs and group only the picker options.
-const ACADEMY_ROUTE_ALIASES=new Map([[2,3],[55,56],[76,75],[103,101],[110,109],[208,209]]);
+// Files with the same ordered coordinates (evidence.sameGeometryAs): keep the
+// source IDs and group only the picker options.
+let ACADEMY_ROUTE_ALIASES=new Map();
 function academyRouteChoices(routes,query){
  const normalize=value=>String(value??'').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase('it');
  const groups=new Map(),titles=new Map();
@@ -704,8 +714,8 @@ function academyRouteChoices(routes,query){
   const code=String(route.variant??'').trim();
   const distinctCode=code&&homonyms.filter(r=>normalize(r.variant)===normalize(code)).length===1;
   const label=homonyms.length<=1?route.name:route.name+(distinctCode?' · cod. '+code:' · GPX '+route.id);
-  const day=academyMarketDay(route);
-  choices.push([String(route.id),day?label+' · '+day:label]);
+  const day=academyMarketDay(route),place=academyMarketPlace(route);
+  choices.push([String(route.id),day?label+' · '+day+(place?' · '+place:''):label]);
  }
  return choices.sort((a,b)=>sortIt(a[1],b[1]));
 }
@@ -720,13 +730,18 @@ async function readAcademyJSON(path){
 }
 async function loadAcademy(){try{
  const [original,supplemental,evidence]=await Promise.all(['official-routes.json','academy-supplemental-routes.json','academy-evidence.json'].map(readAcademyJSON));
- if(!Array.isArray(original)||original.length!==787||!Array.isArray(supplemental)||supplemental.length!==2)throw Error('Catalogo non valido');
+ const expected=evidence?.catalog?.categories||{},total=Number(evidence?.catalog?.total)||0;
+ if(!Array.isArray(original)||!Array.isArray(supplemental)||original.length+supplemental.length!==total||!total)throw Error('Catalogo non valido');
  const data=[...original,...supplemental].map(r=>({...r,_evidence:evidence.routes[String(r.id)]}));
  academy=data;const ids=new Set(data.map(r=>r.id)),stats={};
- for(const category of Object.keys(ACADEMY_EXPECTED))stats[category]=data.filter(r=>r.category===category).length;
- const complete=data.length===789&&ids.size===789&&Object.keys(ACADEMY_EXPECTED).every(k=>stats[k]===ACADEMY_EXPECTED[k])&&data.every(r=>Array.isArray(r.points)&&r.points.length>=2);
- $('academyCount').textContent=complete?'Catalogo completo: 789/789 GPX (559 Extraurbano, 29 Colli, 201 Urbano).':'ATTENZIONE: catalogo incompleto o non valido ('+data.length+'/789).';
- $('officialInfo').textContent=complete?'Seleziona categoria, linea e variante. Le due sezioni documentali contengono PDF, non tracciati GPS.':'Controllare official-routes.json prima della navigazione.';
+ ACADEMY_ROUTE_ALIASES=new Map(data.filter(r=>Number.isInteger(r._evidence?.sameGeometryAs)).map(r=>[r.id,r._evidence.sameGeometryAs]));
+ const categories=Object.keys(expected).sort((a,b)=>(ACADEMY_CATEGORY_ORDER.indexOf(a)+1||99)-(ACADEMY_CATEGORY_ORDER.indexOf(b)+1||99));
+ for(const category of categories)stats[category]=data.filter(r=>r.category===category).length;
+ const complete=data.length===total&&ids.size===total&&categories.every(k=>stats[k]===expected[k])&&data.every(r=>Array.isArray(r.points)&&r.points.length>=2);
+ const select=$('academyCategory');
+ for(const category of categories)if(![...select.options].some(o=>o.value===category))select.add(new Option(category,category));
+ $('academyCount').textContent=complete?'Catalogo completo: '+total+'/'+total+' GPX ('+categories.map(c=>stats[c]+' '+c).join(', ')+').':'ATTENZIONE: catalogo incompleto o non valido ('+data.length+'/'+total+').';
+ $('officialInfo').textContent=complete?'Seleziona categoria, linea e variante.':'Controllare official-routes.json prima della navigazione.';
  filterAcademy();
 }catch(e){$('academyCount').textContent='Catalogo GPX non disponibile';$('officialInfo').textContent='Errore caricamento GPX: '+e.message}}
 function filterAcademy(){

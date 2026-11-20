@@ -22,14 +22,18 @@ if [ -d road-guidance ]; then
 fi
 test -s ios/Web/official-routes.json
 python3 - <<'PY'
-import json
-with open("ios/Web/official-routes.json", encoding="utf-8") as f:
-    routes=json.load(f)
-extra=json.load(open('ios/Web/academy-supplemental-routes.json'))
-assert len(extra)==2 and len({r['id'] for r in routes+extra})==789
-assert len(routes)==787
-assert {c:sum(x["category"]==c for x in routes) for c in ["Extraurbano","Urbano","Colli"]}=={"Extraurbano":557,"Urbano":201,"Colli":29}
-print("Academy catalog: 787 intact routes.")
+import hashlib,json
+base='ios/Web/'
+original=open(base+'official-routes.json','rb').read()
+routes=json.loads(original);extra=json.load(open(base+'academy-supplemental-routes.json'))
+evidence=json.load(open(base+'academy-evidence.json'))
+catalog=evidence['catalog']
+# The catalog must match the counts and digest written by scripts/import_mappe.py.
+assert len(routes)+len(extra)==catalog['total'] and len({r['id'] for r in routes+extra})==catalog['total']
+assert {c:sum(r['category']==c for r in routes+extra) for c in catalog['categories']}==catalog['categories']
+assert hashlib.sha256(original).hexdigest()==evidence['originalCatalogSHA256']
+assert len(evidence['routes'])==catalog['total']
+print('Catalogo GPX:',catalog['total'],'percorsi',catalog['categories'])
 PY
 
 

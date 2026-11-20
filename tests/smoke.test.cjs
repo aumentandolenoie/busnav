@@ -21,14 +21,14 @@ test('all JS element selectors correspond to HTML ids',()=>{
  const ids=new Set([...html.matchAll(/id="([^"]+)"/g)].map(x=>x[1]));
  for(const [,id] of js.matchAll(/\$\('([^']+)'\)/g))assert.ok(ids.has(id),'Missing element #'+id);
 });
-test('787 Academy GPX stay complete and uniquely identified',()=>{
+test('the GPX catalog matches the counts of the imported folder and has unique ids',()=>{
  const routes=JSON.parse(fs.readFileSync('official-routes.json','utf8'));
- assert.equal(routes.length,787);
- assert.equal(new Set(routes.map(r=>r.id)).size,787);
- for(const [category,expected] of Object.entries({Extraurbano:557,Colli:29,Urbano:201})){
-  assert.equal(routes.filter(r=>r.category===category).length,expected);
- }
- assert.ok(routes.every(r=>Array.isArray(r.points)&&r.points.length>=2));
+ const {catalog,routes:evidence}=JSON.parse(fs.readFileSync('academy-evidence.json','utf8'));
+ assert.equal(routes.length,catalog.total);
+ assert.deepEqual(routes.map(r=>r.id),routes.map((_,i)=>i));
+ for(const [category,expected] of Object.entries(catalog.categories))assert.equal(routes.filter(r=>r.category===category).length,expected,category);
+ assert.ok(catalog.total>=900,'Mappe Busitalia Veneto: 966 GPX on 2026-11-20');
+ assert.ok(routes.every(r=>Array.isArray(r.points)&&r.points.length>=2&&evidence[String(r.id)]?.sourcePaths?.[0]?.startsWith('Mappe Busitalia Veneto/')));
 });
 test('GPX interpolation never returns the start after journey end',()=>{
  const f=vm.runInNewContext(sourceOf('pointAt')+';pointAt');
@@ -507,9 +507,12 @@ test('market-day detours show the day of their Academy folder',()=>{
  const evidence=JSON.parse(fs.readFileSync('academy-evidence.json','utf8'));
  const routes=JSON.parse(fs.readFileSync('official-routes.json','utf8')).map(r=>({...r,_evidence:evidence.routes[String(r.id)]}));
  const {academyMarketDay,academySearchLabel}=vm.runInNewContext([sourceOf('academyGroupName'),sourceOf('academyMarketDay'),sourceOf('academyLineLabel'),sourceOf('academySearchLabel')].join('\n')+';({academyMarketDay,academySearchLabel})');
- const r18=routes.find(r=>r.id===18);
- assert.equal(academySearchLabel(r18),'Extraurbano · linea Deviazioni mercatali (Venerdì) · cod. 225 · GPX 18');
+ const piazzola=routes.find(r=>/mercat/i.test(r.line)&&r.variant==='225');
+ assert.equal(academySearchLabel(piazzola),'Extraurbano · linea Deviazioni mercatali (Venerdì) · cod. 225 · GPX '+piazzola.id);
+ // Folder "DEVIAZIONI MERCATALI/<GIORNO>/<luogo>" of Mappe Busitalia Veneto (2026-11-20).
  const days=new Set(routes.filter(r=>/mercat/i.test(r.line)).map(academyMarketDay));
- assert.deepEqual([...days].sort(),['Giovedì','Lunedì','Martedì','Mercoledì','Sabato','Venerdì']);
+ assert.deepEqual([...days].sort(),['Lunedì','Martedì','Sabato','Venerdì']);
+ // Older catalogs ("…/Deviazioni mercatali /5 Venerdì /…") still work.
+ assert.equal(academyMarketDay({_evidence:{sourcePaths:['Mappe Academy /01 Extraurbano /Deviazioni mercatali /3 Mercoledì /x/y.gpx']}}),'Mercoledì');
  assert.equal(routes.filter(r=>!/mercat/i.test(r.line)&&academyMarketDay(r)).length,0);
 });

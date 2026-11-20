@@ -19,14 +19,18 @@ if [ -n "${GITHUB_SHA:-}" ]; then
  sed -i "1i window.LINEAPILOT_BUILD_TAG='$TAG';" "$DEST/app.js"
 fi
 python3 - <<'PY'
-import json
-from pathlib import Path
-routes = json.loads(Path('android/app/src/main/assets/official-routes.json').read_text(encoding='utf8'))
-extra=json.load(open('android/app/src/main/assets/academy-supplemental-routes.json'))
-assert len(extra)==2 and len({r['id'] for r in routes+extra})==789
-assert len(routes) == 787
-assert {name: sum(r['category'] == name for r in routes) for name in ('Extraurbano','Urbano','Colli')} == {'Extraurbano':557,'Urbano':201,'Colli':29}
-print('Android Academy GPX: 787 percorsi originali.')
+import hashlib,json
+base='android/app/src/main/assets/'
+original=open(base+'official-routes.json','rb').read()
+routes=json.loads(original);extra=json.load(open(base+'academy-supplemental-routes.json'))
+evidence=json.load(open(base+'academy-evidence.json'))
+catalog=evidence['catalog']
+# The catalog must match the counts and digest written by scripts/import_mappe.py.
+assert len(routes)+len(extra)==catalog['total'] and len({r['id'] for r in routes+extra})==catalog['total']
+assert {c:sum(r['category']==c for r in routes+extra) for c in catalog['categories']}==catalog['categories']
+assert hashlib.sha256(original).hexdigest()==evidence['originalCatalogSHA256']
+assert len(evidence['routes'])==catalog['total']
+print('Catalogo GPX:',catalog['total'],'percorsi',catalog['categories'])
 PY
 
 

@@ -25,9 +25,9 @@
  const base=code=>{const m=/^E(\d{3})/.exec(String(code||''));return m?'E'+m[1]:String(code||'')};
  /** Line codes for an Academy route, with the ticket data when available. */
  function lineCodes(route,tickets){
-  if(!route)return [];
+  if(!route||/^(urban|navett|padova marathon)/i.test(String(route.category||'')))return [];
   if(tickets&&globalThis.Tickets)return globalThis.Tickets.suggestedLines(tickets,route).map(i=>base(tickets.lines[i].code));
-  if(/^urban/i.test(String(route.category||'')))return [];
+  if(/^(urban|navett|padova marathon)/i.test(String(route.category||'')))return [];
   const line=String(route.line||'').trim().toUpperCase();
   if(/^\d{1,3}$/.test(line))return ['E'+line.padStart(3,'0')];
   return line in LINES?[line]:[];
@@ -36,7 +36,8 @@
  function info(route,tickets){
   const bays=[...new Set(lineCodes(route,tickets).map(c=>LINES[c]).filter(Boolean))];
   const name=String(route?.name||'').toUpperCase();
-  const hit=INSTITUTES.find(([re])=>re.test(name));
+  // The table lists extra-urban school trips: urban lines and shuttles have no bay.
+  const hit=/^(extraurbano|colli)/i.test(String(route?.category||''))&&INSTITUTES.find(([re])=>re.test(name));
   return {bays,institute:hit?{name:hit[1],bay:hit[2]}:null};
  }
  /** "Corsia 11", "Corsia 5 o 14", "Corsia 13 · Ist. Valle: corsia 8", or "". */

@@ -39,6 +39,24 @@ addEventListener('click',()=>{window.__inGesture=false},false);
 """
 
 
+sys.path.insert(0, str(ROOT / 'scripts'))
+from enrich_road_guidance import fingerprint  # noqa: E402
+
+
+def camera_route():
+    """Line 8, 101 Este - Bresega - Badia Polesine: speed camera, limits and the E008
+    polimetrica. Its road data must match the GPX (rebuilt after every import)."""
+    route = next(r for r in json.loads((ROOT / 'official-routes.json').read_text())
+                 if r['line'] == '8' and r['name'] == '101 | Este - Bresega - Badia Polesine')
+    path = ROOT / 'road-guidance' / f"{route['id']}.json"
+    if path.exists() and json.loads(path.read_text()).get('fingerprint') == fingerprint(route['points']):
+        return route['id']
+    return None
+
+
+CAMERA_ROUTE = camera_route()
+
+
 def serve():
     class Quiet(http.server.SimpleHTTPRequestHandler):
         def log_message(self, *args):
@@ -64,7 +82,7 @@ def open_route(page, base):
     page.on('pageerror', lambda e: errors.append(str(e)))
     page.goto(base + '/index.html')
     page.wait_for_function("academyCount.textContent.includes('percorsi')", timeout=20000)
-    page.evaluate("pickAcademyRoute(academy.find(r=>r.id===124))")
+    page.evaluate(f"pickAcademyRoute(academy.find(r=>r.id==={CAMERA_ROUTE}))")
     page.wait_for_function("current&&turns.some(t=>t.verifiedRoad)&&current.roadCameras.length>0", timeout=20000)
     return errors
 
@@ -74,6 +92,11 @@ DRIVE = """(async()=>{const c=current.roadCameras[0];for(let a=0;a<c.at-120;a+=1
 
 
 def main():
+    if CAMERA_ROUTE is None:
+        # Right after a new GPX import the road data is rebuilt by the iOS workflow;
+        # until it is published no route can be driven with cameras here.
+        print('Road data not yet rebuilt for the current GPX catalog: Safari voice test skipped.')
+        return
     server = serve()
     (ROOT / 'build/safari-voice').mkdir(parents=True, exist_ok=True)
     base = f'http://127.0.0.1:{server.server_address[1]}'

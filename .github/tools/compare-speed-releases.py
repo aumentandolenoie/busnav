@@ -45,7 +45,7 @@ def main():
     latest = json.loads((new/"coverage.json").read_text())
     assert previous["gpxSHA256"] == latest["gpxSHA256"]
     metadata = {str(row["id"]):row for row in latest["routes"]}
-    assert len(metadata) == len(previous["routes"]) == 789
+    assert len(metadata) == len(previous["routes"])
     results = Counter()
     recovered, empty = [], []
     cameras_changed = []

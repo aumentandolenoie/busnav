@@ -97,7 +97,9 @@ struct TicketData: Decodable {
     private static let aliases = ["TD": ["T", "TL"], "AB": ["A", "AT"], "MLA": ["M"]]
     /// Polimetrica lines for an Academy route, best first (indexes into `lines`).
     static func suggestedLines(_ lines: [Line], category: String, line: String, name: String, aliases evidence: [String] = []) -> [Int] {
-        if category.lowercased().hasPrefix("urban") { return [] }
+        let kind = category.lowercased()
+        // Urban lines, concert shuttles and Padova Marathon have no polimetrica.
+        if kind.hasPrefix("urban") || kind.hasPrefix("navett") || kind.hasPrefix("padova marathon") { return [] }
         let code = line.trimmingCharacters(in: .whitespaces).uppercased()
         let all = lines.map(\.code)
         var codes: [String] = []

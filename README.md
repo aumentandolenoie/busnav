@@ -1,4 +1,11 @@
-> Aggiornamento Academy: **789 GPX**, con i 787 originali immutati e due tracciati recuperati dai file senza estensione standard. Audit fermate: **562 sequenze complete, 131 proposte da verificare, 95 fuori servizio, 1 non abbinato**. I turni invernali e gli indicatori sono stati analizzati con provenienza per pagina: vedi [audit dettagliato](reports/README.md) e `academy-evidence.json`. Voce stradale: **584 completi, 205 parziali, 99,69% della distanza GPX coperta**. I conteggi 787 sotto si riferiscono al catalogo originale.
+> **GPX aggiornati (20 novembre 2026):** il catalogo è stato sostituito dalla cartella OneDrive **Mappe Busitalia Veneto**: **966 GPX** (708 extraurbani, 34 Colli, 208 urbani, 6 Navette Concerti, 10 Padova Marathon). Rispetto al catalogo Academy precedente: 332 tracciati identici, 263 aggiornati, 194 non più presenti. Dettaglio in `reports/gpx-import.json`. Versione precedente conservata nel ramo `backup/pre-nuovi-gpx`.
+
+## Aggiornare i GPX
+1. Scaricare la cartella **Mappe Busitalia Veneto** da OneDrive come ZIP.
+2. `python3 scripts/import_mappe.py OneDrive_AAAA-MM-GG.zip` — riscrive `official-routes.json` e `academy-evidence.json` (linea dalla cartella `Exxx`/`Uxx`, codice dal nome file, giorno e paese delle deviazioni mercatali dalle sottocartelle, indicatori e turni già estratti dai PDF Academy) e scrive il confronto con il catalogo precedente in `reports/gpx-import.json`. Si ferma se un file non è leggibile.
+3. `node --test tests/*.test.cjs`, poi push su `main`: il workflow iOS ricostruisce manovre, limiti e autovelox per tutti i GPX (circa 40 minuti) e li pubblica per web, iOS e Android.
+
+> Storico: catalogo Academy precedente Aggiornamento Academy: **789 GPX**, con i 787 originali immutati e due tracciati recuperati dai file senza estensione standard. Audit fermate: **562 sequenze complete, 131 proposte da verificare, 95 fuori servizio, 1 non abbinato**. I turni invernali e gli indicatori sono stati analizzati con provenienza per pagina: vedi [audit dettagliato](reports/README.md) e `academy-evidence.json`. Voce stradale: **584 completi, 205 parziali, 99,69% della distanza GPX coperta**. I conteggi 787 sotto si riferiscono al catalogo originale.
 
 > **Audit navigazione aggiornato (8 novembre 2026):** [risultati, limiti e cause](reports/README.md), [fermate per tutti i GPX](reports/stop-coverage.csv), [copertura vocale e intervalli mancanti](reports/voice-coverage.csv). Le proposte parziali di fermate richiedono verifica esplicita; la voce stradale è sospesa nei tratti non validati.
 

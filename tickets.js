@@ -20,7 +20,8 @@
   const index=new Map(data.lines.map((l,i)=>[l.code,i]));
   let codes=[];
   // Urban lines have no polimetrica: the driver can still pick one by hand.
-  if(/^urban/i.test(String(route.category||'')))return [];
+  // Urban lines, concert shuttles and Padova Marathon have no polimetrica.
+  if(/^(urban|navett|padova marathon)/i.test(String(route.category||'')))return [];
   if(/^\d{1,3}$/.test(line)){
    const base='E'+line.padStart(3,'0');
    codes=data.lines.map(l=>l.code).filter(c=>c===base||(c.startsWith(base)&&/^[A-Z]$/.test(c.slice(base.length))));

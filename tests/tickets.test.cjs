@@ -50,17 +50,19 @@ test('running line suggests its polimetrica',()=>{
   assert.deepEqual(Tickets.suggestedLines(data,c.route).map(i=>data.lines[i].code),c.lines,JSON.stringify(c.route));
   assert.deepEqual(Tickets.evidenceLines(c.route),c.aliases,JSON.stringify(c.route));
  }
- // Every Academy extra-urban GPX gets a polimetrica, market-day detours included;
- // only line 61 (Padova - Jesolo) has none.
+ // Every extra-urban GPX gets a polimetrica, market-day detours included; line 61
+ // (Padova - Jesolo) has none, nor the Colli circulars AM and Parco Pescarini.
  const evidence=JSON.parse(fs.readFileSync('academy-evidence.json','utf8')).routes;
  const routes=JSON.parse(fs.readFileSync('official-routes.json','utf8')).map(r=>({...r,_evidence:evidence[String(r.id)]}));
- const missing=new Set(routes.filter(r=>r.category!=='Urbano'&&!Tickets.suggestedLines(data,r).length).map(r=>r.line.trim()));
- assert.deepEqual([...missing],['61']);
- const code=id=>Tickets.suggestedLines(data,routes.find(r=>r.id===id)).map(i=>data.lines[i].code);
- assert.deepEqual(code(18),['E074']);          // 225 Padova - Piazzola - Carmignano, venerdì
- assert.deepEqual(code(24),['E074']);          // 622 Piazzola - Padova: no evidence, GPX on E074 stops
- assert.deepEqual(code(11),['E073']);          // 906 Strà - Noventa P. - Ponte di Brenta - Padova
- assert.deepEqual(code(29),['E036']);          // 777 Padova - S. Michele - Borgoricco - Trebaseleghe
- assert.deepEqual(code(26),['E040','E074']);   // 656 Padova - Villafranca - Piazzola
- for(const r of routes.filter(r=>/mercat/i.test(r.line)))assert.ok(code(r.id).length,r.name);
+ const missing=routes.filter(r=>['Extraurbano','Colli'].includes(r.category)&&!Tickets.suggestedLines(data,r).length).map(r=>r.name).sort();
+ assert.deepEqual(missing,['1070 | Jesolo - Padova','1201 | Padova - Parco Pescarini','1288 | Padova - Jesolo','999 | Parco Pescarini - Abano Ist. (diretta)','AM | Circolare Abano Montegrotto']);
+ for(const r of routes.filter(r=>!['Extraurbano','Colli'].includes(r.category)))assert.deepEqual(Tickets.suggestedLines(data,r),[],r.name);
+ const market=variant=>routes.find(r=>/mercat/i.test(r.line)&&r.variant===variant);
+ const code=route=>Tickets.suggestedLines(data,route).map(i=>data.lines[i].code);
+ assert.deepEqual(code(market('225')),['E074']);   // Padova - Piazzola - Carmignano, venerdì
+ assert.deepEqual(code(market('523')),['E071']);   // Bojon - … - Vigonovo - Padova, lunedì
+ assert.deepEqual(code(market('370')),['E073']);   // Noventa P., martedì: same folder as 589/1282
+ assert.deepEqual(code(market('776')),['E036']);   // Padova - Borgoricco - Trebaseleghe, sabato
+ assert.deepEqual(code(market('843')),['E031']);   // Padova - Rubano - Villaguattera, sabato
+ for(const r of routes.filter(r=>/mercat/i.test(r.line)))assert.ok(code(r).length,r.name);
 });

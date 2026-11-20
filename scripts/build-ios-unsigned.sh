@@ -51,10 +51,11 @@ with zipfile.ZipFile(p) as z:
     original=z.read(prefix+'official-routes.json')
     extra=z.read(prefix+'academy-supplemental-routes.json')
     evidence=json.loads(z.read(prefix+'academy-evidence.json'))
-    assert len(json.loads(original))==787 and len(json.loads(extra))==2
-    assert evidence['catalog']['total']==789
+    total=evidence['catalog']['total']
+    assert len(json.loads(original))+len(json.loads(extra))==total
+    assert hashlib.sha256(original).hexdigest()==evidence['originalCatalogSHA256']
     coverage=json.loads(z.read(prefix+'road-guidance/coverage.json'))
-    assert len(coverage['routes'])==789
+    assert len(coverage['routes'])==total
     assert coverage['gpxSHA256']==hashlib.sha256(original+b'\0'+extra).hexdigest()
     for route in coverage['routes']:
         if route['status'] in ('validated','partial'):
