@@ -11,12 +11,22 @@ docker run --rm --entrypoint /bin/bash -v "$PWD/build/valhalla:/custom_files" "$
   valhalla_build_admins --config /custom_files/admin-config.json /custom_files/admin-italy.osm.pbf
 '
 python3 scripts/check-road-admins.py build/valhalla/admins.sqlite
+# Routing graph: Geofabrik Nord-Est extract. When Geofabrik does not serve it
+# (404 during their updates), cut the same area from the Italy file just used.
+if ! curl -fL --retry 3 --retry-delay 20 https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf \
+     -o build/valhalla/nord-est-latest.osm.pbf; then
+  echo 'Nord-Est extract unavailable: cutting it from italy-latest.osm.pbf'
+  rm -f build/valhalla/nord-est-latest.osm.pbf
+  command -v osmium >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool)
+  osmium extract --bbox 9.19,43.72,13.94,47.11 --strategy complete_ways \
+    build/valhalla/admin-italy.osm.pbf -o build/valhalla/nord-est-latest.osm.pbf
+fi
 rm build/valhalla/admin-italy.osm.pbf
 
 # Use upstream's scripted image; no dependency on a public routing demo or API key.
+# It builds the tiles from the local .pbf in /custom_files.
 docker run -d --name busnav-valhalla -p 127.0.0.1:8002:8002 \
   -v "$PWD/build/valhalla:/custom_files" \
-  -e tile_urls=https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf \
   -e server_threads=2 -e build_elevation=False -e build_time_zones=False \
   -e build_admins=False "$IMAGE"
 ready=false
