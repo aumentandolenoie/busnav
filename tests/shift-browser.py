@@ -123,13 +123,22 @@ def run(engine):
             assert page.evaluate("localStorage.getItem('lineapilot-shift-run')") == saved, 'a simulation never replaces the real shift'
             page.get_by_role('button', name='Termina simulazione').click()
             assert page.evaluate("shiftRun&&!shiftRun.sim&&shiftRun.code") == 'P085', 'the real shift is back'
-            # Reload: the running shift is restored for today.
+            # Reopen the app: the search is empty; the shift left running today is offered with "Riprendi".
             page.reload()
             page.wait_for_function("academy.length>0", timeout=30000)
-            # (the fake clock may start after the first script run: restore again under it)
-            assert page.evaluate("restoreShiftRun()")
+            assert page.evaluate("shiftSearch.value") == '' and page.evaluate("shiftResult.hidden")
+            # (the fake clock may start after the first script run: offer again under it)
+            page.evaluate("offerShiftResume()")
+            assert 'Turno P085 ancora in corso' in page.inner_text('#shiftResume')
+            page.get_by_role('button', name='Riprendi', exact=True).click()
             page.wait_for_selector('#shiftResult .shift-leg.current', timeout=30000)
             assert 'Riprendi turno' in page.inner_text('#shiftResult')
+            # Ending the shift: next time nothing is offered.
+            page.get_by_role('button', name='Termina turno').click()
+            page.reload()
+            page.wait_for_function("academy.length>0", timeout=30000)
+            page.evaluate("offerShiftResume()")
+            assert page.evaluate("shiftResume.hidden") and page.evaluate("shiftSearch.value") == ''
             assert not errors, errors
             browser.close()
     finally:

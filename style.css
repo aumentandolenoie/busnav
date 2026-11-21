@@ -332,3 +332,9 @@ body.navigating .toast.show{position:absolute;z-index:760;inset:auto;left:calc(v
 .shift-speed span{grid-column:1/-1;text-align:center;margin:0}
 .shift-speed button{min-width:0}
 .shift-speed button{white-space:nowrap;padding:0 4px}
+.shift-resume{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 12px;border-radius:14px;background:#e9f2ff}
+.shift-resume[hidden]{display:none}
+.shift-resume span{flex:1 1 140px;font-weight:700;color:#1c1c1e}
+.shift-resume-go{min-height:44px;padding:0 16px;border:0;border-radius:12px;background:#0064d2;color:#fff;font-weight:800}
+.shift-resume-drop{min-height:44px;padding:0 12px;border:0;border-radius:12px;background:#fff;color:#c4261d;font-weight:700}
+.shift-resume-go:hover:not(:disabled){background:#0058b9}.shift-resume-drop:hover:not(:disabled){background:#f2f2f7}

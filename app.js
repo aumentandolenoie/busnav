@@ -2237,7 +2237,7 @@ $('shiftSearch').addEventListener('input',()=>{clearTimeout(searchShift.t);searc
 $('shiftSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchShift();e.target.blur()}});
 $('shiftDay').addEventListener('change',searchShift);
 $('shiftSheetClose').addEventListener('click',closeShiftSheet);
-// A shift started today is restored after the app is reopened.
+// A shift started today is restored only on request ("Riprendi"): the search starts empty.
 function restoreShiftRun(){
  try{
   const saved=JSON.parse(localStorage.getItem('lineapilot-shift-run')||'null');
@@ -2247,4 +2247,17 @@ function restoreShiftRun(){
   return true;
  }catch{return false}
 }
-restoreShiftRun();
+function savedShiftRun(){
+ try{const saved=JSON.parse(localStorage.getItem('lineapilot-shift-run')||'null');return saved?.date===todayISO()&&saved.code?saved:null}catch{return null}
+}
+// On start: empty search; a shift left running today is offered with one button.
+function offerShiftResume(){
+ const box=$('shiftResume');box.replaceChildren();
+ const saved=savedShiftRun();box.hidden=!saved;
+ if(!saved)return;
+ box.append(shiftEl('span','','Turno '+saved.code+' ancora in corso'));
+ box.append(shiftButton('Riprendi','shift-resume-go',()=>{box.hidden=true;restoreShiftRun()}));
+ box.append(shiftButton('Chiudi turno','shift-resume-drop',()=>{try{localStorage.removeItem('lineapilot-shift-run')}catch{};box.hidden=true}));
+}
+$('shiftSearch').value='';
+offerShiftResume();
