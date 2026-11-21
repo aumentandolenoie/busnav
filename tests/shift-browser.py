@@ -38,7 +38,8 @@ def run(engine):
             page.on('pageerror', lambda e: errors.append(str(e)))
             page.goto(base + '/index.html')
             page.wait_for_function("academy.length>0", timeout=30000)
-            assert page.evaluate("shiftDay.value") == 'weekday'
+            assert page.evaluate("shiftDay.value") == '2026-11-23'
+            assert page.evaluate("shiftDay.options[0].textContent") == 'Oggi · Lun 23/11 · Feriale'
             page.fill('#shiftSearch', 'p85')
             page.press('#shiftSearch', 'Enter')
             page.wait_for_selector('#shiftResult .shift-leg', timeout=20000)
@@ -70,6 +71,22 @@ def run(engine):
             page.get_by_role('button', name='Riprendi: corsa delle 06:59').click()
             page.wait_for_function("current&&current.academy&&current.academy.id===%s" % first_option, timeout=20000)
             assert page.evaluate("readyShift.textContent").startswith('Turno P085 · corsa 2 di 6')
+            # Friday 27/11: P046 12:55 takes the market-day detour GPX, the normal one stays selectable.
+            page.evaluate("stopNavigation();closeShiftSheet();showWizardStep(0)")
+            page.select_option('#shiftDay', '2026-11-27')
+            page.fill('#shiftSearch', 'P046')
+            page.press('#shiftSearch', 'Enter')
+            page.wait_for_selector('#shiftResult .shift-market', timeout=20000)
+            market = page.inner_text('#shiftResult .shift-market')
+            assert 'Deviazione mercatale del venerdì · Piazzola, fino alle ore 15' in market and 'GPX deviazione: 263' in market, market
+            page.screenshot(path=str(out / f'shift-market-{engine}.png'), full_page=True)
+            page.get_by_role('button', name='Usa il percorso normale').click()
+            assert 'Percorso normale' in page.inner_text('#shiftResult .shift-market')
+            page.get_by_role('button', name='Usa la deviazione mercatale').click()
+            assert 'Deviazione mercatale del venerdì' in page.inner_text('#shiftResult .shift-market')
+            page.select_option('#shiftDay', '2026-11-23')
+            page.fill('#shiftSearch', 'P085')
+            page.press('#shiftSearch', 'Enter')
             # Reload: the running shift is restored for today.
             page.reload()
             page.wait_for_function("academy.length>0", timeout=30000)

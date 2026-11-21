@@ -67,6 +67,28 @@ test('every GPX in turni.json exists and every driven trip has a GPX or candidat
  assert.ok(missing/driven<.05,'trips without any GPX: '+missing);
 });
 
+test('market-day detour: chosen automatically on its weekday, the driver can go back to the normal GPX',()=>{
+ const shift=Turni.find(data,'weekday','P046');
+ const leg=shift.legs.find(l=>l.dep==='12:55');
+ const friday=new Date(2026,10,27),monday=new Date(2026,10,23);
+ assert.equal(catalog[Turni.routeOn(leg,{},monday).route].name,catalog[leg.route].name);
+ const plan=Turni.routeOn(leg,{},friday);
+ assert.equal(plan.market.day,'Venerdì');
+ assert.equal(catalog[plan.route].line,'Deviazioni mercatali');
+ assert.equal(catalog[plan.route].variant,catalog[leg.route].variant);
+ const normal={[Turni.marketKey(leg)]:'normal'};
+ assert.equal(Turni.routeOn(leg,normal,friday).route,leg.route);
+ assert.equal(Turni.routeOn(leg,normal,friday).marketOff,true);
+ // after the market hours (fino alle ore 15) the normal GPX is used
+ const late=shift.legs.find(l=>l.dep==='16:40');
+ assert.equal(Turni.marketFor(late,{[Turni.tripKey(late)]:late.options[0]},friday),null);
+ // every detour points to a GPX of the DEVIAZIONI MERCATALI folder with the same code
+ for(const day of Object.values(data.days))for(const s of Object.values(day.shifts))for(const l of s.legs)for(const m of l.market||[]){
+  assert.equal(catalog[m.route].line,'Deviazioni mercatali');
+  assert.equal(catalog[m.route].variant,catalog[m.normal].variant);
+ }
+});
+
 test('GTFS stops pick the GPX that passes by them',()=>{
  const stops=[{id:1},{id:2},{id:3}];
  const dist=(s,id)=>id===7?20:s.id===2?500:20;

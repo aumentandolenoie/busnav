@@ -154,6 +154,39 @@ def main():
         out_of_service = lambda r: status[str(r['id'])] == 'out-of-service'
         return [r for r in pool if out_of_service(r) == (kind == 'empty')] or pool
 
+    # Market-day detours: the GPX of the "DEVIAZIONI MERCATALI" folder with the
+    # same code as the normal GPX (and the same line), driven on that weekday.
+    markets = collections.defaultdict(list)
+    for r in catalog:
+        ev = evidence['routes'][str(r['id'])]
+        if r['line'] == 'Deviazioni mercatali' and ev.get('marketDay'):
+            markets[r['variant']].append((r, ev))
+    WEEKDAY = {'Lunedì': 1, 'Martedì': 2, 'Mercoledì': 3, 'Giovedì': 4, 'Venerdì': 5, 'Sabato': 6}
+
+    def window(place):
+        m = re.search(r'(\d{1,2})\s*-\s*(\d{1,2})\)', place)
+        if m:
+            return f'{int(m.group(1)):02d}:00', f'{int(m.group(2)):02d}:00'
+        m = re.search(r'fino alle (?:ore )?(\d{1,2})', place, re.I)
+        return None, (f'{int(m.group(1)):02d}:00' if m else None)
+
+    def market_for(item, ids, day):
+        found = []
+        base = 'E' + re.findall(r'E(\d{3})', item['line'])[0] if re.findall(r'E(\d{3})', item['line']) else item['line']
+        for normal in ids:
+            for r, ev in markets.get(catalog[normal]['variant'], []):
+                weekday = WEEKDAY.get(ev['marketDay'])
+                if weekday is None or (day == 'saturday') != (weekday == 6) or day == 'holiday':
+                    continue
+                if ev['lineAliases'] and base not in ev['lineAliases']:
+                    continue
+                start, until = window(ev.get('marketPlace', ''))
+                if (start and item['dep'] < start) or (until and item['dep'] >= until):
+                    continue
+                found.append({'normal': normal, 'route': r['id'], 'weekday': weekday, 'day': ev['marketDay'],
+                              'place': ev.get('marketPlace', ''), 'from': start, 'until': until})
+        return found
+
     patterns = gtfs_patterns(ROOT / 'tests' / 'fixtures' / 'busitalia-patterns-2026-11-08.zip')
     points = {r['id']: [tuple(p) for p in r['points']] for r in catalog}
     share_cache = {}
@@ -195,6 +228,11 @@ def main():
                     stats['choice'] += 1
             else:
                 stats['missing'] += 1
+        if kind == 'service':
+            found = market_for(item, [i for i in [item.get('route'), *item.get('options', [])] if i is not None], leg['day'])
+            if found:
+                item['market'] = found
+                stats['market'] += 1
         info = meta.get(leg['day'], {}).get(leg['shift'], {})
         shift = shifts[leg['day']].setdefault(leg['shift'], {'depot': info.get('depot', ''), 'events': info.get('events', []), 'legs': []})
         shift['legs'].append(item)

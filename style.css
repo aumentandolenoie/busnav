@@ -315,3 +315,8 @@ body.navigating .toast.show{position:absolute;z-index:760;inset:auto;left:calc(v
 .shift-start:hover:not(:disabled){background:#0058b9}.shift-end:hover:not(:disabled),.shift-secondary:hover:not(:disabled){background:#dadadf}
 .shift-sheet-close:hover:not(:disabled){background:#dadadf}.shift-link:hover:not(:disabled){background:none;text-decoration:underline}
 .shift-kicker,.shift-progress{margin-right:52px}
+.shift-market{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:12px;background:#fff0dd;border:1px solid #f0b46c}
+.shift-market strong{color:#6e3800;font-size:15px}.shift-market small{color:#5a2e00!important}
+.shift-market.off{background:#ececf0;border-color:#d1d1d6}.shift-market.off strong{color:#3a3a3f}
+.shift-market-toggle{align-self:flex-start;min-height:44px;padding:0 14px;border:0;border-radius:12px;background:#fff;color:#0058c4;font-size:15px;font-weight:700}
+.shift-market-toggle:hover:not(:disabled){background:#f2f2f7}

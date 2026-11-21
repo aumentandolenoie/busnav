@@ -1929,7 +1929,20 @@ function loadTurni(){
   .catch(e=>{turniPromise=null;$('shiftHint').textContent='Turni non disponibili: '+e.message;return null});
  return turniPromise;
 }
-function shiftRoute(leg){const id=Turni.routeFor(leg,shiftChoices);return id===null?null:academy.find(r=>r.id===id)||null}
+// Date of the shown shift (a market-day detour depends on the weekday).
+function isoDate(iso){const [y,m,d]=String(iso||'').split('-').map(Number);return y?new Date(y,m-1,d):new Date()}
+function shiftDateOf(shift){return isoDate(shift?.date||$('shiftDay').value)}
+function shiftPlan(leg,shift=shiftShown){return Turni.routeOn(leg,shiftChoices,shiftDateOf(shift))}
+function shiftRoute(leg,shift=shiftShown){const id=shiftPlan(leg,shift).route;return id===null?null:academy.find(r=>r.id===id)||null}
+function shiftMarketText(m){return 'Deviazione mercatale del '+m.day.toLowerCase()+(m.place?' · '+(academyMarketPlace({_evidence:{marketPlace:m.place}})||m.place):'')}
+function toggleShiftMarket(leg,normal){if(normal)shiftChoices[Turni.marketKey(leg)]='normal';else delete shiftChoices[Turni.marketKey(leg)];saveShiftChoices()}
+// Next 7 days in the day menu: the weekday decides feriale/sabato/festivo and the market detours.
+function fillShiftDays(){
+ const select=$('shiftDay'),names=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'],labels={weekday:'Feriale',saturday:'Sabato',holiday:'Festivo'};
+ select.replaceChildren();
+ for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()+i);
+  select.add(asOption(todayISO(d),(i===0?'Oggi · ':i===1?'Domani · ':'')+names[d.getDay()]+' '+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' · '+labels[Turni.dayFor(d)]))}
+}
 function shiftTitle(text){return String(text||'').toLocaleLowerCase('it').replace(/(^|[\s.'’(-])(\p{L})/gu,(x,a,b)=>a+b.toLocaleUpperCase('it')).replace(/\s*-\s*/g,' - ')}
 // The bays of the table are those of Padova bus station: shown only for trips leaving from Padova.
 function shiftCorsia(leg,route){return route&&globalThis.Corsie&&/^\s*(PD|PADOVA)\b/i.test(leg.desc)?Corsie.label(route,ticketData):''}
@@ -1943,7 +1956,7 @@ function shiftResolveWithGtfs(shift){
  if(!feed)return 0;
  let resolved=0;
  for(const leg of shift.legs){
-  if(Turni.legState(leg,shiftChoices)!=='needs-choice')continue;
+  if(Turni.legState(leg,shiftChoices)!=='needs-choice')continue; // independent of the date
   const lines=new Set([leg.line,leg.line.replace(/[VZ]$/,'')]);
   const routes=feed.routes.filter(r=>lines.has(String(r.route_short_name||'').toUpperCase()));
   let stops=null;
@@ -1970,7 +1983,7 @@ function renderShift(){
  const ev=w=>shift.events?.find(e=>e.what.startsWith(w))?.time;
  if(ev('Pre turno'))card.append(shiftEl('span','','Presa servizio '+ev('Pre turno')+(ev('Post turno')?' · fine '+ev('Post turno'):'')+(shift.depot?' · deposito '+shiftTitle(shift.depot):'')));
  card.append(shiftEl('small','',day.label+(day.validFrom?' · turni validi dal '+day.validFrom:'')));
- const states=shift.legs.map(l=>Turni.legState(l,shiftChoices));
+ const date=shiftDateOf(shift),states=shift.legs.map(l=>Turni.legState(l,shiftChoices,date));
  const chips=shiftEl('div','shift-chips');
  const count=k=>states.filter(s=>s===k).length;
  if(count('ok'))chips.append(shiftEl('span','chip ok',count('ok')+' GPX pronti'));
@@ -1982,7 +1995,7 @@ function renderShift(){
   const prev=shift.legs[i-1],gap=prev?Turni.minutes(leg.dep)-Turni.minutes(prev.arr):0;
   if(gap>=20){const p=shiftEl('li','shift-pause','Pausa '+prev.arr+' – '+leg.dep+' · '+Turni.duration(gap));list.append(p)}
   const item=shiftEl('li','shift-leg '+(Turni.driven(leg)?'driven':'info'));
-  if(shiftRun&&shiftRun.code===shift.code&&shiftRun.day===shift.day&&shiftRun.index===i)item.classList.add('current');
+  if(shiftRun&&shiftRun.code===shift.code&&shiftRun.date===shift.date&&shiftRun.index===i)item.classList.add('current');
   item.append(shiftEl('span','shift-time',leg.dep));
   const body=shiftEl('div','shift-body');
   if(!Turni.driven(leg)){body.append(shiftEl('strong','',shiftInfoText(leg)),shiftEl('small','','fino alle '+leg.arr+' · senza navigazione'))}
@@ -1994,14 +2007,27 @@ function renderShift(){
    if(corsia)meta.append(shiftEl('span','chip line',corsia));
    meta.append(shiftEl('span','shift-arr','arrivo '+leg.arr));
    body.append(meta);
+   const plan=shiftPlan(leg,shift);
+   if(plan.market){
+    // Market day: the detour GPX is chosen automatically; the normal route stays one tap away.
+    const box=shiftEl('div','shift-market'+(plan.marketOff?' off':''));
+    const mr=academy.find(r=>r.id===plan.market.route);
+    box.append(shiftEl('strong','',plan.marketOff?'Percorso normale al posto della deviazione mercatale':shiftMarketText(plan.market)));
+    if(!plan.marketOff&&mr)box.append(shiftEl('small','','GPX deviazione: '+mr.name+' · GPX '+mr.id));
+    box.append(shiftButton(plan.marketOff?'Usa la deviazione mercatale':'Usa il percorso normale','shift-market-toggle',()=>{toggleShiftMarket(leg,!plan.marketOff);renderShift()}));
+    body.append(box);
+   }else if(leg.market?.length){
+    const days=[...new Set(leg.market.map(m=>m.day.toLowerCase()))].join(' e ');
+    body.append(shiftEl('small','shift-source','Il '+days+': deviazione mercatale scelta in automatico'));
+   }
    if(states[i]==='missing')body.append(shiftEl('small','shift-missing','Nessun GPX trovato per questa corsa: la guidi senza navigazione'));
-   else{
+   else if(!(plan.market&&!plan.marketOff)){
     const label=shiftEl('label','shift-choice');
     const select=document.createElement('select');select.setAttribute('aria-label','GPX della corsa delle '+leg.dep);
     const ids=[...new Set([leg.route,...(leg.options||[]),Turni.routeFor(leg,shiftChoices)].filter(Number.isInteger))];
     if(states[i]==='needs-choice')select.add(asOption('','Scegli il GPX ('+ids.length+' simili)…'));
     for(const id of ids){const r=academy.find(x=>x.id===id);if(r)select.add(asOption(String(id),r.name+' · GPX '+id))}
-    select.value=route?String(route.id):'';
+    select.value=plan.normal!==null?String(plan.normal):'';
     select.addEventListener('change',()=>{if(!select.value)return;const id=+select.value;shiftChoices[Turni.legKey(leg)]=id;shiftChoices[Turni.tripKey(leg)]=id;saveShiftChoices();renderShift()});
     label.append(select);body.append(label);
     if(leg.routeFrom==='gtfs'&&states[i]==='ok')body.append(shiftEl('small','shift-source','GPX scelto con l’orario GTFS delle '+leg.dep));
@@ -2012,10 +2038,10 @@ function renderShift(){
  });
  box.append(list);
  const actions=shiftEl('div','shift-actions');
- const running=shiftRun&&shiftRun.code===shift.code&&shiftRun.day===shift.day&&shiftRun.date===todayISO();
+ const running=shiftRun&&shiftRun.code===shift.code&&shiftRun.date===shift.date&&shiftRun.date===todayISO();
  const first=running?(shiftRun.done===shiftRun.index?Turni.nextDriven(shift,shiftRun.index):shiftRun.index):Turni.firstDriven(shift);
  const start=shiftEl('button','shift-start',first<0?'Nessuna corsa da guidare':running?'Riprendi turno · corsa delle '+shift.legs[first].dep:'Avvia turno · prima corsa '+shift.legs[first].dep);
- start.type='button';start.disabled=first<0;start.addEventListener('click',()=>{if(!running)shiftRun={code:shift.code,day:shift.day,date:todayISO(),index:first};saveShiftRun();startShiftLeg(first)});
+ start.type='button';start.disabled=first<0;start.addEventListener('click',()=>{if(!running)shiftRun={code:shift.code,day:shift.day,date:shift.date,index:first};saveShiftRun();startShiftLeg(first)});
  actions.append(start);
  if(running){const end=shiftEl('button','shift-end','Termina turno');end.type='button';end.addEventListener('click',endShift);actions.append(end)}
  box.append(actions);
@@ -2024,17 +2050,17 @@ async function searchShift(){
  const query=$('shiftSearch').value;
  if(!query.trim()){shiftShown=null;renderShift();$('shiftHint').textContent='Scrivi il numero del turno, es. P085.';return}
  const data=await loadTurni();if(!data)return;
- const day=$('shiftDay').value,shift=Turni.find(data,day,query);
- shiftShown=shift?{...shift,legs:shift.legs.map(l=>({...l}))}:null;
+ const date=$('shiftDay').value,day=Turni.dayFor(isoDate(date)),shift=Turni.find(data,day,query);
+ shiftShown=shift?{...shift,date,legs:shift.legs.map(l=>({...l}))}:null;
  if(!shift){const near=Turni.suggest(data,day,query);$('shiftHint').textContent='Turno '+Turni.code(query)+' non trovato nei turni '+data.days[day]?.label.toLowerCase()+(near.length?'. Forse: '+near.join(', '):'')+'.'}
  else $('shiftHint').textContent='';
  renderShift();
 }
 function currentShift(){
  if(!shiftRun||!turniData)return null;
- if(shiftShown?.code===shiftRun.code&&shiftShown.day===shiftRun.day)return shiftShown;
+ if(shiftShown?.code===shiftRun.code&&shiftShown.date===shiftRun.date)return shiftShown;
  const s=Turni.find(turniData,shiftRun.day,shiftRun.code);
- if(s){shiftShown={...s,legs:s.legs.map(l=>({...l}))};shiftResolveWithGtfs(shiftShown)}
+ if(s){shiftShown={...s,date:shiftRun.date,legs:s.legs.map(l=>({...l}))};shiftResolveWithGtfs(shiftShown)}
  return shiftShown;
 }
 function startShiftLeg(index){
@@ -2042,7 +2068,9 @@ function startShiftLeg(index){
  const leg=shift.legs[index];if(!leg)return;
  shiftRun.index=index;saveShiftRun();shiftAlong=0;shiftArrivedFor=null;
  const route=shiftRoute(leg);
- if(!route){openShiftSheet(Turni.legState(leg,shiftChoices)==='needs-choice'?'choose':'missing');return}
+ if(!route){openShiftSheet(Turni.legState(leg,shiftChoices,shiftDateOf(shift))==='needs-choice'?'choose':'missing');return}
+ const plan=shiftPlan(leg,shift);
+ if(plan.market&&!plan.marketOff)toast(shiftMarketText(plan.market)+': GPX '+route.id+'. Per il percorso normale apri l’elenco del turno.');
  closeShiftSheet();
  try{document.activeElement?.blur?.()}catch{}
  shiftRun.routeId=route.id;saveShiftRun();
@@ -2072,6 +2100,13 @@ function shiftNextCard(shift,next){
  card.append(shiftEl('small','','PROSSIMA CORSA'+(wait>0?' · tra '+Turni.duration(wait):'')));
  card.append(shiftEl('strong','',leg.dep+' '+shiftTitle(leg.desc)));
  card.append(shiftEl('span','',[route?'GPX '+route.id:'GPX da scegliere',shiftCorsia(leg,route),'arrivo '+leg.arr].filter(Boolean).join(' · ')));
+ const plan=shiftPlan(leg,shift);
+ if(plan.market){
+  const m=shiftEl('div','shift-market'+(plan.marketOff?' off':''));
+  m.append(shiftEl('strong','',plan.marketOff?'Percorso normale al posto della deviazione mercatale':shiftMarketText(plan.market)));
+  m.append(shiftButton(plan.marketOff?'Usa la deviazione mercatale':'Usa il percorso normale','shift-market-toggle',()=>{toggleShiftMarket(leg,!plan.marketOff);openShiftSheet(shiftSheetState)}));
+  card.append(m);
+ }
  if(leg.note)card.append(shiftEl('span','shift-note','Nota: '+leg.note));
  return card;
 }
@@ -2124,15 +2159,17 @@ function openShiftSheet(state){
  links.append(shiftButton('Vedi tutto il turno','shift-link',showShiftList),shiftButton('Termina turno','shift-link danger',endShift));
  box.append(links);
 }
-function showShiftList(){closeShiftSheet();showWizardStep(0);if(shiftRun){$('shiftDay').value=shiftRun.day;$('shiftSearch').value=shiftRun.code}searchShift().then(()=>$('shiftCard').scrollIntoView({block:'start'}))}
+function showShiftList(){closeShiftSheet();showWizardStep(0);if(shiftRun){setShiftDate(shiftRun.date);$('shiftSearch').value=shiftRun.code}searchShift().then(()=>$('shiftCard').scrollIntoView({block:'start'}))}
 function endShift(){shiftRun=null;saveShiftRun();closeShiftSheet();renderShift();toast('Turno terminato')}
 function shiftReadyText(){
  const shift=shiftRun&&currentShift();
  if(!shift||current?.academy?.id!==shiftRun.routeId)return '';
  const leg=shift.legs[shiftRun.index],trips=shift.legs.filter(Turni.driven),pos=trips.indexOf(leg)+1;
- return 'Turno '+shift.code+' · corsa '+pos+' di '+trips.length+' · partenza '+leg.dep;
+ const plan=shiftPlan(leg,shift);
+ return 'Turno '+shift.code+' · corsa '+pos+' di '+trips.length+' · partenza '+leg.dep+(plan.market&&!plan.marketOff?' · '+shiftMarketText(plan.market):'');
 }
-$('shiftDay').value=Turni.dayFor(new Date());
+fillShiftDays();
+function setShiftDate(iso){if(![...$('shiftDay').options].some(o=>o.value===iso))$('shiftDay').add(asOption(iso,iso.split('-').reverse().join('/')));$('shiftDay').value=iso}
 $('shiftSearch').addEventListener('input',()=>{clearTimeout(searchShift.t);searchShift.t=setTimeout(searchShift,250)});
 $('shiftSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchShift();e.target.blur()}});
 $('shiftDay').addEventListener('change',searchShift);
@@ -2142,7 +2179,7 @@ function restoreShiftRun(){
  try{
   const saved=JSON.parse(localStorage.getItem('lineapilot-shift-run')||'null');
   if(saved?.date!==todayISO()||!saved.code)return false;
-  shiftRun=saved;$('shiftDay').value=saved.day;$('shiftSearch').value=saved.code;
+  shiftRun=saved;setShiftDate(saved.date);$('shiftSearch').value=saved.code;
   Promise.resolve(academyReady).then(()=>searchShift());
   return true;
  }catch{return false}

@@ -44,10 +44,28 @@
   if(Number.isInteger(saved))return saved;
   return Number.isInteger(leg.route)?leg.route:null;
  }
+ /** Market-day detour for this trip on this date ({route, normal, day, place, until}),
+     or null. It follows the normal GPX the trip uses; with no normal GPX chosen yet it
+     is used when only one detour GPX fits. */
+ function marketFor(leg,choices={},date=null){
+  if(!leg?.market?.length||!(date instanceof Date))return null;
+  const entries=leg.market.filter(m=>m.weekday===date.getDay());
+  if(!entries.length)return null;
+  const normal=routeFor(leg,choices);
+  if(normal!==null)return entries.find(m=>m.normal===normal)||null;
+  return new Set(entries.map(m=>m.route)).size===1?entries[0]:null;
+ }
+ function marketKey(leg){return legKey(leg)+'|market'}
+ /** The GPX to drive on a date: the market-day detour unless the driver chose the normal route. */
+ function routeOn(leg,choices={},date=null){
+  const normal=routeFor(leg,choices),market=marketFor(leg,choices,date);
+  const off=choices[marketKey(leg)]==='normal';
+  return {route:market&&!off?market.route:normal,normal,market,marketOff:!!(market&&off)};
+ }
  /** 'needs-choice' when several GPX fit, 'missing' when none, else 'ok'. */
- function legState(leg,choices={}){
+ function legState(leg,choices={},date=null){
   if(!driven(leg))return 'info';
-  if(routeFor(leg,choices)!==null)return 'ok';
+  if(routeOn(leg,choices,date).route!==null)return 'ok';
   return leg.options?.length?'needs-choice':'missing';
  }
  function minutes(hhmm){const m=/^(\d{1,2})[:.](\d{2})/.exec(String(hhmm||''));return m?+m[1]*60+ +m[2]:null}
@@ -84,5 +102,5 @@
   const [best,second]=scored;
   return best.share>=.9&&(!second||best.share-second.share>=.1)?best.id:null;
  }
- return {dayFor,code,find,suggest,driven,legKey,tripKey,routeFor,legState,minutes,duration,nextDriven,firstDriven,summary,between,pickByStops};
+ return {dayFor,code,find,suggest,driven,legKey,tripKey,routeFor,marketFor,marketKey,routeOn,legState,minutes,duration,nextDriven,firstDriven,summary,between,pickByStops};
 });
