@@ -7,6 +7,18 @@ const data=JSON.parse(fs.readFileSync('turni.json','utf8'));
 const catalog=JSON.parse(fs.readFileSync('official-routes.json','utf8'));
 const ids=new Set(catalog.map(r=>r.id));
 
+test('shift PDFs read again: every shift and row of feriale and sabato',()=>{
+ const docs=Object.fromEntries(data.documents.filter(d=>d.rows).map(d=>[d.day,d]));
+ assert.equal(docs.weekday.validFrom,'02/11/2026');assert.equal(docs.weekday.shifts,298);assert.equal(docs.weekday.rows,3505);
+ assert.equal(docs.saturday.shifts,254);assert.equal(docs.saturday.rows,2851);
+ assert.equal(Object.keys(data.days.weekday.shifts).length,298);
+ assert.equal(Object.keys(data.days.saturday.shifts).length,254);
+ for(const day of ['weekday','saturday'])for(const [code,s] of Object.entries(data.days[day].shifts)){
+  assert.ok(s.events.some(e=>e.what==='Pre turno')&&s.events.some(e=>e.what==='Post turno'),code);
+  assert.ok(s.legs.length>0,code);
+ }
+});
+
 test('day type from the date, Italian holidays included',()=>{
  assert.equal(Turni.dayFor(new Date(2026,10,23)),'weekday');   // lunedì 23/11/2026
  assert.equal(Turni.dayFor(new Date(2026,10,21)),'saturday');
@@ -27,7 +39,9 @@ test('P085 on weekdays: trips, transfers, pause and vehicle change',()=>{
  const s=Turni.summary(shift);
  assert.equal(s.start,'06:04');assert.equal(s.trips,6);
  assert.deepEqual(s.vehicles,['87075','87094']);
- assert.equal(s.pause,84);
+ assert.equal(s.pause,80);   // 09:54 – 11:14 (rientro vettura 09:50–09:54)
+ assert.deepEqual(shift.events.map(e=>e.time),['05:54','09:59','11:09','14:26']);
+ assert.equal(shift.legs.length,10);
  const first=Turni.firstDriven(shift);
  assert.equal(shift.legs[first].dep,'06:10');
  assert.equal(catalog[Turni.routeFor(shift.legs[first])].name,'300 | Padova - Monselice - Este');

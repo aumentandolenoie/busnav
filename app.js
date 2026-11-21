@@ -1156,13 +1156,15 @@ function renderAcademySearch(){
   box.append(button);
  }
 }
-function pickAcademyRoute(route){
+function pickAcademyRoute(route,focus=true){
  $('academyCategory').value=route.category;filterAcademy();
  $('academyLine').value=academyGroupName(route);filterAcademyRoutes();
  $('academyRoute').value=String(route.id);onAcademySelected();
  $('academySearch').value='';renderAcademySearch();
  $('academyCount').textContent='Selezionato: '+route.name+' ('+academySearchLabel(route)+')';
- $('academyRoute').focus({preventScroll:true});
+ // In the WKWebView of iOS a focused <select> opens its menu during a tap, which
+ // keeps the native drive screen from appearing: shift mode starts without focus.
+ if(focus)$('academyRoute').focus({preventScroll:true});
 }
 $('academyCategory').addEventListener('change',filterAcademy);
 $('academyLine').addEventListener('change',filterAcademyRoutes);
@@ -1929,6 +1931,8 @@ function loadTurni(){
 }
 function shiftRoute(leg){const id=Turni.routeFor(leg,shiftChoices);return id===null?null:academy.find(r=>r.id===id)||null}
 function shiftTitle(text){return String(text||'').toLocaleLowerCase('it').replace(/(^|[\s.'’(-])(\p{L})/gu,(x,a,b)=>a+b.toLocaleUpperCase('it')).replace(/\s*-\s*/g,' - ')}
+// The bays of the table are those of Padova bus station: shown only for trips leaving from Padova.
+function shiftCorsia(leg,route){return route&&globalThis.Corsie&&/^\s*(PD|PADOVA)\b/i.test(leg.desc)?Corsie.label(route,ticketData):''}
 function shiftEl(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
 function shiftInfoText(leg){
  if(leg.kind==='standby')return (leg.type==='Disp.'?'Disponibilità':'Attesa')+(leg.note?' · '+leg.note:'');
@@ -1963,6 +1967,8 @@ function renderShift(){
  const card=shiftEl('div','shift-summary');
  const head=shiftEl('div','shift-summary-head');head.append(shiftEl('strong','',shift.code),shiftEl('span','',info.start+' → '+info.end));
  card.append(head,shiftEl('span','',info.trips+(info.trips===1?' corsa':' corse')+(info.vehicles.length?' · '+(info.vehicles.length===1?'vettura ':'vetture ')+info.vehicles.join(', '):'')+(info.pause>=20?' · pausa '+Turni.duration(info.pause):'')));
+ const ev=w=>shift.events?.find(e=>e.what.startsWith(w))?.time;
+ if(ev('Pre turno'))card.append(shiftEl('span','','Presa servizio '+ev('Pre turno')+(ev('Post turno')?' · fine '+ev('Post turno'):'')+(shift.depot?' · deposito '+shiftTitle(shift.depot):'')));
  card.append(shiftEl('small','',day.label+(day.validFrom?' · turni validi dal '+day.validFrom:'')));
  const states=shift.legs.map(l=>Turni.legState(l,shiftChoices));
  const chips=shiftEl('div','shift-chips');
@@ -1984,7 +1990,7 @@ function renderShift(){
    body.append(shiftEl('strong','',(leg.kind==='empty'?'Diretta · ':'')+shiftTitle(leg.desc)));
    const meta=shiftEl('div','shift-meta'),route=shiftRoute(leg);
    meta.append(shiftEl('span','chip line',leg.line||'—'));
-   const corsia=route&&globalThis.Corsie?Corsie.label(route,ticketData):'';
+   const corsia=shiftCorsia(leg,route);
    if(corsia)meta.append(shiftEl('span','chip line',corsia));
    meta.append(shiftEl('span','shift-arr','arrivo '+leg.arr));
    body.append(meta);
@@ -2038,8 +2044,9 @@ function startShiftLeg(index){
  const route=shiftRoute(leg);
  if(!route){openShiftSheet(Turni.legState(leg,shiftChoices)==='needs-choice'?'choose':'missing');return}
  closeShiftSheet();
+ try{document.activeElement?.blur?.()}catch{}
  shiftRun.routeId=route.id;saveShiftRun();
- pickAcademyRoute(route);showWizardStep(2);
+ pickAcademyRoute(route,false);showWizardStep(2);
  startGPS();
 }
 // Terminus: the end of the GPX, reached after driving most of it (start and end
@@ -2064,8 +2071,7 @@ function shiftNextCard(shift,next){
  const wait=Turni.minutes(leg.dep)-shiftNow();
  card.append(shiftEl('small','','PROSSIMA CORSA'+(wait>0?' · tra '+Turni.duration(wait):'')));
  card.append(shiftEl('strong','',leg.dep+' '+shiftTitle(leg.desc)));
- const corsia=route&&globalThis.Corsie?Corsie.label(route,ticketData):'';
- card.append(shiftEl('span','',[route?'GPX '+route.id:'GPX da scegliere',corsia,'arrivo '+leg.arr].filter(Boolean).join(' · ')));
+ card.append(shiftEl('span','',[route?'GPX '+route.id:'GPX da scegliere',shiftCorsia(leg,route),'arrivo '+leg.arr].filter(Boolean).join(' · ')));
  if(leg.note)card.append(shiftEl('span','shift-note','Nota: '+leg.note));
  return card;
 }

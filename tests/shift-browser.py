@@ -44,7 +44,7 @@ def run(engine):
             page.wait_for_selector('#shiftResult .shift-leg', timeout=20000)
             text = page.inner_text('#shiftResult')
             assert 'P085' in text and '06:04 → 14:21' in text and 'Padova - Monselice - Este' in text, text[:400]
-            assert 'Pausa 09:50 – 11:14' in text, text
+            assert 'Pausa 09:54 – 11:14' in text and 'Presa servizio 05:54 · fine 14:26 · deposito Padova' in text, text
             page.screenshot(path=str(out / f'shift-search-{engine}.png'), full_page=True)
             # Choose the GPX of the 06:59 trip once: it is remembered.
             select = page.locator('select[aria-label="GPX della corsa delle 06:59"]')
@@ -54,6 +54,8 @@ def run(engine):
             page.click('.shift-start')
             page.wait_for_function("current&&current.academy&&shiftRun&&current.academy.id===shiftRun.routeId", timeout=20000)
             assert page.evaluate("current.academy.name") == '300 | Padova - Monselice - Este'
+            # No focused <select>: on iOS its menu would keep the native drive screen from opening.
+            assert page.evaluate("document.activeElement?.tagName") != 'SELECT'
             # Terminus of the 06:10 trip.
             page.evaluate("shiftTrack(current.dists.at(-1),5)")
             page.wait_for_selector('#shiftSheet:not([hidden])')

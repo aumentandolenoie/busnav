@@ -60,6 +60,40 @@ def score(leg_places, route_places):
     return full
 
 
+def gtfs_patterns(path):
+    """{(line, headsign): [stop coordinates, …]} from the dated GTFS pattern snapshot."""
+    import csv, io, zipfile
+    if not path.exists():
+        return {}
+    z = zipfile.ZipFile(path)
+    rd = lambda n: list(csv.DictReader(io.TextIOWrapper(z.open(n), encoding='utf-8-sig')))
+    routes = {r['route_id']: r['route_short_name'] for r in rd('routes.txt')}
+    trips = {t['trip_id']: routes[t['route_id']] for t in rd('trips.txt')}
+    stops = {s['stop_id']: (float(s['stop_lat']), float(s['stop_lon'])) for s in rd('stops.txt')}
+    rows = collections.defaultdict(list)
+    for r in rd('stop_times.txt'):
+        rows[r['trip_id']].append(r)
+    out = collections.defaultdict(set)
+    for trip, rs in rows.items():
+        rs.sort(key=lambda r: int(r['stop_sequence']))
+        pts = tuple(stops[r['stop_id']] for r in rs)
+        for h in {r['stop_headsign'] for r in rs if r['stop_headsign']}:
+            out[(trips[trip], re.sub(r'[^A-Z0-9]', '', h.upper()))].add(pts)
+    return out
+
+
+def stop_share(stops, route_points):
+    """(share of the GTFS stops within 70 m of the GPX, share of the GPX within
+    400 m of a stop): a GPX with an extra detour scores lower on the second."""
+    import numpy as np
+    s, p = np.radians(np.array(stops)), np.radians(np.array(route_points))
+    lat = s[:, :1]
+    dx = (p[None, :, 1] - s[:, None, 1]) * np.cos(lat) * 6371000
+    dy = (p[None, :, 0] - s[:, None, 0]) * 6371000
+    d = np.hypot(dx, dy)
+    return float((d.min(axis=1) <= 70).mean()), float((d.min(axis=0) <= 400).mean())
+
+
 def clean_line(line):
     """'E013VE013V' (a cell read twice) → 'E013V'; empty stays empty."""
     line = (line or '').strip()
@@ -72,7 +106,7 @@ def clean_line(line):
 
 def leg_kind(leg):
     desc, kind = leg['description'].strip(), (leg['type'] or '').strip()
-    if kind.startswith('Trasf') or 'Post turno' in kind or not desc or 'DEPOSITO' in desc.upper():
+    if kind.startswith('Trasf') or kind == 'A piedi' or 'Post turno' in kind or not desc or 'DEPOSITO' in desc.upper():
         return 'transfer'
     if kind == 'Diretta':
         return 'empty'
@@ -83,18 +117,21 @@ def leg_kind(leg):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--legs', type=pathlib.Path, help='turni-legs.json from scripts/extract_turni.py')
+    parser.add_argument('--legs', type=pathlib.Path, default=ROOT / 'turni-src' / 'turni-legs.json', help='from scripts/extract_turni.py')
     args = parser.parse_args()
     catalog = json.loads((ROOT / 'official-routes.json').read_text())
     evidence = json.loads((ROOT / 'academy-evidence.json').read_text())
-    if args.legs:
+    legs, documents, meta = [], [], {}
+    if args.legs and args.legs.exists():
         source = json.loads(args.legs.read_text())
-        legs, documents = source['legs'], source['documents']
-    else:
-        legs = evidence['shiftLegs']
-        documents = [{'name': d['name'], 'day': next((l['day'] for l in legs if l['document'] == d['name']), None),
-                      'validFrom': next((l['validFrom'] for l in legs if l['document'] == d['name']), None)}
-                     for d in evidence['documents'] if any(l['document'] == d['name'] for l in legs)]
+        legs, documents, meta = source['legs'], source['documents'], source.get('shifts', {})
+    # Days whose PDF has not been read again keep the legs of the Academy PDFs.
+    read_days = {d['day'] for d in documents}
+    old = [l for l in evidence['shiftLegs'] if l['day'] not in read_days]
+    legs = legs + old
+    documents = documents + [{'name': d['name'], 'day': next((l['day'] for l in old if l['document'] == d['name']), None),
+                              'validFrom': next((l['validFrom'] for l in old if l['document'] == d['name']), None), 'reread': False}
+                             for d in evidence['documents'] if any(l['document'] == d['name'] for l in old)]
 
     status = {str(k): v['serviceStatus'] for k, v in evidence['routes'].items()}
     by_line = collections.defaultdict(list)
@@ -117,6 +154,9 @@ def main():
         out_of_service = lambda r: status[str(r['id'])] == 'out-of-service'
         return [r for r in pool if out_of_service(r) == (kind == 'empty')] or pool
 
+    patterns = gtfs_patterns(ROOT / 'tests' / 'fixtures' / 'busitalia-patterns-2026-11-08.zip')
+    points = {r['id']: [tuple(p) for p in r['points']] for r in catalog}
+    share_cache = {}
     shifts = collections.defaultdict(dict)
     stats = collections.Counter()
     for leg in legs:
@@ -135,11 +175,28 @@ def main():
                 item['route'] = ranked[0][1]
                 stats['sure'] += 1
             elif best >= .6:
-                item['options'] = [i for s, i in ranked if s >= max(.6, best - .1)][:4]
-                stats['choice'] += 1
+                options = [i for s, i in ranked if s >= max(.6, best - .1)][:4]
+                # The GTFS trips with this line and description: the GPX that passes
+                # by all their stops is the one (every pattern must agree).
+                pats = patterns.get((line, re.sub(r'[^A-Z0-9]', '', item['desc'].upper())))
+                picks = set()
+                for pts in pats or ():
+                    shares = sorted(((share_cache.setdefault((pts, i), stop_share(pts, points[i])), i) for i in options), reverse=True)
+                    (best_stops, best_gpx), pick = shares[0]
+                    rival = shares[1][0] if len(shares) > 1 else (0, 0)
+                    ok = best_stops >= .9 and (best_stops - rival[0] >= .1 or (best_stops - rival[0] < .1 and best_gpx - rival[1] >= .05 and best_stops >= rival[0]))
+                    picks.add(pick if ok else None)
+                if len(picks) == 1 and None not in picks:
+                    item['route'] = picks.pop()
+                    item['routeFrom'] = 'gtfs'
+                    stats['gtfs'] += 1
+                else:
+                    item['options'] = options
+                    stats['choice'] += 1
             else:
                 stats['missing'] += 1
-        shift = shifts[leg['day']].setdefault(leg['shift'], {'legs': []})
+        info = meta.get(leg['day'], {}).get(leg['shift'], {})
+        shift = shifts[leg['day']].setdefault(leg['shift'], {'depot': info.get('depot', ''), 'events': info.get('events', []), 'legs': []})
         shift['legs'].append(item)
     for day in shifts.values():
         for shift in day.values():

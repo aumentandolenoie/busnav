@@ -100,7 +100,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             screen.onRepeat = { [weak self] in self?.navigation.repeatInstruction() }
             drive = screen
             UIApplication.shared.isIdleTimerDisabled = true
-            present(screen, animated: true) { [weak self] in
+            presentDrive(screen) { [weak self] in
                 self?.navigation.start(route: route, voiceEnabled: voice, turnsEnabled: turnVoice, simulated:simulated)
             }
         case "stop":
@@ -131,6 +131,29 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
         default:
             break
         }
+    }
+
+    /// Presents the drive screen as soon as UIKit can: while the previous drive
+    /// screen is still closing, the keyboard is going away or a menu is shown,
+    /// `present` is refused and nothing would appear (seen when a shift starts
+    /// right after typing its number, and when the next trip starts at once).
+    private func presentDrive(_ screen: DriveViewController, attempt: Int = 0, then start: @escaping () -> Void) {
+        guard drive === screen else { return } // stopped meanwhile
+        if let shown = presentedViewController, shown !== screen {
+            if !shown.isBeingDismissed && !shown.isBeingPresented && attempt == 0 { shown.dismiss(animated: false) }
+        }
+        let busy = presentedViewController != nil || transitionCoordinator != nil
+        if busy {
+            guard attempt < 40 else {
+                deliverStatus("Schermata di guida non disponibile: premi di nuovo Avvia")
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.presentDrive(screen, attempt: attempt + 1, then: start)
+            }
+            return
+        }
+        present(screen, animated: true, completion: start)
     }
 
     // A native download avoids CORS / blob XHR restrictions on custom schemes.
