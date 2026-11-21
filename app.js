@@ -21,6 +21,8 @@ window.lineaPilotNativeReceive=(type,data)=>{
  if(type==='location'&&data&&Number.isFinite(data.lat)&&Number.isFinite(data.lng)){
   // Native drive screen, stop progression and speech share one GPXTracker.
   realGpsFix={lat:data.lat,lng:data.lng};realGpsFixAt=Date.now();
+  // Shift mode: the terminus is detected here too, the native screen closes and the shift sheet opens.
+  if(shiftRun&&current?.points?.length>1){const near=nearestOnShape(realGpsFix,current.points,current.dists);shiftTrack(near.along,near.d)}
  }else if(type==='status'&&data?.message){
   $('gpsStatus').textContent=data.message;
   setVoiceStatus(data.message);
@@ -182,6 +184,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,att
 L.control.zoom({position:'topright'}).addTo(map);
 let academy=[], selectedOfficial=null, feed=null, current=null, watcher=null, simulation=null, simIndex=0, locationMarker=null, accuracyCircle=null, lineLayer=null, stopLayer=null;
 let nextStopIdx=0,lastFix=null,lastSpokenStop=-1,lastSpokenTurn=-1,lastProgress=0,lastAlong=0, turns=[];
+// Shift mode state (see "Il mio turno" at the end of this file).
+const TURNI_URL='turni.json';
+let turniData=null,turniPromise=null,shiftShown=null,shiftRun=null,shiftSheetState=null,shiftTimer=null,shiftAlong=0,shiftArrivedFor=null;
+const shiftChoices=(()=>{try{return JSON.parse(localStorage.getItem('lineapilot-shift-choices')||'{}')||{}}catch{return {}}})();
 let roadGuidanceLoadId=0,roadGuidanceReady=Promise.resolve();
 function academyFingerprint(points){
  let h=2166136261;
@@ -1591,6 +1597,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
   if(stops.length>1&&offsets[0]<=50&&Math.abs(along-offsets[0])<30)nextStopIdx=1;
  }
  lastAlong=Math.max(lastAlong,along-30);
+ shiftTrack(along,near.d);
  // Queued cues use this position to recompute their distance when they are read.
  voiceAlong=along;voicePositionOk=near.d<100;
  updateNavigationHeading(points,dists,along);
@@ -1852,7 +1859,7 @@ async function initializeGTFS(forceDownload=false){
 }
 $('retryFeed').addEventListener('click',()=>initializeGTFS(true));
 if(!nativeMode&&'serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(console.warn);
-loadAcademy();
+const academyReady=loadAcademy();
 syncNativeRoutePreview();
 loadTicketData();
 initializeGTFS();
@@ -1865,6 +1872,7 @@ function refreshReadySummary(){
  // Departure bay of the line (corsie.js); hidden for urban lines and lines not in the table.
  const corsia=current?.academy&&globalThis.Corsie?Corsie.label(current.academy,ticketData):'';
  $('readyCorsia').textContent=corsia;$('readyCorsia').hidden=!corsia;
+ const shiftText=typeof shiftReadyText==='function'?shiftReadyText():'';$('readyShift').textContent=shiftText;$('readyShift').hidden=!shiftText;
  $('readyStops').textContent=current?.academy?._evidence?.serviceStatus==='out-of-service'?'Trasferimento fuori servizio: nessuna fermata passeggeri prevista.':current?.stops?.length?current.stops.length+' fermate associate'+(current.stopProposal?.reviewRequired?' · proposta confermata ('+Math.round(current.stopProposal.coverage*100)+'% del GPX)':'')+' · '+niceDistance(current.dists.at(-1)):'Nessuna fermata associata: annunci fermata non disponibili.';
  const count=turns.filter(t=>t.verifiedRoad).length,coverage=current?.guidanceCoverage;
  $('readyGuidance').textContent=coverage?(coverage.complete?
@@ -1898,3 +1906,239 @@ $('wizardNext').addEventListener('click',()=>{
 });
 $('mergeOfficial').addEventListener('click',()=>{if(current?.reliable)showWizardStep(2)});
 showWizardStep(0);
+
+// ---- Il mio turno: turni.json (scripts/build_turni.py) + turni.js ----------
+// Search a shift, start its first trip, and at every terminus choose between the
+// next trip and a pause. The GPX of each trip comes from turni.json, the driver's
+// own choices (saved on this device) or the GTFS timetable of that departure.
+function saveShiftChoices(){try{localStorage.setItem('lineapilot-shift-choices',JSON.stringify(shiftChoices))}catch{}}
+function todayISO(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function saveShiftRun(){try{if(shiftRun)localStorage.setItem('lineapilot-shift-run',JSON.stringify(shiftRun));else localStorage.removeItem('lineapilot-shift-run')}catch{}}
+function loadJSONLocal(url){
+ return fetch(url).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).catch(()=>new Promise((resolve,reject)=>{
+  const x=new XMLHttpRequest();x.open('GET',url);
+  x.onload=()=>{try{if(x.status&&x.status!==200)throw Error('HTTP '+x.status);resolve(JSON.parse(x.responseText))}catch(e){reject(e)}};
+  x.onerror=()=>reject(Error('rete'));x.send();
+ }));
+}
+function loadTurni(){
+ if(turniData)return Promise.resolve(turniData);
+ if(!turniPromise)turniPromise=loadJSONLocal(TURNI_URL).then(d=>{if(!d?.days)throw Error('formato non valido');turniData=d;return d})
+  .catch(e=>{turniPromise=null;$('shiftHint').textContent='Turni non disponibili: '+e.message;return null});
+ return turniPromise;
+}
+function shiftRoute(leg){const id=Turni.routeFor(leg,shiftChoices);return id===null?null:academy.find(r=>r.id===id)||null}
+function shiftTitle(text){return String(text||'').toLocaleLowerCase('it').replace(/(^|[\s.'’(-])(\p{L})/gu,(x,a,b)=>a+b.toLocaleUpperCase('it')).replace(/\s*-\s*/g,' - ')}
+function shiftEl(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
+function shiftInfoText(leg){
+ if(leg.kind==='standby')return (leg.type==='Disp.'?'Disponibilità':'Attesa')+(leg.note?' · '+leg.note:'');
+ return (leg.note?shiftTitle(leg.note).replace(/^./,c=>c.toUpperCase()):'Trasferimento')+(leg.vehicle?' · vettura '+leg.vehicle:'');
+}
+// Several GPX fit a trip: the GTFS trip leaving at that time tells which one passes by its stops.
+function shiftResolveWithGtfs(shift){
+ if(!feed)return 0;
+ let resolved=0;
+ for(const leg of shift.legs){
+  if(Turni.legState(leg,shiftChoices)!=='needs-choice')continue;
+  const lines=new Set([leg.line,leg.line.replace(/[VZ]$/,'')]);
+  const routes=feed.routes.filter(r=>lines.has(String(r.route_short_name||'').toUpperCase()));
+  let stops=null;
+  for(const r of routes){for(const t of feed.tripsByRoute.get(r.route_id)||[]){
+   const times=feed.timesByTrip.get(t.trip_id)||[];
+   if(String(times[0]?.departure||'').slice(0,5).padStart(5,'0')===leg.dep.padStart(5,'0')){stops=times.map(x=>x.stop).filter(s=>s&&Number.isFinite(s.lat));break}
+  }if(stops)break}
+  if(!stops?.length)continue;
+  const shapes=new Map(leg.options.map(id=>{const r=academy.find(x=>x.id===id);const pts=r?r.points.map(([lat,lng])=>({lat,lng})):[];return [id,{pts,dist:pts.length?shapeMetrics(pts):[]}]}));
+  const id=Turni.pickByStops(leg.options,stops,(s,routeId)=>{const sh=shapes.get(routeId);return sh?.pts.length?nearestOnShape(s,sh.pts,sh.dist).d:Infinity});
+  if(id!==null){leg.route=id;leg.routeFrom='gtfs';resolved++}
+ }
+ return resolved;
+}
+function renderShift(){
+ const box=$('shiftResult');box.replaceChildren();
+ const shift=shiftShown;box.hidden=!shift;
+ if(!shift)return;
+ shiftResolveWithGtfs(shift);
+ const info=Turni.summary(shift),day=turniData.days[shift.day];
+ const card=shiftEl('div','shift-summary');
+ const head=shiftEl('div','shift-summary-head');head.append(shiftEl('strong','',shift.code),shiftEl('span','',info.start+' → '+info.end));
+ card.append(head,shiftEl('span','',info.trips+(info.trips===1?' corsa':' corse')+(info.vehicles.length?' · '+(info.vehicles.length===1?'vettura ':'vetture ')+info.vehicles.join(', '):'')+(info.pause>=20?' · pausa '+Turni.duration(info.pause):'')));
+ card.append(shiftEl('small','',day.label+(day.validFrom?' · turni validi dal '+day.validFrom:'')));
+ const states=shift.legs.map(l=>Turni.legState(l,shiftChoices));
+ const chips=shiftEl('div','shift-chips');
+ const count=k=>states.filter(s=>s===k).length;
+ if(count('ok'))chips.append(shiftEl('span','chip ok',count('ok')+' GPX pronti'));
+ if(count('needs-choice'))chips.append(shiftEl('span','chip warn',count('needs-choice')+' da scegliere'));
+ if(count('missing'))chips.append(shiftEl('span','chip bad',count('missing')+' senza GPX'));
+ card.append(chips);box.append(card);
+ const list=shiftEl('ol','shift-legs');
+ shift.legs.forEach((leg,i)=>{
+  const prev=shift.legs[i-1],gap=prev?Turni.minutes(leg.dep)-Turni.minutes(prev.arr):0;
+  if(gap>=20){const p=shiftEl('li','shift-pause','Pausa '+prev.arr+' – '+leg.dep+' · '+Turni.duration(gap));list.append(p)}
+  const item=shiftEl('li','shift-leg '+(Turni.driven(leg)?'driven':'info'));
+  if(shiftRun&&shiftRun.code===shift.code&&shiftRun.day===shift.day&&shiftRun.index===i)item.classList.add('current');
+  item.append(shiftEl('span','shift-time',leg.dep));
+  const body=shiftEl('div','shift-body');
+  if(!Turni.driven(leg)){body.append(shiftEl('strong','',shiftInfoText(leg)),shiftEl('small','','fino alle '+leg.arr+' · senza navigazione'))}
+  else{
+   body.append(shiftEl('strong','',(leg.kind==='empty'?'Diretta · ':'')+shiftTitle(leg.desc)));
+   const meta=shiftEl('div','shift-meta'),route=shiftRoute(leg);
+   meta.append(shiftEl('span','chip line',leg.line||'—'));
+   const corsia=route&&globalThis.Corsie?Corsie.label(route,ticketData):'';
+   if(corsia)meta.append(shiftEl('span','chip line',corsia));
+   meta.append(shiftEl('span','shift-arr','arrivo '+leg.arr));
+   body.append(meta);
+   if(states[i]==='missing')body.append(shiftEl('small','shift-missing','Nessun GPX trovato per questa corsa: la guidi senza navigazione'));
+   else{
+    const label=shiftEl('label','shift-choice');
+    const select=document.createElement('select');select.setAttribute('aria-label','GPX della corsa delle '+leg.dep);
+    const ids=[...new Set([leg.route,...(leg.options||[]),Turni.routeFor(leg,shiftChoices)].filter(Number.isInteger))];
+    if(states[i]==='needs-choice')select.add(asOption('','Scegli il GPX ('+ids.length+' simili)…'));
+    for(const id of ids){const r=academy.find(x=>x.id===id);if(r)select.add(asOption(String(id),r.name+' · GPX '+id))}
+    select.value=route?String(route.id):'';
+    select.addEventListener('change',()=>{if(!select.value)return;const id=+select.value;shiftChoices[Turni.legKey(leg)]=id;shiftChoices[Turni.tripKey(leg)]=id;saveShiftChoices();renderShift()});
+    label.append(select);body.append(label);
+    if(leg.routeFrom==='gtfs'&&states[i]==='ok')body.append(shiftEl('small','shift-source','GPX scelto con l’orario GTFS delle '+leg.dep));
+   }
+  }
+  if(leg.note&&Turni.driven(leg))body.append(shiftEl('small','shift-note','Nota: '+leg.note));
+  item.append(body);list.append(item);
+ });
+ box.append(list);
+ const actions=shiftEl('div','shift-actions');
+ const running=shiftRun&&shiftRun.code===shift.code&&shiftRun.day===shift.day&&shiftRun.date===todayISO();
+ const first=running?(shiftRun.done===shiftRun.index?Turni.nextDriven(shift,shiftRun.index):shiftRun.index):Turni.firstDriven(shift);
+ const start=shiftEl('button','shift-start',first<0?'Nessuna corsa da guidare':running?'Riprendi turno · corsa delle '+shift.legs[first].dep:'Avvia turno · prima corsa '+shift.legs[first].dep);
+ start.type='button';start.disabled=first<0;start.addEventListener('click',()=>{if(!running)shiftRun={code:shift.code,day:shift.day,date:todayISO(),index:first};saveShiftRun();startShiftLeg(first)});
+ actions.append(start);
+ if(running){const end=shiftEl('button','shift-end','Termina turno');end.type='button';end.addEventListener('click',endShift);actions.append(end)}
+ box.append(actions);
+}
+async function searchShift(){
+ const query=$('shiftSearch').value;
+ if(!query.trim()){shiftShown=null;renderShift();$('shiftHint').textContent='Scrivi il numero del turno, es. P085.';return}
+ const data=await loadTurni();if(!data)return;
+ const day=$('shiftDay').value,shift=Turni.find(data,day,query);
+ shiftShown=shift?{...shift,legs:shift.legs.map(l=>({...l}))}:null;
+ if(!shift){const near=Turni.suggest(data,day,query);$('shiftHint').textContent='Turno '+Turni.code(query)+' non trovato nei turni '+data.days[day]?.label.toLowerCase()+(near.length?'. Forse: '+near.join(', '):'')+'.'}
+ else $('shiftHint').textContent='';
+ renderShift();
+}
+function currentShift(){
+ if(!shiftRun||!turniData)return null;
+ if(shiftShown?.code===shiftRun.code&&shiftShown.day===shiftRun.day)return shiftShown;
+ const s=Turni.find(turniData,shiftRun.day,shiftRun.code);
+ if(s){shiftShown={...s,legs:s.legs.map(l=>({...l}))};shiftResolveWithGtfs(shiftShown)}
+ return shiftShown;
+}
+function startShiftLeg(index){
+ const shift=currentShift();if(!shift)return;
+ const leg=shift.legs[index];if(!leg)return;
+ shiftRun.index=index;saveShiftRun();shiftAlong=0;shiftArrivedFor=null;
+ const route=shiftRoute(leg);
+ if(!route){openShiftSheet(Turni.legState(leg,shiftChoices)==='needs-choice'?'choose':'missing');return}
+ closeShiftSheet();
+ shiftRun.routeId=route.id;saveShiftRun();
+ pickAcademyRoute(route);showWizardStep(2);
+ startGPS();
+}
+// Terminus: the end of the GPX, reached after driving most of it (start and end
+// of a circular line are the same place).
+function shiftTrack(along,distance){
+ if(!shiftRun||!current?.academy||current.academy.id!==shiftRun.routeId||shiftArrivedFor===shiftRun.index)return;
+ const total=current.dists.at(-1)||0;
+ if(!(total>0)||!Number.isFinite(along))return;
+ shiftAlong=Math.max(shiftAlong,along);
+ if(along>=total-50&&distance<60&&shiftAlong>=Math.min(total*.5,total-200)){
+  shiftArrivedFor=shiftRun.index;shiftRun.done=shiftRun.index;saveShiftRun();
+  stopNavigation();
+  try{navigator.vibrate?.([200,100,200])}catch{}
+  openShiftSheet('arrived');
+ }
+}
+function shiftNow(){const d=new Date();return d.getHours()*60+d.getMinutes()}
+function closeShiftSheet(){$('shiftSheet').hidden=true;shiftSheetState=null;clearInterval(shiftTimer);shiftTimer=null}
+function shiftButton(text,cls,onClick){const b=shiftEl('button',cls,text);b.type='button';b.addEventListener('click',onClick);return b}
+function shiftNextCard(shift,next){
+ const leg=shift.legs[next],route=shiftRoute(leg),card=shiftEl('div','shift-next');
+ const wait=Turni.minutes(leg.dep)-shiftNow();
+ card.append(shiftEl('small','','PROSSIMA CORSA'+(wait>0?' · tra '+Turni.duration(wait):'')));
+ card.append(shiftEl('strong','',leg.dep+' '+shiftTitle(leg.desc)));
+ const corsia=route&&globalThis.Corsie?Corsie.label(route,ticketData):'';
+ card.append(shiftEl('span','',[route?'GPX '+route.id:'GPX da scegliere',corsia,'arrivo '+leg.arr].filter(Boolean).join(' · ')));
+ if(leg.note)card.append(shiftEl('span','shift-note','Nota: '+leg.note));
+ return card;
+}
+function shiftBetween(shift,from,to,box){
+ const info=Turni.between(shift,from,to);
+ if(info.vehicleChange){const v=shiftEl('div','shift-vehicle');v.append(shiftEl('strong','','Cambio vettura'),shiftEl('span','','Passa alla vettura '+info.vehicleChange));box.append(v)}
+ for(const leg of info.legs)box.append(shiftEl('p','shift-between',leg.dep+' · '+shiftInfoText(leg)));
+}
+function openShiftSheet(state){
+ const shift=currentShift();if(!shift)return;
+ shiftSheetState=state;clearInterval(shiftTimer);shiftTimer=null;
+ const sheet=$('shiftSheet'),box=$('shiftSheetBody');box.replaceChildren();sheet.hidden=false;
+ const index=shiftRun.index,leg=shift.legs[index],next=Turni.nextDriven(shift,index);
+ const trips=shift.legs.map((l,i)=>[l,i]).filter(([l])=>Turni.driven(l)),pos=trips.findIndex(([,i])=>i===index)+1;
+ const progress=shiftEl('div','shift-progress');for(let k=1;k<=trips.length;k++)progress.append(shiftEl('span',k<=pos?'done':''));
+ const kicker=shiftEl('small','shift-kicker','Turno '+shift.code+' · corsa '+pos+' di '+trips.length);
+ if(state==='arrived'||state==='pause'){
+  const place=shiftTitle(String(leg.desc).split(/\s*-\s*/).at(-1));
+  if(state==='arrived'){
+   box.append(kicker,progress,shiftEl('h2','','Capolinea raggiunto'),shiftEl('p','shift-place',place+' · arrivo previsto '+leg.arr));
+  }else{
+   const target=next>=0?Turni.minutes(shift.legs[next].dep):null;
+   const clock=shiftEl('div','shift-clock');
+   const tick=()=>{
+    const left=target===null?null:target-shiftNow();
+    clock.replaceChildren(shiftEl('small','','In pausa'),shiftEl('strong','',left===null?'—':left>0?Turni.duration(left):'Si riparte'),shiftEl('span','',next>=0?'fino alle '+shift.legs[next].dep:''));
+    if(left!==null&&left<=10&&left>0&&shiftRun.warned!==next){shiftRun.warned=next;saveShiftRun();toast('Tra '+Turni.duration(left)+' riparte il turno: corsa delle '+shift.legs[next].dep);try{navigator.vibrate?.([300,150,300])}catch{}}
+   };
+   tick();shiftTimer=setInterval(tick,15000);
+   box.append(kicker,progress,clock);
+  }
+  if(next<0){
+   box.append(shiftEl('p','shift-place','Ultima corsa del turno completata.'));
+   shiftBetween(shift,index,shift.legs.length,box);
+   box.append(shiftButton('Fine turno','shift-start',endShift));
+   return;
+  }
+  shiftBetween(shift,index,next,box);
+  box.append(shiftNextCard(shift,next));
+  box.append(shiftButton(state==='pause'?'Riprendi: corsa delle '+shift.legs[next].dep:'Avvia la prossima corsa','shift-start',()=>startShiftLeg(next)));
+  const wait=Turni.minutes(shift.legs[next].dep)-shiftNow();
+  if(state==='arrived'&&wait>0)box.append(shiftButton('Pausa fino alle '+shift.legs[next].dep,'shift-secondary',()=>openShiftSheet('pause')));
+ }else{
+  box.append(kicker,progress,shiftEl('h2','',leg.dep+' '+shiftTitle(leg.desc)));
+  box.append(shiftEl('p','shift-place',state==='choose'?'Ci sono più GPX simili per questa corsa: sceglilo nell’elenco del turno, me lo ricordo per le prossime volte.':'Nessun GPX per questa corsa: guidala senza navigazione e poi passa alla successiva.'));
+  if(state==='choose')box.append(shiftButton('Scegli il GPX','shift-start',showShiftList));
+  if(next>=0)box.append(shiftButton('Corsa fatta · vai alla successiva','shift-secondary',()=>{shiftRun.done=index;saveShiftRun();openShiftSheet('arrived')}));
+ }
+ const links=shiftEl('div','shift-links');
+ links.append(shiftButton('Vedi tutto il turno','shift-link',showShiftList),shiftButton('Termina turno','shift-link danger',endShift));
+ box.append(links);
+}
+function showShiftList(){closeShiftSheet();showWizardStep(0);if(shiftRun){$('shiftDay').value=shiftRun.day;$('shiftSearch').value=shiftRun.code}searchShift().then(()=>$('shiftCard').scrollIntoView({block:'start'}))}
+function endShift(){shiftRun=null;saveShiftRun();closeShiftSheet();renderShift();toast('Turno terminato')}
+function shiftReadyText(){
+ const shift=shiftRun&&currentShift();
+ if(!shift||current?.academy?.id!==shiftRun.routeId)return '';
+ const leg=shift.legs[shiftRun.index],trips=shift.legs.filter(Turni.driven),pos=trips.indexOf(leg)+1;
+ return 'Turno '+shift.code+' · corsa '+pos+' di '+trips.length+' · partenza '+leg.dep;
+}
+$('shiftDay').value=Turni.dayFor(new Date());
+$('shiftSearch').addEventListener('input',()=>{clearTimeout(searchShift.t);searchShift.t=setTimeout(searchShift,250)});
+$('shiftSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchShift();e.target.blur()}});
+$('shiftDay').addEventListener('change',searchShift);
+$('shiftSheetClose').addEventListener('click',closeShiftSheet);
+// A shift started today is restored after the app is reopened.
+function restoreShiftRun(){
+ try{
+  const saved=JSON.parse(localStorage.getItem('lineapilot-shift-run')||'null');
+  if(saved?.date!==todayISO()||!saved.code)return false;
+  shiftRun=saved;$('shiftDay').value=saved.day;$('shiftSearch').value=saved.code;
+  Promise.resolve(academyReady).then(()=>searchShift());
+  return true;
+ }catch{return false}
+}
+restoreShiftRun();

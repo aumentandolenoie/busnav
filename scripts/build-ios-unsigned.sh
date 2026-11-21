@@ -17,6 +17,8 @@ test -s "$APP/Web/official-routes.json"
 test -s "$APP/Web/route-stops.js"
 test -s "$APP/Web/tickets.js"
 test -s "$APP/Web/corsie.js"
+test -s "$APP/Web/turni.js"
+test -s "$APP/Web/turni.json"
 test -s "$APP/Web/fares/polimetriche-padova.json"
 rm -rf build/ios/Payload build/ios/LineaPilot-unsigned.ipa
 mkdir -p build/ios/Payload

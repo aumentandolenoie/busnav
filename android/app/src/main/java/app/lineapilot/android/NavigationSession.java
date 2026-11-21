@@ -37,7 +37,10 @@ final class NavigationSession implements LocationListener {
     @Override public void onLocationChanged(Location p){
         if(!active)return;long age=(SystemClock.elapsedRealtimeNanos()-p.getElapsedRealtimeNanos())/1000000;
         if(!p.hasAccuracy()||p.getAccuracy()>65||p.getAccuracy()<0||age>8000||age< -2000){matched=false;/* positional cues wait; the current sentence is not cut */screen.progress(along,stopIndex,false,0);screen.message("GPS poco preciso · annunci sospesi");return;}
-        lastGood=SystemClock.elapsedRealtime();double speed=p.hasSpeed()?Math.max(0,p.getSpeed()):0;double[] point={p.getLatitude(),p.getLongitude()};GPXTracker.Hit hit=tracker.update(point,speed,p.getElapsedRealtimeNanos()/1e9,p.getAccuracy());
+        lastGood=SystemClock.elapsedRealtime();
+        // Same event as iOS: the web layer follows the position (end of a shift trip).
+        try{org.json.JSONObject fix=new org.json.JSONObject();fix.put("lat",p.getLatitude());fix.put("lng",p.getLongitude());fix.put("accuracy",p.getAccuracy());owner.send("location",fix);}catch(org.json.JSONException ignored){}
+        double speed=p.hasSpeed()?Math.max(0,p.getSpeed()):0;double[] point={p.getLatitude(),p.getLongitude()};GPXTracker.Hit hit=tracker.update(point,speed,p.getElapsedRealtimeNanos()/1e9,p.getAccuracy());
         if(hit==null){matched=false;double distance=tracker.project(point).distance;screen.location(p,false,along);screen.progress(along,stopIndex,false,distance);screen.message(distance>85?"Fuori percorso · segui il GPX ufficiale":"GPS in riallineamento · annunci sospesi");if(distance>85&&SystemClock.elapsedRealtime()-lastOffRoute>45000){if(voice){cues.clear();enqueueCue("offroute",null,left->"Sei fuori dal percorso ufficiale. Controlla la posizione sul GPX.");}lastOffRoute=SystemClock.elapsedRealtime();}return;}
         matched=true;along=hit.along;while(stopIndex<route.stops.length&&along>route.offsets[stopIndex]+35)stopIndex++;
         if(stopIndex==0&&route.offsets.length>1&&route.offsets[0]<50&&Math.abs(along-route.offsets[0])<30)stopIndex=1;
