@@ -52,8 +52,19 @@ def run(engine):
             first_option = select.locator('option').nth(1).get_attribute('value')
             select.select_option(first_option)
             assert page.evaluate("Object.values(shiftChoices).includes(%s)" % first_option)
+            # GTFS of the 06:10 E013V trip (built on its GPX): its stops must be associated by themselves.
+            page.evaluate("""(()=>{
+              const r=academy.find(x=>x.name==='300 | Padova - Monselice - Este'),pts=r.points,n=12,times=[];
+              for(let i=0;i<n;i++){const p=pts[Math.round(i*(pts.length-1)/(n-1))],m=10+Math.round(i*49/(n-1)),t=(m<60?'06:'+String(m).padStart(2,'0'):'07:00')+':00';
+               times.push({stop:{stop_id:'s'+i,stop_name:'Fermata '+(i+1),lat:p[0],lng:p[1]},seq:i+1,arrival:t,departure:t})}
+              const route={route_id:'R1',route_short_name:'E013V'};
+              feed={routes:[route],routesById:new Map([['R1',route]]),tripsByRoute:new Map([['R1',[{trip_id:'T1',route_id:'R1',trip_headsign:'PADOVA - MONSELICE - ESTE'}]]]),
+                timesByTrip:new Map([['T1',times]]),stopsById:new Map(),shapesById:new Map(),calendar:[],calendarDates:[]};
+            })()""")
             page.click('.shift-start')
             page.wait_for_function("current&&current.academy&&shiftRun&&current.academy.id===shiftRun.routeId", timeout=20000)
+            assert page.evaluate("current.stops.length") == 12 and page.evaluate("current.reliable"), 'stops of the shift trip associated'
+            assert page.evaluate("current.stops[0].stop.stop_name") == 'Fermata 1'
             assert page.evaluate("current.academy.name") == '300 | Padova - Monselice - Este'
             # No focused <select>: on iOS its menu would keep the native drive screen from opening.
             assert page.evaluate("document.activeElement?.tagName") != 'SELECT'
