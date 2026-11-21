@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read the Busitalia shift PDFs ("Turni … EXTRAURBANO") into turni-legs.json.
 
-Usage: python3 scripts/extract_turni.py feriale.pdf:weekday sabato.pdf:saturday [festivo.pdf:holiday] [-o turni-legs.json]
+Usage: python3 scripts/extract_turni.py feriale.pdf:weekday[:name shown] sabato.pdf:saturday [festivo.pdf:holiday] [-o turni-src/turni-legs.json]
 
 Every row of every shift is read by the x position of its words under the
 column headers (Partenza, Arrivo, Percorso, TurnoVettura, Nota, Linea, Tipo).
@@ -113,12 +113,58 @@ def read(path, day):
                 leg = current['legs'][-1]
                 for k in ('desc', 'note'):
                     if cell[k]:
+                        leg.setdefault('_wraps', {}).setdefault(k, []).append(len(leg[k]))
                         leg[k] = (leg[k] + ' ' + ' '.join(cell[k])).strip()
                 if cell['line']:
                     leg['line'] = (leg['line'] + ''.join(cell['line'])).upper()
                 if cell['type']:
                     leg['type'] = (leg['type'] + ' ' + ' '.join(cell['type'])).strip()
     return document, valid_from, shifts, problems
+
+
+def vocabulary(shifts_by_doc, extra_names):
+    """Words seen whole: in the GPX names, GTFS stop names, and in the PDF away from line wraps."""
+    words = set()
+    for name in extra_names:
+        words.update(w for w in re.findall(r"[A-Z]{3,}", fold(name)))
+    for shifts in shifts_by_doc:
+        for s in shifts.values():
+            for leg in s['legs']:
+                for k in ('desc', 'note'):
+                    text, cuts = leg[k], set(leg.get('_wraps', {}).get(k, []))
+                    for m in re.finditer(r"[A-Za-zÀ-ü']+", text):
+                        near_cut = any(abs(m.start() - c - 1) <= 0 or abs(m.end() - c) <= 0 for c in cuts)
+                        if not near_cut and len(m.group()) >= 3:
+                            words.add(fold(m.group()))
+    return words
+
+
+def fold(text):
+    import unicodedata
+    return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode().upper().replace("'", '')
+
+
+def join_wraps(shifts, words):
+    """"…-OLMO-MAS" + "ERA" → "…-OLMO-MASERA": a word cut by the cell width is
+    joined back when only the joined form is a known word."""
+    joined = []
+    for s in shifts.values():
+        for leg in s['legs']:
+            for k, cuts in leg.pop('_wraps', {}).items():
+                text = leg[k]
+                for c in sorted(cuts, reverse=True):
+                    left, right = text[:c], text[c + 1:]
+                    a = re.search(r"([A-Za-zÀ-ü']+)$", left)
+                    b = re.match(r"([A-Za-zÀ-ü']+)", right)
+                    if not a or not b:
+                        continue
+                    whole = fold(a.group(1) + b.group(1))
+                    parts_known = fold(a.group(1)) in words and fold(b.group(1)) in words
+                    if whole in words and not parts_known:
+                        text = left + right
+                        joined.append(a.group(1) + '|' + b.group(1))
+                leg[k] = text
+    return joined
 
 
 def check(day, shifts):
@@ -150,15 +196,32 @@ def check(day, shifts):
     return issues
 
 
+def stop_names(root):
+    import csv, io, zipfile
+    path = root / 'tests' / 'fixtures' / 'busitalia-patterns-2026-11-08.zip'
+    if not path.exists():
+        return []
+    with zipfile.ZipFile(path) as z:
+        return [r['stop_name'] for r in csv.DictReader(io.TextIOWrapper(z.open('stops.txt'), encoding='utf-8-sig'))]
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('pdfs', nargs='+', help='file.pdf:weekday|saturday|holiday')
+    parser.add_argument('pdfs', nargs='+', help='file.pdf:weekday|saturday|holiday[:document name]')
     parser.add_argument('-o', '--out', type=pathlib.Path, default=pathlib.Path('turni-legs.json'))
     args = parser.parse_args()
     legs, documents, meta, all_problems = [], [], {}, []
+    root = pathlib.Path(__file__).resolve().parent.parent
+    names = [r['name'] for r in json.loads((root / 'official-routes.json').read_text())]
+    read_docs = []
     for item in args.pdfs:
-        path, day = item.rsplit(':', 1)
+        path, day, *label = item.split(':')
         document, valid_from, shifts, problems = read(path, day)
+        read_docs.append((path, day, label[0] if label else document, valid_from, shifts, problems))
+    words = vocabulary([r[4] for r in read_docs], names + stop_names(root))
+    for path, day, document, valid_from, shifts, problems in read_docs:
+        joins = join_wraps(shifts, words)
+        print(document, ':', len(joins), 'words rejoined after a line wrap, e.g.', ', '.join(joins[:6]))
         issues = check(day, shifts)
         all_problems += problems + [f'{document}: {x}' for x in issues]
         documents.append({'name': document, 'day': day, 'validFrom': valid_from, 'shifts': len(shifts),
