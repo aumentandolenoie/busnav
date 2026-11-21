@@ -90,6 +90,8 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             let turnVoice = body["turnVoice"] as? Bool ?? true
             webView.endEditing(true)
             let simulated = body["demo"] as? Bool ?? false
+            // Shift simulation pace: 1x, 2x, 5x or 10x.
+            let simulationSpeed = min(10, max(1, body["demoSpeed"] as? Double ?? 1))
             let screen = DriveViewController(route: route, voiceEnabled: voice, simulated:simulated)
             screen.onEnd = { [weak self] in
                 self?.navigation.stop(); self?.drive = nil
@@ -101,7 +103,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             drive = screen
             UIApplication.shared.isIdleTimerDisabled = true
             presentDrive(screen) { [weak self] in
-                self?.navigation.start(route: route, voiceEnabled: voice, turnsEnabled: turnVoice, simulated:simulated)
+                self?.navigation.start(route: route, voiceEnabled: voice, turnsEnabled: turnVoice, simulated:simulated, simulationSpeed: simulationSpeed)
             }
         case "stop":
             navigation.stop()

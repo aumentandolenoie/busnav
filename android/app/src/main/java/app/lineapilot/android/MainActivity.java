@@ -188,7 +188,7 @@ public final class MainActivity extends Activity {
             NativeRoute route=new NativeRoute(body.getJSONObject("route"));route.tickets=TicketData.resolve(this,body.getJSONObject("route").optJSONObject("tickets"),route.ticketRoute);endNavigation(false);
             ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.clearFocus();
             previewLocation.cancel();configureVoice(body);previewMap.pause();preview.setVisibility(View.INVISIBLE);web.setVisibility(View.INVISIBLE);
-            session=new NavigationSession(this,route,body.optBoolean("voice",true),body.optBoolean("turnVoice",true),body.optBoolean("demo",false));
+            session=new NavigationSession(this,route,body.optBoolean("voice",true),body.optBoolean("turnVoice",true),body.optBoolean("demo",false));session.demoSpeed=Math.max(1,Math.min(10,body.optDouble("demoSpeed",1)));
             root.addView(session.screen,new FrameLayout.LayoutParams(-1,-1));getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);session.screen.nativeMap.start();session.resume();
         }catch(Exception e){error("Percorso nativo non valido: "+e.getMessage());}
     }

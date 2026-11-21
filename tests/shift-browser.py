@@ -87,6 +87,28 @@ def run(engine):
             page.select_option('#shiftDay', '2026-11-23')
             page.fill('#shiftSearch', 'P085')
             page.press('#shiftSearch', 'Enter')
+            # Simulation: purple button under the start, speed 10x; the terminus comes by itself.
+            page.select_option('#shiftDay', '2026-11-23')
+            page.fill('#shiftSearch', 'P085')
+            page.press('#shiftSearch', 'Enter')
+            page.wait_for_selector('#shiftResult .shift-sim')
+            saved = page.evaluate("localStorage.getItem('lineapilot-shift-run')")
+            page.get_by_role('button', name='10x').click()
+            assert page.evaluate("shiftSimSpeed") == 10
+            page.screenshot(path=str(out / f'shift-sim-{engine}.png'))
+            page.click('.shift-sim')
+            page.wait_for_function("shiftRun&&shiftRun.sim&&simulation!==null", timeout=20000)
+            assert page.evaluate("readyShift.textContent").startswith('Simulazione 10x · Turno P085 · corsa 1 di 6')
+            # fast-forward the virtual drive to the end of the GPX
+            page.evaluate("simIndex=current.dists.at(-1)-60")
+            page.clock.run_for(3000)
+            page.wait_for_selector('#shiftSheet:not([hidden])', timeout=20000)
+            sheet = page.inner_text('#shiftSheet')
+            assert 'SIMULAZIONE · TURNO P085' in sheet.upper() and 'Capolinea raggiunto' in sheet and 'Pausa fino alle 06:59' not in sheet, sheet
+            assert page.evaluate("Math.round(shiftNow())") == 6 * 60 + 59  # virtual clock at the scheduled arrival
+            assert page.evaluate("localStorage.getItem('lineapilot-shift-run')") == saved, 'a simulation never replaces the real shift'
+            page.get_by_role('button', name='Termina simulazione').click()
+            assert page.evaluate("shiftRun&&!shiftRun.sim&&shiftRun.code") == 'P085', 'the real shift is back'
             # Reload: the running shift is restored for today.
             page.reload()
             page.wait_for_function("academy.length>0", timeout=30000)

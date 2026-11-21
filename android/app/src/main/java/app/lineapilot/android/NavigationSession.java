@@ -7,7 +7,8 @@ import java.util.*;
 
 final class NavigationSession implements LocationListener {
     final MainActivity owner;final NativeRoute route;final GPXTracker tracker;final DriverView screen;
-    final boolean demo;private double demoProgress;boolean active=true,voice,turnVoice,matched;int stopIndex;double along;
+    final boolean demo;private double demoProgress;double demoSpeed=1; // shift simulation pace: 1x, 2x, 5x, 10x
+   boolean active=true,voice,turnVoice,matched;int stopIndex;double along;
     private final Set<Integer> spokenCameras = new HashSet<>();
     private double chainedStopAfter = Double.NEGATIVE_INFINITY;
     private long lastGood,lastOffRoute;private final Map<Integer,Integer> stopStages=new HashMap<>(),turnStages=new HashMap<>();
@@ -20,7 +21,7 @@ final class NavigationSession implements LocationListener {
     private final Runnable pumpLater=this::pumpVoice;
     private final Runnable watchdog=new Runnable(){public void run(){if(!active)return;if(SystemClock.elapsedRealtime()-lastGood>8000){matched=false;flushVoice();screen.progress(along,stopIndex,false,0);screen.message("Segnale GPS non aggiornato · annunci sospesi");}handler.postDelayed(this,2000);}};
     NavigationSession(MainActivity owner,NativeRoute route,boolean voice,boolean turns,boolean demo){this.demo=demo;this.owner=owner;this.route=route;this.voice=voice;turnVoice=turns;tracker=new GPXTracker(route.points);locations=(LocationManager)owner.getSystemService(android.content.Context.LOCATION_SERVICE);screen=new DriverView(owner,this,owner.layoutTest);lastGood=SystemClock.elapsedRealtime();}
-    private final Runnable demoTick=new Runnable(){public void run(){if(!active)return;double[] point=tracker.coordinate(demoProgress);Location p=new Location("simulation");p.setLatitude(point[0]);p.setLongitude(point[1]);p.setAccuracy(5);p.setSpeed(14);p.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());p.setTime(System.currentTimeMillis());onLocationChanged(p);screen.message("SIMULAZIONE · posizione virtuale");demoProgress+=14;if(demoProgress>tracker.total()+50){pause();screen.message("Simulazione completata");return;}handler.postDelayed(this,1000);}};
+    private final Runnable demoTick=new Runnable(){public void run(){if(!active)return;double[] point=tracker.coordinate(demoProgress);Location p=new Location("simulation");p.setLatitude(point[0]);p.setLongitude(point[1]);p.setAccuracy(5);p.setSpeed(14);p.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());p.setTime(System.currentTimeMillis());onLocationChanged(p);screen.message(demoSpeed>1?"SIMULAZIONE "+Math.round(demoSpeed)+"x · posizione virtuale":"SIMULAZIONE · posizione virtuale");demoProgress+=14;if(demoProgress>tracker.total()+50){pause();screen.message("Simulazione completata");return;}handler.postDelayed(this,Math.round(1000/demoSpeed));}};
     void resume(){if(!active)return;matched=false;lastGood=SystemClock.elapsedRealtime();handler.removeCallbacks(watchdog);if(demo){handler.removeCallbacks(demoTick);handler.post(demoTick);return;}if(owner.layoutTest)return;
         boolean fine=owner.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED,coarse=owner.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED;
         if(!fine&&!coarse){owner.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},43);return;}

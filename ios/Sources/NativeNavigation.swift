@@ -232,7 +232,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         manager.pausesLocationUpdatesAutomatically = false
     }
 
-    func start(route: NativeRoute, voiceEnabled: Bool, turnsEnabled: Bool, simulated: Bool = false) {
+    func start(route: NativeRoute, voiceEnabled: Bool, turnsEnabled: Bool, simulated: Bool = false, simulationSpeed: Double = 1) {
         stop()
         isSimulating = simulated
         self.route = route
@@ -270,12 +270,13 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         }
         if simulated {
             var progress = 0.0
-            demoTimer = Timer.scheduledTimer(withTimeInterval:1,repeats:true) { [weak self] timer in
+            // Same 14 m steps, taken more often at 2x/5x/10x.
+            demoTimer = Timer.scheduledTimer(withTimeInterval:1 / simulationSpeed,repeats:true) { [weak self] timer in
                 guard let self, self.active, let tracker = self.tracker else { timer.invalidate(); return }
                 let point = tracker.coordinate(at:progress)
                 let location = CLLocation(coordinate:CLLocationCoordinate2D(latitude:point[0],longitude:point[1]),altitude:0,horizontalAccuracy:5,verticalAccuracy:5,course:0,speed:14,timestamp:Date())
                 self.locationManager(self.manager,didUpdateLocations:[location])
-                self.onStatus?("SIMULAZIONE · posizione virtuale")
+                self.onStatus?(simulationSpeed > 1 ? "SIMULAZIONE \(Int(simulationSpeed))x · posizione virtuale" : "SIMULAZIONE · posizione virtuale")
                 progress += 14
                 if progress > tracker.distances.last! + 50 { timer.invalidate(); self.onStatus?("Simulazione completata"); self.stop() }
             }

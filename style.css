@@ -320,3 +320,15 @@ body.navigating .toast.show{position:absolute;z-index:760;inset:auto;left:calc(v
 .shift-market.off{background:#ececf0;border-color:#d1d1d6}.shift-market.off strong{color:#3a3a3f}
 .shift-market-toggle{align-self:flex-start;min-height:44px;padding:0 14px;border:0;border-radius:12px;background:#fff;color:#0058c4;font-size:15px;font-weight:700}
 .shift-market-toggle:hover:not(:disabled){background:#f2f2f7}
+/* Simula turno: smaller, purple, clearly not the real start */
+.shift-sim{align-self:center;min-height:46px;width:78%;border:2px solid #5b3cc4;border-radius:14px;background:#f1ecfd;color:#4527a0;font-size:16px;font-weight:800}
+.shift-sim:hover:not(:disabled){background:#e6defb}
+.shift-speed{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px}
+.shift-speed span{font-size:13px;font-weight:700;color:#5f5f66;margin-right:2px}
+.shift-speed button{min-width:48px;min-height:44px;border:1px solid #c9bdf3;border-radius:12px;background:#fff;color:#4527a0;font-size:15px;font-weight:800}
+.shift-speed button[aria-pressed="true"]{background:#5b3cc4;border-color:#5b3cc4;color:#fff}
+.shift-speed button:hover:not(:disabled){background:#efeafd}.shift-speed button[aria-pressed="true"]:hover:not(:disabled){background:#4b2fb0}
+.shift-speed{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:78%;align-self:center;gap:6px}
+.shift-speed span{grid-column:1/-1;text-align:center;margin:0}
+.shift-speed button{min-width:0}
+.shift-speed button{white-space:nowrap;padding:0 4px}

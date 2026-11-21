@@ -1688,7 +1688,7 @@ async function startGPS(simulated=false){
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
   enterNavigationView();
   nativeActive=true;
-  const ok=nativePost({type:'start',route,demo,voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
+  const ok=nativePost({type:'start',route,demo,demoSpeed:demo?demoSpeed():1,voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
   if(!ok){nativeActive=false;leaveNavigationView();toast('Impossibile avviare il GPS nativo');return}
   $('gpsStatus').textContent='GPS nativo in avvio…';
   setVoiceStatus(demo?'SIMULAZIONE · posizione virtuale':'Voce italiana nativa · mantieni l’app in primo piano');
@@ -1711,7 +1711,7 @@ async function startGPS(simulated=false){
  },{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
  $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
 }
-async function startDemo(){if(!current)return;primeSpeech();if(nativeMode){await startGPS(true);return}stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700);$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
+async function startDemo(){if(!current)return;primeSpeech();if(nativeMode){await startGPS(true);return}stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700/demoSpeed());$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 // Native GTFS transfer: URLSession downloads the ZIP, then sends base64 chunks
 // over WKScriptMessageHandler. No fetch/XHR to a WebKit custom URL scheme.
 let nativeGtfsPending=null;
@@ -1915,7 +1915,24 @@ showWizardStep(0);
 // own choices (saved on this device) or the GTFS timetable of that departure.
 function saveShiftChoices(){try{localStorage.setItem('lineapilot-shift-choices',JSON.stringify(shiftChoices))}catch{}}
 function todayISO(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function saveShiftRun(){try{if(shiftRun)localStorage.setItem('lineapilot-shift-run',JSON.stringify(shiftRun));else localStorage.removeItem('lineapilot-shift-run')}catch{}}
+// Shift simulation: virtual positions along each GPX and a virtual clock, 1x to 10x.
+const SHIFT_SIM_SPEEDS=[1,2,5,10];
+let shiftSimSpeed=(()=>{try{const v=+localStorage.getItem('lineapilot-sim-speed');return SHIFT_SIM_SPEEDS.includes(v)?v:1}catch{return 1}})();
+let shiftClock=null;
+function demoSpeed(){return shiftRun?.sim?shiftSimSpeed:1}
+function setShiftClock(minutes){shiftClock={base:minutes,at:Date.now()}}
+function setShiftSimSpeed(v){
+ if(shiftClock)setShiftClock(shiftNow()); // keep the virtual time, change only the pace
+ shiftSimSpeed=v;try{localStorage.setItem('lineapilot-sim-speed',String(v))}catch{}
+ document.querySelectorAll('.shift-speed button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.speed===v)));
+}
+function shiftSpeedPicker(){
+ const box=shiftEl('div','shift-speed');box.setAttribute('role','group');box.setAttribute('aria-label','Velocità della simulazione');
+ box.append(shiftEl('span','','Velocità simulazione'));
+ for(const v of SHIFT_SIM_SPEEDS){const b=shiftButton(v+'x','',()=>setShiftSimSpeed(v));b.dataset.speed=v;b.setAttribute('aria-pressed',String(v===shiftSimSpeed));box.append(b)}
+ return box;
+}
+function saveShiftRun(){if(shiftRun?.sim)return;try{if(shiftRun)localStorage.setItem('lineapilot-shift-run',JSON.stringify(shiftRun));else localStorage.removeItem('lineapilot-shift-run')}catch{}}
 function loadJSONLocal(url){
  return fetch(url).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).catch(()=>new Promise((resolve,reject)=>{
   const x=new XMLHttpRequest();x.open('GET',url);
@@ -2038,12 +2055,20 @@ function renderShift(){
  });
  box.append(list);
  const actions=shiftEl('div','shift-actions');
- const running=shiftRun&&shiftRun.code===shift.code&&shiftRun.date===shift.date&&shiftRun.date===todayISO();
- const first=running?(shiftRun.done===shiftRun.index?Turni.nextDriven(shift,shiftRun.index):shiftRun.index):Turni.firstDriven(shift);
+ const running=shiftRun&&!shiftRun.sim&&shiftRun.code===shift.code&&shiftRun.date===shift.date&&shiftRun.date===todayISO();
+ const simulating=shiftRun?.sim&&shiftRun.code===shift.code&&shiftRun.date===shift.date;
+ const resume=running||simulating;
+ const first=resume?(shiftRun.done===shiftRun.index?Turni.nextDriven(shift,shiftRun.index):shiftRun.index):Turni.firstDriven(shift);
  const start=shiftEl('button','shift-start',first<0?'Nessuna corsa da guidare':running?'Riprendi turno · corsa delle '+shift.legs[first].dep:'Avvia turno · prima corsa '+shift.legs[first].dep);
  start.type='button';start.disabled=first<0;start.addEventListener('click',()=>{if(!running)shiftRun={code:shift.code,day:shift.day,date:shift.date,index:first};saveShiftRun();startShiftLeg(first)});
  actions.append(start);
- if(running){const end=shiftEl('button','shift-end','Termina turno');end.type='button';end.addEventListener('click',endShift);actions.append(end)}
+ // Simulation: smaller, purple, under the real start, so the two cannot be confused.
+ const simFirst=simulating?first:Turni.firstDriven(shift);
+ const sim=shiftEl('button','shift-sim',simulating?'Riprendi simulazione · corsa delle '+(shift.legs[simFirst]?.dep||''):'Simula turno');
+ sim.type='button';sim.disabled=simFirst<0;
+ sim.addEventListener('click',()=>{if(!simulating)shiftRun={code:shift.code,day:shift.day,date:shift.date,index:simFirst,sim:true};startShiftLeg(simFirst)});
+ actions.append(sim,shiftSpeedPicker());
+ if(running||simulating){const end=shiftEl('button','shift-end',simulating?'Termina simulazione':'Termina turno');end.type='button';end.addEventListener('click',endShift);actions.append(end)}
  box.append(actions);
 }
 async function searchShift(){
@@ -2075,7 +2100,8 @@ function startShiftLeg(index){
  try{document.activeElement?.blur?.()}catch{}
  shiftRun.routeId=route.id;saveShiftRun();
  pickAcademyRoute(route,false);showWizardStep(2);
- startGPS();
+ if(shiftRun.sim){setShiftClock(Turni.minutes(leg.dep));startDemo()}
+ else startGPS();
 }
 // Terminus: the end of the GPX, reached after driving most of it (start and end
 // of a circular line are the same place).
@@ -2086,12 +2112,16 @@ function shiftTrack(along,distance){
  shiftAlong=Math.max(shiftAlong,along);
  if(along>=total-50&&distance<60&&shiftAlong>=Math.min(total*.5,total-200)){
   shiftArrivedFor=shiftRun.index;shiftRun.done=shiftRun.index;saveShiftRun();
+  if(shiftRun.sim)setShiftClock(Turni.minutes(currentShift()?.legs[shiftRun.index]?.arr));
   stopNavigation();
   try{navigator.vibrate?.([200,100,200])}catch{}
   openShiftSheet('arrived');
  }
 }
-function shiftNow(){const d=new Date();return d.getHours()*60+d.getMinutes()}
+function shiftNow(){
+ if(shiftRun?.sim&&shiftClock)return shiftClock.base+(Date.now()-shiftClock.at)/60000*shiftSimSpeed;
+ const d=new Date();return d.getHours()*60+d.getMinutes();
+}
 function closeShiftSheet(){$('shiftSheet').hidden=true;shiftSheetState=null;clearInterval(shiftTimer);shiftTimer=null}
 function shiftButton(text,cls,onClick){const b=shiftEl('button',cls,text);b.type='button';b.addEventListener('click',onClick);return b}
 function shiftNextCard(shift,next){
@@ -2122,7 +2152,7 @@ function openShiftSheet(state){
  const index=shiftRun.index,leg=shift.legs[index],next=Turni.nextDriven(shift,index);
  const trips=shift.legs.map((l,i)=>[l,i]).filter(([l])=>Turni.driven(l)),pos=trips.findIndex(([,i])=>i===index)+1;
  const progress=shiftEl('div','shift-progress');for(let k=1;k<=trips.length;k++)progress.append(shiftEl('span',k<=pos?'done':''));
- const kicker=shiftEl('small','shift-kicker','Turno '+shift.code+' · corsa '+pos+' di '+trips.length);
+ const kicker=shiftEl('small','shift-kicker',(shiftRun.sim?'Simulazione · ':'')+'Turno '+shift.code+' · corsa '+pos+' di '+trips.length);
  if(state==='arrived'||state==='pause'){
   const place=shiftTitle(String(leg.desc).split(/\s*-\s*/).at(-1));
   if(state==='arrived'){
@@ -2135,7 +2165,7 @@ function openShiftSheet(state){
     clock.replaceChildren(shiftEl('small','','In pausa'),shiftEl('strong','',left===null?'—':left>0?Turni.duration(left):'Si riparte'),shiftEl('span','',next>=0?'fino alle '+shift.legs[next].dep:''));
     if(left!==null&&left<=10&&left>0&&shiftRun.warned!==next){shiftRun.warned=next;saveShiftRun();toast('Tra '+Turni.duration(left)+' riparte il turno: corsa delle '+shift.legs[next].dep);try{navigator.vibrate?.([300,150,300])}catch{}}
    };
-   tick();shiftTimer=setInterval(tick,15000);
+   tick();shiftTimer=setInterval(tick,shiftRun.sim?1000:15000);
    box.append(kicker,progress,clock);
   }
   if(next<0){
@@ -2155,18 +2185,25 @@ function openShiftSheet(state){
   if(state==='choose')box.append(shiftButton('Scegli il GPX','shift-start',showShiftList));
   if(next>=0)box.append(shiftButton('Corsa fatta · vai alla successiva','shift-secondary',()=>{shiftRun.done=index;saveShiftRun();openShiftSheet('arrived')}));
  }
+ if(shiftRun.sim)box.append(shiftSpeedPicker());
  const links=shiftEl('div','shift-links');
- links.append(shiftButton('Vedi tutto il turno','shift-link',showShiftList),shiftButton('Termina turno','shift-link danger',endShift));
+ links.append(shiftButton('Vedi tutto il turno','shift-link',showShiftList),shiftButton(shiftRun.sim?'Termina simulazione':'Termina turno','shift-link danger',endShift));
  box.append(links);
 }
 function showShiftList(){closeShiftSheet();showWizardStep(0);if(shiftRun){setShiftDate(shiftRun.date);$('shiftSearch').value=shiftRun.code}searchShift().then(()=>$('shiftCard').scrollIntoView({block:'start'}))}
-function endShift(){shiftRun=null;saveShiftRun();closeShiftSheet();renderShift();toast('Turno terminato')}
+function endShift(){
+ const sim=shiftRun?.sim;if(sim)stopNavigation();shiftRun=null;shiftClock=null;
+ if(!sim)saveShiftRun();closeShiftSheet();
+ // After a simulation, a real shift started today comes back as it was.
+ if(!(sim&&restoreShiftRun()))renderShift();
+ toast(sim?'Simulazione terminata':'Turno terminato');
+}
 function shiftReadyText(){
  const shift=shiftRun&&currentShift();
  if(!shift||current?.academy?.id!==shiftRun.routeId)return '';
  const leg=shift.legs[shiftRun.index],trips=shift.legs.filter(Turni.driven),pos=trips.indexOf(leg)+1;
  const plan=shiftPlan(leg,shift);
- return 'Turno '+shift.code+' · corsa '+pos+' di '+trips.length+' · partenza '+leg.dep+(plan.market&&!plan.marketOff?' · '+shiftMarketText(plan.market):'');
+ return (shiftRun.sim?'Simulazione '+shiftSimSpeed+'x · ':'')+'Turno '+shift.code+' · corsa '+pos+' di '+trips.length+' · partenza '+leg.dep+(plan.market&&!plan.marketOff?' · '+shiftMarketText(plan.market):'');
 }
 fillShiftDays();
 function setShiftDate(iso){if(![...$('shiftDay').options].some(o=>o.value===iso))$('shiftDay').add(asOption(iso,iso.split('-').reverse().join('/')));$('shiftDay').value=iso}
