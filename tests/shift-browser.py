@@ -84,7 +84,8 @@ def run(engine):
             assert page.evaluate("readyShift.textContent").startswith('Turno P085 · corsa 2 di 6')
             # Friday 27/11: P046 12:55 takes the market-day detour GPX, the normal one stays selectable.
             # startGPS waits for the road data before showing the drive view: stop only after it.
-            page.wait_for_function("document.body.classList.contains('navigating')", timeout=20000)
+            # (WebKit without location permission leaves the drive view at once: wait for the start itself)
+            page.evaluate("Promise.all([roadGuidanceReady,loadTicketData()]).then(()=>new Promise(r=>setTimeout(r,400)))")
             page.evaluate("stopNavigation();closeShiftSheet();showWizardStep(0)")
             page.select_option('#shiftDay', '2026-11-27')
             page.fill('#shiftSearch', 'P046')
