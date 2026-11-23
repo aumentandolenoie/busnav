@@ -65,6 +65,21 @@ def run(engine):
             page.wait_for_function("current&&current.academy&&shiftRun&&current.academy.id===shiftRun.routeId", timeout=20000)
             assert page.evaluate("current.stops.length") == 12 and page.evaluate("current.reliable"), 'stops of the shift trip associated'
             assert page.evaluate("current.stops[0].stop.stop_name") == 'Fermata 1'
+            # Driven part faint and under the part still to drive (Leaflet is a stub here: record the calls).
+            split = page.evaluate("""(()=>{
+              const realL=window.L,realLine=lineLayer;
+              const layer=(v,o)=>({v,options:o||{},setLatLngs(x){this.v=x},bringToFront(){this.front=true},addTo(){return this}});
+              window.L={polyline:(v,o)=>layer(v,o)};lineLayer=layer([], {color:'#0da2a5'});
+              try{
+                doneLayer=null;splitAt=-1;splitWebRoute(2000);
+                const out={doneOpacity:doneLayer.options.opacity,done:doneLayer.v.length,ahead:lineLayer.v.length,front:!!lineLayer.front,n:current.points.length,
+                  joined:JSON.stringify(doneLayer.v.at(-1))===JSON.stringify(lineLayer.v[0])};
+                resetRouteSplit();out.reset=doneLayer===null&&lineLayer.v.length===current.points.length;
+                return out;
+              }finally{window.L=realL;lineLayer=realLine;doneLayer=null;splitAt=-1}
+            })()""")
+            assert split['doneOpacity'] < .3 and split['front'] and split['joined'] and split['reset'], split
+            assert split['done'] + split['ahead'] == split['n'] + 2, split
             assert page.evaluate("current.academy.name") == '300 | Padova - Monselice - Este'
             # No focused <select>: on iOS its menu would keep the native drive screen from opening.
             assert page.evaluate("document.activeElement?.tagName") != 'SELECT'

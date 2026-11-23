@@ -67,12 +67,14 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         map.showsCompass = false
         map.showsTraffic = true
         map.pointOfInterestFilter = .excludingAll
-        map.preferredConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .muted)
+        // 3D buildings hid the route in turns between them (MapKit always draws them over
+        // overlays): flat buildings, same tilt, the route is always visible.
+        map.preferredConfiguration = MKStandardMapConfiguration(elevationStyle: .flat, emphasisStyle: .muted)
+        map.showsBuildings = false
         view.addSubview(map)
         var coordinates = route.points.map { CLLocationCoordinate2D(latitude: $0[0],longitude: $0[1]) }
-        let line = MKPolyline(coordinates: &coordinates,count: coordinates.count)
-        map.addOverlay(line,level: .aboveRoads)
-        routeBounds = line.boundingMapRect
+        routeBounds = MKPolyline(coordinates: &coordinates,count: coordinates.count).boundingMapRect
+        drawRoute(split: 0)
         for (i,name) in route.stops.enumerated() {
             let p = route.stopCoordinates?.indices.contains(i) == true ? route.stopCoordinates![i] : geometry.coordinate(at: route.offsets[i])
             guard p.count == 2, p.allSatisfy(\.isFinite) else { continue }
@@ -296,6 +298,30 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         }
         updateCamera()
     }
+    /// Route split at the vehicle: driven part (faint) and part to drive (on top), so a
+    /// line passing twice on the same road shows where to go next.
+    private var drivenLine: MKPolyline?
+    private var aheadLine: MKPolyline?
+    private var splitAlong = -1.0
+    private func drawRoute(split along: Double) {
+        let distances = geometry.distances
+        guard let total = distances.last, route.points.count > 1 else { return }
+        let at = min(max(0, along), total)
+        let index = max(1, distances.firstIndex(where: { $0 >= at }) ?? distances.count - 1)
+        let cutPoint = geometry.coordinate(at: at)
+        let cut = CLLocationCoordinate2D(latitude: cutPoint[0], longitude: cutPoint[1])
+        let coordinate = { (p: [Double]) in CLLocationCoordinate2D(latitude: p[0], longitude: p[1]) }
+        var driven = route.points[0..<index].map(coordinate) + [cut]
+        var ahead = [cut] + route.points[index...].map(coordinate)
+        let newDriven: MKPolyline? = at > 0 ? DrivenPolyline(coordinates: &driven, count: driven.count) : nil
+        let newAhead = MKPolyline(coordinates: &ahead, count: ahead.count)
+        if let newDriven { map.addOverlay(newDriven, level: .aboveLabels) }
+        map.addOverlay(newAhead, level: .aboveLabels)
+        if let drivenLine { map.removeOverlay(drivenLine) }
+        if let aheadLine { map.removeOverlay(aheadLine) }
+        drivenLine = newDriven; aheadLine = newAhead; splitAlong = at
+    }
+
     func location(_ location: CLLocation) {
         fix = location
         puck.coordinate = location.coordinate
@@ -306,6 +332,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     }
     func message(_ message: String) { status.text = message }
     func update(along:Double,deviation:Double,stop:Int,reliable:Bool) {
+        if reliable, abs(along - splitAlong) >= 15 { drawRoute(split: along) }
         let shown = speedSign.isHidden ? nil : speedSign.text.flatMap { Int($0) }
         let limit = reliable ? fix.flatMap {
             route.speedLimit(at: along, accuracy: $0.horizontalAccuracy, deviation: deviation, keeping: shown)
@@ -424,7 +451,11 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         ticketButton.layer.borderWidth = 0
     }
     func mapView(_ mapView:MKMapView,rendererFor overlay:MKOverlay) -> MKOverlayRenderer {
-        let renderer = MKPolylineRenderer(overlay:overlay); renderer.strokeColor = .systemBlue; renderer.lineWidth = 8; renderer.lineCap = .round; renderer.lineJoin = .round; return renderer
+        let renderer = MKPolylineRenderer(overlay:overlay); renderer.lineCap = .round; renderer.lineJoin = .round
+        // Part already driven: faint, under the part still to drive.
+        if overlay is DrivenPolyline { renderer.strokeColor = UIColor.systemBlue.withAlphaComponent(0.22); renderer.lineWidth = 7 }
+        else { renderer.strokeColor = .systemBlue; renderer.lineWidth = 8 }
+        return renderer
     }
     func mapView(_ mapView:MKMapView,viewFor annotation:MKAnnotation) -> MKAnnotationView? {
         guard !(annotation is MKUserLocation) else { return nil }
@@ -491,3 +522,6 @@ final class NavigationPuckView: MKAnnotationView {
         arrow.layer.transform = CATransform3DConcat(CATransform3DConcat(CATransform3DMakeRotation(angle, 0, 0, 1), tilt), perspective)
     }
 }
+
+/// The part of the route already driven (drawn faint).
+final class DrivenPolyline: MKPolyline {}

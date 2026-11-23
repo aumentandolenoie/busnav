@@ -534,6 +534,7 @@ function enterNavigationView(){
 }
 function leaveNavigationView(){
  if(!navigationFullscreen)return;
+ resetRouteSplit();
  navigationFullscreen=false;document.body.classList.remove('navigating');
  closeTicketSheet();$('driveView').hidden=true;resetDriveMapBox();releaseScreen();setAudioSessionType('auto');lastNavHeading=null;lastCameraAt=0;lastCameraPoint=null;lastMatchedAt=0;hasMatchedFix=false;recoveryCandidate=null;
  $('navigationPosition').hidden=true;
@@ -544,6 +545,23 @@ function leaveNavigationView(){
  if(typeof map.stopHeadingUp==='function')map.stopHeadingUp();
  if(typeof map.setBearing==='function')map.setBearing(0);
  requestAnimationFrame(()=>{map.invalidateSize({pan:false});if(lineLayer&&lineLayer.getBounds().isValid())fitWebBounds(lineLayer.getBounds(),{padding:[40,40]});});
+}
+// While driving the part already driven is drawn faint and below the part still to drive,
+// so a line that passes twice on the same road shows where to go next.
+let doneLayer=null,splitAt=-1;
+function splitWebRoute(along){
+ if(!lineLayer||!current?.points?.length||!Number.isFinite(along)||Math.abs(along-splitAt)<15)return;
+ const pts=current.points,ds=current.dists,total=ds.at(-1)||0,at=Math.max(0,Math.min(total,along));
+ let i=1;while(i<ds.length-1&&ds[i]<at)i++;
+ const cut=pointAt(pts,ds,at),ll=p=>[p.lat,p.lng];
+ const done=[...pts.slice(0,i).map(ll),ll(cut)],todo=[ll(cut),...pts.slice(i).map(ll)];
+ if(!doneLayer)doneLayer=L.polyline([],{color:lineLayer.options.color,weight:6,opacity:.22,interactive:false}).addTo(map);
+ doneLayer.setLatLngs(at>0?done:[]);lineLayer.setLatLngs(todo);lineLayer.bringToFront();splitAt=at;
+}
+function resetRouteSplit(){
+ if(doneLayer){map.removeLayer(doneLayer);doneLayer=null}
+ if(lineLayer&&splitAt>=0&&current?.points)lineLayer.setLatLngs(current.points.map(p=>[p.lat,p.lng]));
+ splitAt=-1;
 }
 function headingFromGPX(points,dists,along){
  // Sample over a longer section of the official route, instead of its
@@ -1095,6 +1113,7 @@ $('academyGtfsTrip').addEventListener('change',()=>{
 function onAcademySelected(){
  stopNavigation();roadGuidanceLoadId++;
  current=null;turns=[];
+ resetRouteSplit();
  if(lineLayer){map.removeLayer(lineLayer);lineLayer=null}
  if(stopLayer){map.removeLayer(stopLayer);stopLayer=null}
  $('startNav').disabled=true;$('demoBtn').disabled=true;
@@ -1229,7 +1248,7 @@ function tripLabel(t){const times=feed.timesByTrip.get(t.trip_id)||[];const a=ti
 $('routeSelect').addEventListener('change',()=>{if(!current?.academy)stopNavigation();$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value);setOptions($('directionSelect'),groupTrips(),'Scegli direzione…');setOptions($('tripSelect'),[],'—');$('showRoute').disabled=true;$('startNav').disabled=!current?.academy;if(!current?.academy)clearRoute()});
 $('directionSelect').addEventListener('change',()=>{$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value);const trips=tripsInDirection().filter(t=>(feed.timesByTrip.get(t.trip_id)||[]).length>1);trips.sort((a,b)=>(feed.timesByTrip.get(a.trip_id)?.[0]?.departure||'').localeCompare(feed.timesByTrip.get(b.trip_id)?.[0]?.departure||''));setOptions($('tripSelect'),trips.map(t=>[t.trip_id,tripLabel(t)]),'Scegli corsa…');$('showRoute').disabled=true;$('startNav').disabled=!current?.academy;if(!current?.academy)clearRoute()});
 $('tripSelect').addEventListener('change',()=>{const ok=!!$('tripSelect').value;$('mergeOfficial').disabled=!academyGtfsMatches.has($('academyGtfsTrip').value)&&(!ok||!selectedOfficial);$('showRoute').disabled=!ok;if(current?.academy){$('startNav').disabled=false;return} $('startNav').disabled=!ok;if(ok)selectTrip();else if(!current?.academy)clearRoute()});
-function clearRoute(){current=null;syncNativeRoutePreview();if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=stopLayer=null;$('stopList').innerHTML='<p class="empty">Seleziona una corsa per vedere le fermate.</p>';$('stopCount').textContent='—';$('nextName').textContent='—';$('nextDetail').textContent='Carica una linea per iniziare';$('nextDistance').textContent='—';$('navStatus').textContent='Seleziona una corsa';$('progressBar').style.width='0%';$('progressLabel').textContent='0 / 0 fermate';$('turnHint').textContent='Percorso non attivo'}
+function clearRoute(){resetRouteSplit();current=null;syncNativeRoutePreview();if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=stopLayer=null;$('stopList').innerHTML='<p class="empty">Seleziona una corsa per vedere le fermate.</p>';$('stopCount').textContent='—';$('nextName').textContent='—';$('nextDetail').textContent='Carica una linea per iniziare';$('nextDistance').textContent='—';$('navStatus').textContent='Seleziona una corsa';$('progressBar').style.width='0%';$('progressLabel').textContent='0 / 0 fermate';$('turnHint').textContent='Percorso non attivo'}
 const rad=Math.PI/180;function metres(a,b){let dlat=(b.lat-a.lat)*rad,dlng=(b.lng-a.lng)*rad,s=Math.sin(dlat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dlng/2)**2;return 12742000*Math.atan2(Math.sqrt(s),Math.sqrt(1-s))}
 function project(p,a,b){const x=(b.lng-a.lng)*111320*Math.cos((p.lat+a.lat)/2*rad),y=(b.lat-a.lat)*111320;const px=(p.lng-a.lng)*111320*Math.cos((p.lat+a.lat)/2*rad),py=(p.lat-a.lat)*111320;let t=(x*x+y*y)?Math.max(0,Math.min(1,(px*x+py*y)/(x*x+y*y))):0;return {t,d:Math.hypot(px-x*t,py-y*t)}}
 function shapeMetrics(points){const cumulative=[0];for(let i=1;i<points.length;i++)cumulative.push(cumulative[i-1]+metres(points[i-1],points[i]));return cumulative}
@@ -1598,6 +1617,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
   if(stops.length>1&&offsets[0]<=50&&Math.abs(along-offsets[0])<30)nextStopIdx=1;
  }
  lastAlong=Math.max(lastAlong,along-30);
+ splitWebRoute(along);
  shiftTrack(along,near.d);
  // Queued cues use this position to recompute their distance when they are read.
  voiceAlong=along;voicePositionOk=near.d<100;

@@ -133,6 +133,12 @@ final class DriverView extends FrameLayout {
 
     void message(String text){status.setText(text);}
     void progress(double along,int stop,boolean reliable,double deviation){
+        // Driven part faint, part to drive on top: a line passing twice on the same road stays readable.
+        if(reliable&&Math.abs(along-splitAlong)>=15){
+            double[] d=session.tracker.distances;double at=Math.max(0,Math.min(session.tracker.total(),along));
+            int i=1;while(i<d.length-1&&d[i]<at)i++;
+            nativeMap.split(at>0?i:0,session.tracker.coordinate(at));splitAlong=at;
+        }
         int limit = reliable && lastFix != null && lastFix.hasAccuracy()
                 ? session.route.speedLimit(along,lastFix.getAccuracy(),deviation,shownSpeedLimit) : 0;
         shownSpeedLimit = limit;
@@ -155,6 +161,7 @@ final class DriverView extends FrameLayout {
         if(stop<session.route.stops.length){stopName.setText(session.route.stops[stop]);stopDistance.setText(metres(Math.max(0,session.route.offsets[stop]-along))+" · fermata "+(stop+1)+" di "+session.route.stops.length);}
         else{stopName.setText(session.route.stops.length==0?"Solo percorso GPX":"Capolinea raggiunto");stopDistance.setText(metres(Math.max(0,session.tracker.total()-along))+" al termine");}
     }
+    private double splitAlong=-1;
     void location(Location p,boolean reliable,double along){lastFix=p;
         // Direction of travel: route bearing while matched, otherwise the GPS course.
         if(reliable){double[] a=session.tracker.coordinate(along),b=session.tracker.coordinate(along+40);double r=Math.PI/180,d=(b[1]-a[1])*r;if(GPXTracker.metres(a,b)>10)heading=Math.atan2(Math.sin(d)*Math.cos(b[0]*r),Math.cos(a[0]*r)*Math.sin(b[0]*r)-Math.sin(a[0]*r)*Math.cos(b[0]*r)*Math.cos(d))/r;}

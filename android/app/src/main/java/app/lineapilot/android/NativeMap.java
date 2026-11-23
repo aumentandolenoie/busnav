@@ -92,6 +92,10 @@ final class NativeMap extends FrameLayout {
         map.setStyle(builder, style -> {
             if (destroyed || vector != vectorStyle) return;
             removeCallbacks(fallback);
+            // While driving the part already driven is faint and below the part still to drive.
+            style.addSource(new GeoJsonSource("gpx-done", FeatureCollection.fromFeatures(new Feature[0])));
+            style.addLayer(new LineLayer("gpx-done-line", "gpx-done").withProperties(
+                    lineColor("#007aff"), lineOpacity(0.22f), lineWidth(5f), lineCap("round"), lineJoin("round")));
             style.addSource(new GeoJsonSource("gpx", FeatureCollection.fromFeatures(new Feature[0])));
             style.addLayer(new LineLayer("gpx-line", "gpx").withProperties(
                     lineColor("#007aff"), lineWidth(6f), lineCap("round"), lineJoin("round")));
@@ -132,11 +136,20 @@ final class NativeMap extends FrameLayout {
         return false;
     }
 
-    void show(double[][] p,double[][] s,String[] names){route=p;stops=s;this.names=names;drawRoute();pendingFit=true;post(this::fitRoute);}
+    void show(double[][] p,double[][] s,String[] names){route=p;stops=s;this.names=names;splitIndex=0;splitPoint=null;drawRoute();pendingFit=true;post(this::fitRoute);}
+    /** Driven part up to the vehicle: route points before index, then the vehicle point. */
+    private int splitIndex;private double[] splitPoint;
+    void split(int index,double[] point){splitIndex=index;splitPoint=point;drawRoute();}
     private void drawRoute(){
         if(map==null||map.getStyle()==null)return;Style style=map.getStyle();GeoJsonSource source=style.getSourceAs("gpx"),stopSource=style.getSourceAs("stops");if(source==null||stopSource==null)return;
-        List<Point> ps=new ArrayList<>();for(double[] p:route)ps.add(Point.fromLngLat(p[1],p[0]));
+        List<Point> ps=new ArrayList<>(),done=new ArrayList<>();
+        int from=splitIndex>0&&splitPoint!=null&&splitIndex<route.length?splitIndex:0;
+        for(int i=0;i<from;i++)done.add(Point.fromLngLat(route[i][1],route[i][0]));
+        if(from>0){Point cut=Point.fromLngLat(splitPoint[1],splitPoint[0]);done.add(cut);ps.add(cut);}
+        for(int i=from;i<route.length;i++)ps.add(Point.fromLngLat(route[i][1],route[i][0]));
         source.setGeoJson(ps.size()>1?FeatureCollection.fromFeatures(new Feature[]{Feature.fromGeometry(LineString.fromLngLats(ps))}):FeatureCollection.fromFeatures(new Feature[0]));
+        GeoJsonSource doneSource=style.getSourceAs("gpx-done");
+        if(doneSource!=null)doneSource.setGeoJson(done.size()>1?FeatureCollection.fromFeatures(new Feature[]{Feature.fromGeometry(LineString.fromLngLats(done))}):FeatureCollection.fromFeatures(new Feature[0]));
         List<Feature> features=new ArrayList<>();for(int i=0;i<stops.length;i++){double[] p=stops[i];if(!Double.isFinite(p[0])||!Double.isFinite(p[1]))continue;Feature f=Feature.fromGeometry(Point.fromLngLat(p[1],p[0]));f.addStringProperty("name",i<names.length?names[i]:"Fermata");features.add(f);}stopSource.setGeoJson(FeatureCollection.fromFeatures(features));
     }
     void location(double lat,double lon){location(lat,lon,Double.NaN);}
