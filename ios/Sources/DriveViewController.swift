@@ -412,8 +412,8 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         // Near a turn or a roundabout the map tilts less (55° → 28°): buildings stop hiding
         // the road after the turn and the roundabout is seen almost from above. It never
         // rotates differently from the direction of travel, so exits keep their places.
-        let target = Self.maneuverPitch(turns: route.turns, along: cameraAlong)
-        cameraPitch += max(-9, min(5, target - cameraPitch))
+        let wantedPitch = Self.maneuverPitch(turns: route.turns, along: cameraAlong)
+        cameraPitch += max(-9, min(5, wantedPitch - cameraPitch))
         let camera = MKMapCamera(lookingAtCenter:fix.coordinate,fromDistance:650 + Double(55 - cameraPitch) * 4,pitch:cameraPitch,heading:heading)
         map.setCamera(camera,animated:false)
         guard !cameraViewport.isEmpty else { return }
