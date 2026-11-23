@@ -18,11 +18,10 @@ window.lineaPilotNativeReceive=(type,data)=>{
  if(type==='releases'){processAppReleases(data?.releases||[],updateCheckManual);return}
  if(type==='updateError'){$('updateStatus').textContent='Verifica aggiornamenti non riuscita: '+(data?.message||'Errore rete');return}
  if(!nativeActive)return;
+ if(type==='arrived'){if(shiftRun)shiftArrived(4000);return}
  if(type==='location'&&data&&Number.isFinite(data.lat)&&Number.isFinite(data.lng)){
   // Native drive screen, stop progression and speech share one GPXTracker.
   realGpsFix={lat:data.lat,lng:data.lng};realGpsFixAt=Date.now();
-  // Shift mode: the terminus is detected here too, the native screen closes and the shift sheet opens.
-  if(shiftRun&&current?.points?.length>1){const near=nearestOnShape(realGpsFix,current.points,current.dists);shiftTrack(near.along,near.d)}
  }else if(type==='status'&&data?.message){
   $('gpsStatus').textContent=data.message;
   setVoiceStatus(data.message);
@@ -1688,7 +1687,7 @@ async function startGPS(simulated=false){
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
   enterNavigationView();
   nativeActive=true;
-  const ok=nativePost({type:'start',route,demo,demoSpeed:demo?demoSpeed():1,voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
+  const ok=nativePost({type:'start',route,demo,demoSpeed:demo?demoSpeed():1,shiftTerminus:!!(shiftRun&&current?.academy?.id===shiftRun.routeId),voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
   if(!ok){nativeActive=false;leaveNavigationView();toast('Impossibile avviare il GPS nativo');return}
   $('gpsStatus').textContent='GPS nativo in avvio…';
   setVoiceStatus(demo?'SIMULAZIONE · posizione virtuale':'Voce italiana nativa · mantieni l’app in primo piano');
@@ -2079,6 +2078,18 @@ function renderShift(){
  const start=shiftEl('button','shift-start',first<0?'Nessuna corsa da guidare':running?'Riprendi turno · corsa delle '+shift.legs[first].dep:'Avvia turno · prima corsa '+shift.legs[first].dep);
  start.type='button';start.disabled=first<0;start.addEventListener('click',()=>{if(!running)shiftRun={code:shift.code,day:shift.day,date:shift.date,index:first};saveShiftRun();startShiftLeg(first)});
  actions.append(start);
+ // Later in the day (a shift stopped, the app reopened in a pause): continue from the
+ // first trip not yet arrived according to the clock, or start again from the beginning.
+ const nowIndex=shift.date===todayISO()?shiftIndexNow(shift):-1;
+ if(nowIndex>=0&&first>=0&&nowIndex>first){
+  const leg=shift.legs[nowIndex],nowMin=shiftClockNow();
+  const label=(Turni.minutes(leg.dep)<=nowMin?'Continua da adesso · corsa in corso delle ':'Continua da adesso · prossima corsa delle ')+leg.dep;
+  const go=shiftEl('button','shift-start',label);go.type='button';
+  go.addEventListener('click',()=>{shiftRun={code:shift.code,day:shift.day,date:shift.date,index:nowIndex};saveShiftRun();startShiftLeg(nowIndex)});
+  start.className='shift-secondary';
+  start.textContent=running?'Riprendi dalla corsa delle '+shift.legs[first].dep:'Avvia dall’inizio · corsa delle '+shift.legs[first].dep;
+  actions.prepend(go);
+ }
  // Simulation: smaller, purple, under the real start, so the two cannot be confused.
  const simFirst=simulating?first:Turni.firstDriven(shift);
  const sim=shiftEl('button','shift-sim',simulating?'Riprendi simulazione · corsa delle '+(shift.legs[simFirst]?.dep||''):'Simula turno');
@@ -2136,19 +2147,36 @@ function shiftTrack(along,distance){
  const total=current.dists.at(-1)||0;
  if(!(total>0)||!Number.isFinite(along))return;
  shiftAlong=Math.max(shiftAlong,along);
- if(along>=total-50&&distance<60&&shiftAlong>=Math.min(total*.5,total-200)){
-  shiftArrivedFor=shiftRun.index;shiftRun.done=shiftRun.index;saveShiftRun();
-  if(shiftRun.sim)setShiftClock(Turni.minutes(currentShift()?.legs[shiftRun.index]?.arr));
-  stopNavigation();
-  try{navigator.vibrate?.([200,100,200])}catch{}
-  openShiftSheet('arrived');
- }
+ if(along>=total-50&&distance<60&&shiftAlong>=Math.min(total*.5,total-200))shiftArrived();
+}
+// Terminus of the current trip. On iOS and Android the native navigation detects it
+// (even with the screen locked), says "Capolinea raggiunto" and sends 'arrived': the
+// drive screen stays a few seconds so the sentence is not cut, then the shift sheet opens.
+function shiftArrived(delay=0){
+ if(!shiftRun||shiftArrivedFor===shiftRun.index)return;
+ shiftArrivedFor=shiftRun.index;shiftRun.done=shiftRun.index;saveShiftRun();
+ if(shiftRun.sim)setShiftClock(Turni.minutes(currentShift()?.legs[shiftRun.index]?.arr));
+ const finish=()=>{stopNavigation();try{navigator.vibrate?.([200,100,200])}catch{};openShiftSheet('arrived')};
+ if(delay)setTimeout(finish,delay);else finish();
+}
+// The screen stays on while the shift asks what to do next (terminus, trip to choose).
+let shiftWakeLock=null;
+function setShiftAwake(on){
+ if(nativeMode){nativePost({type:'keepAwake',on:!!on});return}
+ if(on&&!shiftWakeLock&&'wakeLock'in navigator)navigator.wakeLock.request('screen').then(l=>{shiftWakeLock=l;l.addEventListener('release',()=>{if(shiftWakeLock===l)shiftWakeLock=null})}).catch(()=>{});
+ if(!on&&shiftWakeLock){try{shiftWakeLock.release()}catch{};shiftWakeLock=null}
+}
+// Real clock in minutes (not the simulation's), and the first driven trip not yet arrived.
+function shiftClockNow(){const d=new Date();return d.getHours()*60+d.getMinutes()}
+function shiftIndexNow(shift){
+ const now=shiftClockNow();
+ return shift.legs.findIndex(l=>Turni.driven(l)&&Turni.minutes(l.arr)>now);
 }
 function shiftNow(){
  if(shiftRun?.sim&&shiftClock)return shiftClock.base+(Date.now()-shiftClock.at)/60000*shiftSimSpeed;
  const d=new Date();return d.getHours()*60+d.getMinutes();
 }
-function closeShiftSheet(){$('shiftSheet').hidden=true;shiftSheetState=null;clearInterval(shiftTimer);shiftTimer=null}
+function closeShiftSheet(){if(!$('shiftSheet').hidden)setShiftAwake(false);$('shiftSheet').hidden=true;shiftSheetState=null;clearInterval(shiftTimer);shiftTimer=null}
 function shiftButton(text,cls,onClick){const b=shiftEl('button',cls,text);b.type='button';b.addEventListener('click',onClick);return b}
 function shiftNextCard(shift,next){
  const leg=shift.legs[next],route=shiftRoute(leg),card=shiftEl('div','shift-next');
@@ -2174,6 +2202,7 @@ function shiftBetween(shift,from,to,box){
 function openShiftSheet(state){
  const shift=currentShift();if(!shift)return;
  shiftSheetState=state;clearInterval(shiftTimer);shiftTimer=null;
+ setShiftAwake(state!=='pause'); // a pause may let the screen sleep
  const sheet=$('shiftSheet'),box=$('shiftSheetBody');box.replaceChildren();sheet.hidden=false;
  const index=shiftRun.index,leg=shift.legs[index],next=Turni.nextDriven(shift,index);
  const trips=shift.legs.map((l,i)=>[l,i]).filter(([l])=>Turni.driven(l)),pos=trips.findIndex(([,i])=>i===index)+1;

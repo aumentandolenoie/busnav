@@ -43,6 +43,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             webView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
         ])
         navigation.onLocation = { [weak self] fix in self?.deliverLocation(fix) }
+        navigation.onArrived = { [weak self] in self?.deliverArrival() }
         navigation.onStatus = { [weak self] message in self?.deliverStatus(message); self?.drive?.message(message) }
         navigation.onProgress = { [weak self] along, deviation, stop, reliable in
             self?.drive?.update(along: along, deviation: deviation, stop: stop, reliable: reliable)
@@ -64,6 +65,8 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
     @objc private func didBecomeActive() {
         refreshVoiceCatalog()
         if let lastLocation { deliverLocation(lastLocation) }
+        // Terminus reached while the phone was locked: the shift sheet opens now.
+        if pendingArrival { pendingArrival = false; deliver(event: "arrived", data: [:]) }
         // Recheck published IPA updates after a return from the background.
         // The JS side throttles network requests to once per 10 minutes.
         webView.evaluateJavaScript("window.lineaPilotCheckUpdatesOnResume && window.lineaPilotCheckUpdatesOnResume()", completionHandler: nil)
@@ -92,6 +95,8 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             let simulated = body["demo"] as? Bool ?? false
             // Shift simulation pace: 1x, 2x, 5x or 10x.
             let simulationSpeed = min(10, max(1, body["demoSpeed"] as? Double ?? 1))
+            navigation.detectTerminus = body["shiftTerminus"] as? Bool ?? false
+            pendingArrival = false
             let screen = DriveViewController(route: route, voiceEnabled: voice, simulated:simulated)
             screen.onEnd = { [weak self] in
                 self?.navigation.stop(); self?.drive = nil
@@ -109,6 +114,9 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             navigation.stop()
             drive?.dismiss(animated: true); drive = nil
             UIApplication.shared.isIdleTimerDisabled = false
+        case "keepAwake":
+            // The shift sheet (terminus, next trip) keeps the screen on until the driver chooses.
+            UIApplication.shared.isIdleTimerDisabled = (body["on"] as? Bool ?? false) || drive != nil
         case "settings":
             navigation.voiceEnabled = body["voice"] as? Bool ?? navigation.voiceEnabled
             navigation.turnsEnabled = body["turnVoice"] as? Bool ?? navigation.turnsEnabled
@@ -280,6 +288,13 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             "heading": location.course
         ]
         deliver(event: "location", data: payload)
+    }
+
+    private var pendingArrival = false
+    private func deliverArrival() {
+        UIApplication.shared.isIdleTimerDisabled = true
+        guard UIApplication.shared.applicationState == .active else { pendingArrival = true; return }
+        deliver(event: "arrived", data: [:])
     }
 
     private func deliverStatus(_ message: String) {

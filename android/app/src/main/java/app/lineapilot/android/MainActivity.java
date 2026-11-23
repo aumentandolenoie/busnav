@@ -188,7 +188,7 @@ public final class MainActivity extends Activity {
             NativeRoute route=new NativeRoute(body.getJSONObject("route"));route.tickets=TicketData.resolve(this,body.getJSONObject("route").optJSONObject("tickets"),route.ticketRoute);endNavigation(false);
             ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.clearFocus();
             previewLocation.cancel();configureVoice(body);previewMap.pause();preview.setVisibility(View.INVISIBLE);web.setVisibility(View.INVISIBLE);
-            session=new NavigationSession(this,route,body.optBoolean("voice",true),body.optBoolean("turnVoice",true),body.optBoolean("demo",false));session.demoSpeed=Math.max(1,Math.min(10,body.optDouble("demoSpeed",1)));
+            session=new NavigationSession(this,route,body.optBoolean("voice",true),body.optBoolean("turnVoice",true),body.optBoolean("demo",false));session.demoSpeed=Math.max(1,Math.min(10,body.optDouble("demoSpeed",1)));session.detectTerminus=body.optBoolean("shiftTerminus",false);
             root.addView(session.screen,new FrameLayout.LayoutParams(-1,-1));getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);session.screen.nativeMap.start();session.resume();
         }catch(Exception e){error("Percorso nativo non valido: "+e.getMessage());}
     }
@@ -244,6 +244,8 @@ public final class MainActivity extends Activity {
             case "previewRoute":try{JSONObject r=body.optJSONObject("route");double[][] points=r==null?new double[0][2]:NativeRoute.coordinates(r.getJSONArray("points"));if(points.length>0)new GPXTracker(points);double[][] stops=r==null?new double[0][2]:NativeRoute.coordinates(r.optJSONArray("stopCoordinates"));JSONArray ss=r==null?null:r.optJSONArray("stops");String[] names=new String[ss==null?0:ss.length()];for(int i=0;i<names.length;i++)names[i]=ss.getString(i);previewMap.show(points,stops,names);send("previewReady",new JSONObject());}catch(Exception ignored){}break;
             case "start":startNavigation(body);break;
             case "stop":endNavigation(false);break;
+            // The shift sheet (terminus, next trip) keeps the screen on until the driver chooses.
+            case "keepAwake":if(body.optBoolean("on")||session!=null)getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);break;
             case "settings":configureVoice(body);if(session!=null){session.voice=body.optBoolean("voice",session.voice);session.turnVoice=body.optBoolean("turnVoice",session.turnVoice);if(!session.voice)stopNativeSpeech();}break;
             case "testVoice":speakNavigation("Tra duecento metri, alla rotonda, prendi la seconda uscita, poi prossima fermata: Padova Autostazione. Svolta a destra, poi svolta a sinistra.");break;
             case "openUpdate":new Bridge(this).openExternal(body.optString("url"));break;

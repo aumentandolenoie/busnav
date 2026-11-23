@@ -196,6 +196,11 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     private var synthesizer = AVSpeechSynthesizer()
     private var route: NativeRoute?
     private var tracker: GPXTracker?
+    /// Shift mode: detect the terminus here, so it works with the screen locked too.
+    var detectTerminus = false
+    var onArrived: (() -> Void)?
+    private var maxAlong = 0.0
+    private var arrivedAnnounced = false
     private var lastOffRouteAlert = Date.distantPast
     // Spoken guidance: one cue at a time, the others wait in `cues` (see VoiceCueQueue).
     private var cues = VoiceCueQueue()
@@ -235,6 +240,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     func start(route: NativeRoute, voiceEnabled: Bool, turnsEnabled: Bool, simulated: Bool = false, simulationSpeed: Double = 1) {
         stop()
         isSimulating = simulated
+        maxAlong = 0; arrivedAnnounced = false
         self.route = route
         self.voiceEnabled = voiceEnabled
         self.turnsEnabled = turnsEnabled
@@ -400,6 +406,17 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         matched = true
         onStatus?("GPS ±\(Int(location.horizontalAccuracy)) m · GPX ufficiale")
         along = hit.along
+        maxAlong = max(maxAlong, along)
+        // End of the GPX reached after driving most of it (start and end of a circular
+        // line are the same place): announce it and tell the shift.
+        if detectTerminus, !arrivedAnnounced, let total = tracker?.distances.last, total > 0,
+           along >= total - 50, hit.distance < 60, maxAlong >= min(total * 0.5, total - 200) {
+            arrivedAnnounced = true
+            if voiceEnabled {
+                _ = enqueueCue("terminus") { _ in "Capolinea raggiunto. Scegli se avviare la prossima corsa o andare in pausa." }
+            }
+            onArrived?()
+        }
         while stopIndex < route.stops.count && along > route.offsets[stopIndex] + 35 {
             stopIndex += 1
         }

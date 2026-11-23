@@ -139,6 +139,18 @@ def run(engine):
             page.wait_for_function("academy.length>0", timeout=30000)
             page.evaluate("offerShiftResume()")
             assert page.evaluate("shiftResume.hidden") and page.evaluate("shiftSearch.value") == ''
+            # 10:35, in the pause of P085: continue from the next trip by the clock, or from the beginning.
+            page.clock.set_system_time('2026-11-23T10:35:00')
+            page.evaluate("fillShiftDays()")
+            page.fill('#shiftSearch', 'P085')
+            page.press('#shiftSearch', 'Enter')
+            page.wait_for_selector('#shiftResult .shift-actions')
+            labels = page.locator('#shiftResult .shift-actions button').all_inner_texts()
+            assert labels[0] == 'Continua da adesso · prossima corsa delle 11:20' and labels[1] == 'Avvia dall’inizio · corsa delle 06:10', labels
+            page.get_by_role('button', name='Continua da adesso · prossima corsa delle 11:20').click()
+            page.wait_for_function("current&&current.academy&&shiftRun&&shiftRun.index>0&&current.academy.id===shiftRun.routeId", timeout=20000)
+            assert page.evaluate("shiftShown.legs[shiftRun.index].dep") == '11:20'
+            assert page.evaluate("readyShift.textContent").startswith('Turno P085 · corsa 5 di 6'), page.evaluate("readyShift.textContent")
             assert not errors, errors
             browser.close()
     finally:
