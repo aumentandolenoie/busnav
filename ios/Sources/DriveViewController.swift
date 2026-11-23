@@ -65,12 +65,14 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         map.showsUserLocation = false
         map.insetsLayoutMarginsFromSafeArea = false   // margins below are already in view coordinates
         map.showsCompass = false
+        // 3D buildings hid the route in turns between them (MapKit always draws them over
+        // overlays): flat buildings, same tilt, the route is always visible. With
+        // preferredConfiguration (iOS 16+) MapKit ignores showsBuildings, so the muted map is
+        // set with mapType, which honours it.
+        map.mapType = .mutedStandard
+        map.showsBuildings = false
         map.showsTraffic = true
         map.pointOfInterestFilter = .excludingAll
-        // 3D buildings hid the route in turns between them (MapKit always draws them over
-        // overlays): flat buildings, same tilt, the route is always visible.
-        map.preferredConfiguration = MKStandardMapConfiguration(elevationStyle: .flat, emphasisStyle: .muted)
-        map.showsBuildings = false
         view.addSubview(map)
         var coordinates = route.points.map { CLLocationCoordinate2D(latitude: $0[0],longitude: $0[1]) }
         routeBounds = MKPolyline(coordinates: &coordinates,count: coordinates.count).boundingMapRect
@@ -450,6 +452,10 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         ticketSheet?.removeFromSuperview(); ticketSheet = nil
         ticketButton.layer.borderWidth = 0
     }
+    func mapViewDidFinishLoadingMap(_ mapView: MKMapView) {
+        if mapView.showsBuildings { mapView.showsBuildings = false }
+    }
+
     func mapView(_ mapView:MKMapView,rendererFor overlay:MKOverlay) -> MKOverlayRenderer {
         let renderer = MKPolylineRenderer(overlay:overlay); renderer.lineCap = .round; renderer.lineJoin = .round
         // Part already driven: faint, under the part still to drive.
