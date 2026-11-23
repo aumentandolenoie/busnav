@@ -389,7 +389,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     }
     private var cameraPitch: CGFloat = 55
     private var cameraAlong = -1.0
-    /// 55° on the open road, down to 28° from 60 m before a maneuver until it is done
+    /// 55° on the open road, flat (0°) from 60 m before a maneuver until it is done
     /// (70 m after a roundabout entry, 35 m after a turn), with a ramp from 220 m.
     static func maneuverPitch(turns: [NativeRoute.Turn], along: Double) -> CGFloat {
         guard along >= 0 else { return 55 }
@@ -399,7 +399,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
             let ahead = turn.at - along
             if ahead > 220 { continue }
             if ahead < -after { continue }
-            let p: CGFloat = ahead <= 60 ? 28 : 28 + CGFloat((ahead - 60) / 160) * 27
+            let p: CGFloat = ahead <= 60 ? 0 : CGFloat((ahead - 60) / 160) * 55
             pitch = min(pitch, p)
         }
         return pitch
@@ -409,12 +409,13 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         guard following, let fix else { return }
         // Use actual GPS position; route bearing is only appropriate while matched.
         let heading = lastHeading
-        // Near a turn or a roundabout the map tilts less (55° → 28°): buildings stop hiding
-        // the road after the turn and the roundabout is seen almost from above. It never
-        // rotates differently from the direction of travel, so exits keep their places.
+        // Near a turn or a roundabout the map goes flat (55° → 0°, seen from above, 2D):
+        // buildings cannot hide the road and the roundabout shows all its exits. The camera
+        // rises (650 → about 1000 m) to keep the road ahead in view. It never rotates
+        // differently from the direction of travel, so exits keep their places.
         let wantedPitch = Self.maneuverPitch(turns: route.turns, along: cameraAlong)
         cameraPitch += max(-9, min(5, wantedPitch - cameraPitch))
-        let camera = MKMapCamera(lookingAtCenter:fix.coordinate,fromDistance:650 + Double(55 - cameraPitch) * 4,pitch:cameraPitch,heading:heading)
+        let camera = MKMapCamera(lookingAtCenter:fix.coordinate,fromDistance:650 + Double(55 - cameraPitch) * 6.5,pitch:cameraPitch,heading:heading)
         map.setCamera(camera,animated:false)
         guard !cameraViewport.isEmpty else { return }
         let anchor = CGPoint(x:cameraViewport.midX,y:cameraViewport.minY + cameraViewport.height * Self.positionAnchor)

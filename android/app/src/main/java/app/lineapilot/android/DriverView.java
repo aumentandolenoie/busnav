@@ -168,7 +168,7 @@ final class DriverView extends FrameLayout {
         for(NativeRoute.Turn t:turns){
             double after="roundabout".equals(t.kind)?70:35,ahead=t.at-along;
             if(ahead>220||ahead<-after)continue;
-            pitch=Math.min(pitch,ahead<=60?28:28+(ahead-60)/160*27);
+            pitch=Math.min(pitch,ahead<=60?0:(ahead-60)/160*55);
         }
         return pitch;
     }
@@ -178,11 +178,11 @@ final class DriverView extends FrameLayout {
         else if(p.hasBearing()&&p.getSpeed()>3)heading=p.getBearing();
         nativeMap.location(p.getLatitude(),p.getLongitude(),heading);
         if(!following||nativeMap.map==null)return;
-        // Near a turn or a roundabout the map tilts less (55° to 28°), as on iOS: the road after
-        // the turn and the whole roundabout stay visible; the bearing still follows the road.
+        // Near a turn or a roundabout the map goes flat (55° to 0°, 2D) and zooms out a little
+        // (17 to 16.4) to keep the road ahead in view, as on iOS; the bearing still follows the road.
         double target=reliable?maneuverPitch(session.route.turns,along):cameraPitch;
         cameraPitch+=Math.max(-9,Math.min(5,target-cameraPitch));
-        nativeMap.map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(p.getLatitude(),p.getLongitude())).zoom(17-(55-cameraPitch)*0.012).tilt(cameraPitch).bearing(heading).padding(followPadding.clone()).build()));
+        nativeMap.map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(p.getLatitude(),p.getLongitude())).zoom(17-(55-cameraPitch)*0.011).tilt(cameraPitch).bearing(heading).padding(followPadding.clone()).build()));
     }
     private String metres(double value){return DistanceText.display(value);}
     private LinearLayout column(Context c){LinearLayout v=new LinearLayout(c);v.setOrientation(LinearLayout.VERTICAL);return v;}
