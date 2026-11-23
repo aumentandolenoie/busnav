@@ -162,13 +162,27 @@ final class DriverView extends FrameLayout {
         else{stopName.setText(session.route.stops.length==0?"Solo percorso GPX":"Capolinea raggiunto");stopDistance.setText(metres(Math.max(0,session.tracker.total()-along))+" al termine");}
     }
     private double splitAlong=-1;
+    private double cameraPitch=55;
+    static double maneuverPitch(java.util.List<NativeRoute.Turn> turns,double along){
+        double pitch=55;
+        for(NativeRoute.Turn t:turns){
+            double after="roundabout".equals(t.kind)?70:35,ahead=t.at-along;
+            if(ahead>220||ahead<-after)continue;
+            pitch=Math.min(pitch,ahead<=60?28:28+(ahead-60)/160*27);
+        }
+        return pitch;
+    }
     void location(Location p,boolean reliable,double along){lastFix=p;
         // Direction of travel: route bearing while matched, otherwise the GPS course.
         if(reliable){double[] a=session.tracker.coordinate(along),b=session.tracker.coordinate(along+40);double r=Math.PI/180,d=(b[1]-a[1])*r;if(GPXTracker.metres(a,b)>10)heading=Math.atan2(Math.sin(d)*Math.cos(b[0]*r),Math.cos(a[0]*r)*Math.sin(b[0]*r)-Math.sin(a[0]*r)*Math.cos(b[0]*r)*Math.cos(d))/r;}
         else if(p.hasBearing()&&p.getSpeed()>3)heading=p.getBearing();
         nativeMap.location(p.getLatitude(),p.getLongitude(),heading);
         if(!following||nativeMap.map==null)return;
-        nativeMap.map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(p.getLatitude(),p.getLongitude())).zoom(17).tilt(55).bearing(heading).padding(followPadding.clone()).build()));
+        // Near a turn or a roundabout the map tilts less (55° to 28°), as on iOS: the road after
+        // the turn and the whole roundabout stay visible; the bearing still follows the road.
+        double target=reliable?maneuverPitch(session.route.turns,along):cameraPitch;
+        cameraPitch+=Math.max(-9,Math.min(5,target-cameraPitch));
+        nativeMap.map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng(p.getLatitude(),p.getLongitude())).zoom(17-(55-cameraPitch)*0.012).tilt(cameraPitch).bearing(heading).padding(followPadding.clone()).build()));
     }
     private String metres(double value){return DistanceText.display(value);}
     private LinearLayout column(Context c){LinearLayout v=new LinearLayout(c);v.setOrientation(LinearLayout.VERTICAL);return v;}

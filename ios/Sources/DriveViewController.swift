@@ -65,14 +65,9 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         map.showsUserLocation = false
         map.insetsLayoutMarginsFromSafeArea = false   // margins below are already in view coordinates
         map.showsCompass = false
-        // 3D buildings hid the route in turns between them (MapKit always draws them over
-        // overlays): flat buildings, same tilt, the route is always visible. With
-        // preferredConfiguration (iOS 16+) MapKit ignores showsBuildings, so the muted map is
-        // set with mapType, which honours it.
-        map.mapType = .mutedStandard
-        map.showsBuildings = false
         map.showsTraffic = true
         map.pointOfInterestFilter = .excludingAll
+        map.preferredConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .muted)
         view.addSubview(map)
         var coordinates = route.points.map { CLLocationCoordinate2D(latitude: $0[0],longitude: $0[1]) }
         routeBounds = MKPolyline(coordinates: &coordinates,count: coordinates.count).boundingMapRect
@@ -317,8 +312,8 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         var ahead = [cut] + route.points[index...].map(coordinate)
         let newDriven: MKPolyline? = at > 0 ? DrivenPolyline(coordinates: &driven, count: driven.count) : nil
         let newAhead = MKPolyline(coordinates: &ahead, count: ahead.count)
-        if let newDriven { map.addOverlay(newDriven, level: .aboveLabels) }
-        map.addOverlay(newAhead, level: .aboveLabels)
+        if let newDriven { map.addOverlay(newDriven, level: .aboveRoads) }
+        map.addOverlay(newAhead, level: .aboveRoads)
         if let drivenLine { map.removeOverlay(drivenLine) }
         if let aheadLine { map.removeOverlay(aheadLine) }
         drivenLine = newDriven; aheadLine = newAhead; splitAlong = at
@@ -335,6 +330,7 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     func message(_ message: String) { status.text = message }
     func update(along:Double,deviation:Double,stop:Int,reliable:Bool) {
         if reliable, abs(along - splitAlong) >= 15 { drawRoute(split: along) }
+        if reliable { cameraAlong = along }
         let shown = speedSign.isHidden ? nil : speedSign.text.flatMap { Int($0) }
         let limit = reliable ? fix.flatMap {
             route.speedLimit(at: along, accuracy: $0.horizontalAccuracy, deviation: deviation, keeping: shown)
@@ -391,11 +387,34 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     private func orientPuck() {
         puckView?.orient(heading: lastHeading, mapHeading: map.camera.heading, pitch: map.camera.pitch)
     }
+    private var cameraPitch: CGFloat = 55
+    private var cameraAlong = -1.0
+    /// 55° on the open road, down to 28° from 60 m before a maneuver until it is done
+    /// (70 m after a roundabout entry, 35 m after a turn), with a ramp from 220 m.
+    static func maneuverPitch(turns: [NativeRoute.Turn], along: Double) -> CGFloat {
+        guard along >= 0 else { return 55 }
+        var pitch: CGFloat = 55
+        for turn in turns {
+            let after = turn.kind == "roundabout" ? 70.0 : 35.0
+            let ahead = turn.at - along
+            if ahead > 220 { continue }
+            if ahead < -after { continue }
+            let p: CGFloat = ahead <= 60 ? 28 : 28 + CGFloat((ahead - 60) / 160) * 27
+            pitch = min(pitch, p)
+        }
+        return pitch
+    }
+
     private func updateCamera() {
         guard following, let fix else { return }
         // Use actual GPS position; route bearing is only appropriate while matched.
         let heading = lastHeading
-        let camera = MKMapCamera(lookingAtCenter:fix.coordinate,fromDistance:650,pitch:55,heading:heading)
+        // Near a turn or a roundabout the map tilts less (55° → 28°): buildings stop hiding
+        // the road after the turn and the roundabout is seen almost from above. It never
+        // rotates differently from the direction of travel, so exits keep their places.
+        let target = Self.maneuverPitch(turns: route.turns, along: cameraAlong)
+        cameraPitch += max(-9, min(5, target - cameraPitch))
+        let camera = MKMapCamera(lookingAtCenter:fix.coordinate,fromDistance:650 + Double(55 - cameraPitch) * 4,pitch:cameraPitch,heading:heading)
         map.setCamera(camera,animated:false)
         guard !cameraViewport.isEmpty else { return }
         let anchor = CGPoint(x:cameraViewport.midX,y:cameraViewport.minY + cameraViewport.height * Self.positionAnchor)
@@ -452,10 +471,6 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         ticketSheet?.removeFromSuperview(); ticketSheet = nil
         ticketButton.layer.borderWidth = 0
     }
-    func mapViewDidFinishLoadingMap(_ mapView: MKMapView) {
-        if mapView.showsBuildings { mapView.showsBuildings = false }
-    }
-
     func mapView(_ mapView:MKMapView,rendererFor overlay:MKOverlay) -> MKOverlayRenderer {
         let renderer = MKPolylineRenderer(overlay:overlay); renderer.lineCap = .round; renderer.lineJoin = .round
         // Part already driven: faint, under the part still to drive.
