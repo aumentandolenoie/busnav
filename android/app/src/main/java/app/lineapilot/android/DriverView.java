@@ -88,8 +88,8 @@ final class DriverView extends FrameLayout {
         if(a==null||a.optString("button","").isEmpty())return;
         MainActivity c=(MainActivity)getContext();
         Button swap=button(c,"⇄ "+a.optString("button"),"Passa a: "+a.optString("button"),"nav-switch",c::requestRouteSwitch);
-        swap.setTextColor(Color.rgb(138,31,0));swap.setAllCaps(false);swap.setTypeface(Typeface.DEFAULT_BOLD);
-        GradientDrawable bg=new GradientDrawable();bg.setColor(Color.rgb(255,230,224));bg.setStroke(dp(1),Color.rgb(240,138,108));bg.setCornerRadius(dp(12));swap.setBackground(bg);
+        // Plain blue text, like the distance to the terminus.
+        swap.setTextColor(Color.rgb(0,122,255));swap.setAllCaps(false);swap.setTypeface(Typeface.DEFAULT_BOLD);swap.setTextSize(17);swap.setBackground(null);swap.setSingleLine(true);
         swap.setPadding(dp(10),0,dp(10),0);
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-2,dp(44));lp.setMargins(dp(6),0,0,0);
         controls.addView(swap,1,lp);

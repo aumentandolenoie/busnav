@@ -27,7 +27,7 @@ def stand_in():
              'replaces': [656], 'windows': windows, 'detours': [{'route': 665135, 'base': 135, 'direction': 'Da Padova per Aeroporto'},
                                                                  {'route': 665132, 'base': 132, 'direction': 'Da Aeroporto per Padova'}]}],
         'routes': [{**{k: routes[b][k] for k in ('category', 'line', 'variant', 'filename', 'points')}, 'id': 665000 + b, 'base': b,
-                    'communication': 665, 'name': routes[b]['name'] + ' · deviazione Com. 665', 'direction': d, 'text': 'Percorso di prova',
+                    'communication': 665, 'name': routes[b]['name'] + ' Deviazione', 'direction': d, 'text': 'Percorso di prova',
                     'leaveAtM': lo, 'rejoinAtM': hi, 'baseLengthM': 45000, 'guidance': None}
                    for b, d, lo, hi in ((135, 'Da Padova per Aeroporto', 31000, 43000), (132, 'Da Aeroporto per Padova', 300, 13000))]})
 

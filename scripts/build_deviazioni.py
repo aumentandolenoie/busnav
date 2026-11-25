@@ -31,6 +31,7 @@ SRC = ROOT / 'deviazioni-src'
 OUT = ROOT / 'deviazioni.json'
 REPORTS = ROOT / 'reports' / 'deviazioni'
 ON_BASE_M = 35.0          # a routed point this close to the official GPX is "still on it"
+SEAM_M = 10.0              # hand over between official GPX and routed road this close
 CLOSED_CLEARANCE_M = 80.0  # the detour must stay this far from the closed stretch
 SNAP_RADIUS_M = 800.0      # an approximate street point must be this close to the street
 BUS_KMH = 30.0
@@ -144,11 +145,30 @@ def splice(base, routed, closed):
     j = len(routed) - 1
     while j - 1 > k and road.project(routed[j - 1], after, d_after)[0] <= ON_BASE_M:
         j -= 1
+    # The official GPX (GPS trace) and the road geometry differ by a few metres: hand over
+    # where the routed road is still within SEAM_M of the official line, else the official
+    # GPX runs on along the motorway while the ramp has already left it (corner cut).
+    r_d = road.cumulative(routed)
+    for back in range(k, -1, -1):
+        if r_d[k] - r_d[back] > 400:
+            break
+        if road.project(routed[back], before, d_before)[0] <= SEAM_M:
+            k = back
+            break
+    for ahead in range(j, len(routed)):
+        if r_d[ahead] - r_d[j] > 400:
+            break
+        if road.project(routed[ahead], after, d_after)[0] <= SEAM_M:
+            j = ahead
+            break
     leave_at = road.project(routed[k], before, d_before)[1]
     rejoin_local = road.project(routed[j], after, d_after)[1]
     i_leave = max(i for i, d in enumerate(d_before) if d <= leave_at)
     i_rejoin = min(i for i, d in enumerate(d_after) if d >= rejoin_local)
-    points = before[:i_leave + 1] + routed[k + 1:j] + after[i_rejoin:]
+    # routed[k] and routed[j] are the last road points shared with the official GPX:
+    # leaving them out drew a straight line across the exit ramp.
+    joined = before[:i_leave + 1] + routed[k:j + 1] + after[i_rejoin:]
+    points = [joined[0]] + [q for prev, q in zip(joined, joined[1:]) if road.distance(prev, q) > 0.5]
     base_d = road.cumulative(base)
     return points, {'leaveAtM': round(leave_at), 'rejoinAtM': round(base_d[closed[1]] + rejoin_local),
                     'baseLengthM': round(base_d[-1]), 'routedFrom': k, 'routedTo': j}
@@ -224,8 +244,8 @@ def build_detour(source, detour, catalog, endpoint, ways, safety, report):
     if problems:
         raise SystemExit(f"{source['number']}/{base['id']}: " + '; '.join(problems))
     route = {'id': rid, 'category': base['category'], 'line': base['line'], 'variant': base['variant'],
-             'name': base['name'] + ' · deviazione Com. ' + str(source['number']),
-             'filename': base['filename'] + ' (deviazione ' + str(source['number']) + ')', 'points': points}
+             'name': base['name'] + ' Deviazione',
+             'filename': base['filename'].rsplit('.', 1)[0] + ' Deviazione.gpx', 'points': points}
     guidance, attempts = guidance_for(route, endpoint, safety)
     if guidance:
         row['roundaboutsBySign'] = sign_roundabouts(guidance, points, routed, maneuvers)

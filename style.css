@@ -362,7 +362,7 @@ body.navigating .toast.show{position:absolute;z-index:760;inset:auto;left:calc(v
 .detour-item .shift-speed{margin-top:2px}
 .detour-box.preview{background:#fff4f1;border-style:dashed}
 /* Drive screen: switch between detour and normal GPX */
-.drive-switch{flex:none;height:44px;min-height:44px;margin-left:6px;padding:0 12px;border:1px solid #f08a6c;border-radius:12px;background:#ffe6e0;color:#8a1f00;font-size:15px;font-weight:700;box-shadow:none}
+.drive-switch{flex:none;height:44px;min-height:44px;margin-left:6px;padding:0 8px;border:0;border-radius:12px;background:none;color:#007aff;font-size:17px;font-weight:600;white-space:nowrap;box-shadow:none}
 .drive-switch[hidden]{display:none}
 .drive-switch-prompt{left:12px;right:12px;top:calc(var(--safe-top) + 150px);display:flex;flex-direction:column;gap:8px;padding:14px;background:#fff;color:#000;border:2px solid #f08a6c;z-index:30}
 .drive-switch-prompt[hidden]{display:none}

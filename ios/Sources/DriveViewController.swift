@@ -110,12 +110,11 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         compass.accessibilityLabel = "Orienta a nord"; compass.accessibilityIdentifier = "compass"; touchTarget(compass)
         var footer: [UIView] = [end]
         if let alternativeTitle {
-            var config = UIButton.Configuration.tinted()
+            var config = UIButton.Configuration.plain()
             config.title = "⇄ " + alternativeTitle
-            config.baseForegroundColor = UIColor(red:0.54,green:0.12,blue:0,alpha:1)
-            config.baseBackgroundColor = UIColor(red:0.94,green:0.54,blue:0.42,alpha:1)
-            config.cornerStyle = .medium
-            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { var a = $0; a.font = .systemFont(ofSize:15,weight:.bold); return a }
+            // Plain blue text, like the distance to the terminus.
+            config.baseForegroundColor = .systemBlue
+            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { var a = $0; a.font = .systemFont(ofSize:17,weight:.semibold); return a }
             let swap = UIButton(configuration: config)
             swap.accessibilityIdentifier = "switchRoute"; swap.accessibilityLabel = "Passa a: " + alternativeTitle
             // Width from the title (one line): a fixed 44 pt squeezed it into a column of letters.
