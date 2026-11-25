@@ -21,6 +21,27 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
           python3 -m pip install osmium pillow scipy
+      - name: Week of the OSM data
+        id: week
+        run: echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+      # Italy file and its admin boundaries (needed for the driving side, as in the
+      # full road-guidance build), kept in the Actions cache for the week.
+      - uses: actions/cache@v4
+        id: osm
+        with:
+          path: build/osm
+          key: osm-italy-admins-${{ steps.week.outputs.week }}
+      - name: Italy OSM and admin boundaries
+        if: steps.osm.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p build/osm
+          curl -fL --retry 3 --retry-delay 20 https://download.geofabrik.de/europe/italy-latest.osm.pbf -o build/osm/italy.osm.pbf
+          docker run --rm --entrypoint /bin/bash -v "$PWD/build/osm:/custom_files" ghcr.io/valhalla/valhalla-scripted:latest -ec '
+            valhalla_build_config --mjolnir-admin /custom_files/admins.sqlite > /custom_files/admin-config.json
+            valhalla_build_admins --config /custom_files/admin-config.json /custom_files/italy.osm.pbf
+          '
+          sudo chown -R "$(id -u)" build/osm
+          python3 scripts/check-road-admins.py build/osm/admins.sqlite
       - name: OSM extract around the affected GPX
         run: |
           mkdir -p build/valhalla
@@ -33,10 +54,8 @@ jobs:
           EOF
           )
           echo "bbox $BBOX"
-          curl -fL --retry 3 --retry-delay 20 https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf -o build/source.osm.pbf \
-            || curl -fL --retry 3 https://download.geofabrik.de/europe/italy-latest.osm.pbf -o build/source.osm.pbf
-          osmium extract --bbox "$BBOX" --strategy complete_ways build/source.osm.pbf -o build/valhalla/area.osm.pbf
-          rm build/source.osm.pbf
+          osmium extract --bbox "$BBOX" --strategy complete_ways build/osm/italy.osm.pbf -o build/valhalla/area.osm.pbf
+          cp build/osm/admins.sqlite build/valhalla/admins.sqlite
           ls -la build/valhalla
       - name: Valhalla on the extract
         run: |

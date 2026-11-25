@@ -73,9 +73,12 @@ def street_index(pbf, names):
             if 'highway' not in w.tags:
                 return
             labels = {norm(w.tags.get(k)) for k in ('name', 'alt_name', 'official_name', 'old_name') if w.tags.get(k)}
+            oneway = w.tags.get('oneway')
+            sense = -1 if oneway == '-1' else 1 if oneway in ('yes', 'true', '1') or w.tags.get('junction') in ('roundabout', 'circular') \
+                or (w.tags.get('highway') in ('motorway', 'motorway_link') and oneway != 'no') else 0
             for label in labels & wanted:
                 try:
-                    found[label].append([(n.lat, n.lon) for n in w.nodes])
+                    found[label].append({'points': [(n.lat, n.lon) for n in w.nodes], 'oneway': sense})
                 except osmium.InvalidLocationError:
                     pass
     Ways().apply_file(str(pbf), locations=True)
@@ -83,23 +86,30 @@ def street_index(pbf, names):
 
 
 def snap_via(via, ways, prev_point, next_point):
-    """Closest node of the named street to the approximate point, and the street
-    direction there that agrees with the direction of travel."""
+    """Closest node of the named street to the approximate point, on a carriageway
+    that can be driven in the direction of travel (dual carriageways are two one-way
+    ways: the wrong one would force a U-turn), and the street direction there."""
+    travel = bearing(prev_point, next_point)
     best = None
-    for line in ways.get(norm(via['street']), []):
+    for way in ways.get(norm(via['street']), []):
+        line = way['points']
         for i, p in enumerate(line):
+            a, b = (line[i], line[i + 1]) if i + 1 < len(line) else (line[i - 1], line[i])
+            along = bearing(a, b) if way['oneway'] >= 0 else bearing(b, a)
+            if way['oneway']:
+                if angle_diff(along, travel) > 90:
+                    continue
+                heading = along
+            else:
+                heading = along if angle_diff(along, travel) <= 90 else (along + 180) % 360
             d = road.distance(p, via['near'])
             if best is None or d < best[0]:
-                best = (d, line, i)
+                best = (d, p, heading)
     if best is None or best[0] > SNAP_RADIUS_M:
-        raise SystemExit(f"{via['street']}: nessuna strada con questo nome entro {SNAP_RADIUS_M:.0f} m da {via['near']}")
-    _, line, i = best
-    a, b = (line[i], line[i + 1]) if i + 1 < len(line) else (line[i - 1], line[i])
-    along = bearing(a, b)
-    travel = bearing(prev_point, next_point)
-    heading = along if angle_diff(along, travel) <= 90 else (along + 180) % 360
-    return {'lat': line[i][0], 'lon': line[i][1], 'type': 'through', 'street': via['street'],
-            'heading': round(heading), 'heading_tolerance': 60}
+        raise SystemExit(f"{via['street']}: nessuna strada percorribile con questo nome entro {SNAP_RADIUS_M:.0f} m da {via['near']}")
+    _, p, heading = best
+    return {'lat': p[0], 'lon': p[1], 'type': 'through', 'street': via['street'],
+            'heading': round(heading), 'heading_tolerance': 45, 'radius': 10}
 
 
 def valhalla_route(endpoint, locations):
@@ -181,6 +191,7 @@ def build_detour(source, detour, catalog, endpoint, ways, safety, report):
     points = pts[:a] + points_sub + pts[b + 1:]
     base_d = road.cumulative(pts)
     info['leaveAtM'] += round(base_d[a]); info['rejoinAtM'] += round(base_d[a])
+    info['baseLengthM'] = round(base_d[-1])
     # Checks: named streets in order, no U-turn, away from the closed stretch.
     streets = []
     for m in maneuvers:
@@ -289,7 +300,7 @@ def main():
     names = {v['street'] for s in sources for d in s.get('detours', []) for v in d['via']}
     ways = street_index(args.pbf, names)
     for name, lines in ways.items():
-        print(f'Strada "{name}": {len(lines)} tratti OSM', flush=True)
+        print(f'Strada "{name}": {len(lines)} tratti OSM ({sum(1 for w in lines if w["oneway"])} a senso unico)', flush=True)
     status = statuses(sources)
     previous = json.loads(OUT.read_text()) if OUT.exists() else {}
     REPORTS.mkdir(parents=True, exist_ok=True)
