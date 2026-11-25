@@ -136,7 +136,10 @@ final class NativeMap extends FrameLayout {
         return false;
     }
 
-    void show(double[][] p,double[][] s,String[] names){route=p;stops=s;this.names=names;splitIndex=0;splitPoint=null;drawRoute();pendingFit=true;post(this::fitRoute);}
+    // Temporary detour: the preview opens zoomed on the detoured stretch.
+    private double[][] focus;
+    void show(double[][] p,double[][] s,String[] names){show(p,s,names,null);}
+    void show(double[][] p,double[][] s,String[] names,double[][] focus){this.focus=focus!=null&&focus.length>1?focus:null;route=p;stops=s;this.names=names;splitIndex=0;splitPoint=null;drawRoute();pendingFit=true;post(this::fitRoute);}
     /** Driven part up to the vehicle: route points before index, then the vehicle point. */
     private int splitIndex;private double[] splitPoint;
     void split(int index,double[] point){splitIndex=index;splitPoint=point;drawRoute();}
@@ -184,7 +187,7 @@ final class NativeMap extends FrameLayout {
     }
     void fitRoute(){
         if(map==null||route.length<2||getWidth()==0||getHeight()==0)return;
-        try{List<LatLng> ps=new ArrayList<>();for(double[] p:route)ps.add(new LatLng(p[0],p[1]));map.moveCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().includes(ps).build(),dp(28)));pendingFit=false;}catch(IllegalStateException ignored){pendingFit=true;}
+        try{List<LatLng> ps=new ArrayList<>();for(double[] p:focus!=null?focus:route)ps.add(new LatLng(p[0],p[1]));map.moveCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().includes(ps).build(),dp(28)));pendingFit=false;}catch(IllegalStateException ignored){pendingFit=true;}
     }
     @Override protected void onSizeChanged(int w,int h,int ow,int oh){super.onSizeChanged(w,h,ow,oh);if(pendingFit)post(this::fitRoute);}
     int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}

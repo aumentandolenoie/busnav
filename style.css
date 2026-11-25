@@ -356,3 +356,8 @@ body.navigating .toast.show{position:absolute;z-index:760;inset:auto;left:calc(v
 .detour-item.programmata .chip{background:#b35900}.detour-item.sostituita .chip,.detour-item.annullata .chip,.detour-item.conclusa .chip{background:#8e8e93}
 .detour-item.sostituita summary strong,.detour-item.annullata summary strong{text-decoration:line-through;color:#6c6c70}
 .detour-item p{margin:4px 0;font-size:13px;line-height:1.35;color:#3a3a3f}
+.detour-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 10px}
+.detour-actions button{min-height:44px;border-radius:10px;font-weight:700;font-size:14px;border:1px solid #f08a6c;background:#fff;color:#8a1f00}
+.detour-actions .detour-sim{background:#5e3fbf;border-color:#5e3fbf;color:#fff}
+.detour-item .shift-speed{margin-top:2px}
+.detour-box.preview{background:#fff4f1;border-style:dashed}

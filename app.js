@@ -192,7 +192,7 @@ let roadGuidanceLoadId=0,roadGuidanceReady=Promise.resolve();
 // "Deviazioni temporanee" at the end of this file). The copy published online on GitHub
 // is used when newer than the bundled one, so a new communication needs no app update.
 const DEVIAZIONI_URL='deviazioni.json',DEVIAZIONI_REMOTE='https://raw.githubusercontent.com/aumentandolenoie/busnav/main/deviazioni.json';
-let deviazioniData=null,detourContext=null;const detourManualOff=new Set(),detourRoutes=new Map();
+let deviazioniData=null,detourContext=null,detourPreview=null,detourPreviewPicking=false;const detourManualOff=new Set(),detourRoutes=new Map();
 function academyFingerprint(points){
  let h=2166136261;
  for(const point of points){
@@ -1187,6 +1187,7 @@ function renderAcademySearch(){
  }
 }
 function pickAcademyRoute(route,focus=true){
+ if(!detourPreviewPicking)detourPreview=null;
  $('academyCategory').value=route.category;filterAcademy();
  $('academyLine').value=academyGroupName(route);filterAcademyRoutes();
  $('academyRoute').value=String(route.id);onAcademySelected();
@@ -1196,6 +1197,8 @@ function pickAcademyRoute(route,focus=true){
  // keeps the native drive screen from appearing: shift mode starts without focus.
  if(focus)$('academyRoute').focus({preventScroll:true});
 }
+// A route chosen by hand ends the detour preview.
+for(const id of ['academyCategory','academyLine','academyRoute'])$(id).addEventListener('change',()=>{detourPreview=null},{capture:true});
 $('academyCategory').addEventListener('change',filterAcademy);
 $('academyLine').addEventListener('change',filterAcademyRoutes);
 $('academySearch').addEventListener('input',renderAcademySearch);
@@ -1213,14 +1216,14 @@ function fitWebBounds(bounds,options){
 }
 function syncNativeRoutePreview(){
  if(!nativeMode)return;
- const route=current?.academy?{points:current.points.map(p=>[p.lat,p.lng]),stopCoordinates:current.stops.map(s=>[s.stop.lat,s.stop.lng]),stops:current.stops.map(s=>s.stop.stop_name)}:null;
+ const route=current?.academy?{focus:detourFocus(current.academy),points:current.points.map(p=>[p.lat,p.lng]),stopCoordinates:current.stops.map(s=>[s.stop.lat,s.stop.lng]),stops:current.stops.map(s=>s.stop.stop_name)}:null;
  nativePost({type:'previewRoute',route});
 }
 function showAcademyRoute(merge=false,shiftTrip=null){const chosen=selectedOfficial;if(!chosen){toast('Seleziona un GPX Academy');return}const points=chosen.points.map(([lat,lng])=>({lat,lng}));const dists=shapeMetrics(points);let stops=[],offsets=[],diagnostic='GPX pronto. Per annunciare le fermate scegli una sequenza GTFS Busitalia verificata.';let trip={trip_headsign:chosen.name};let reliable=false;
 if(chosen._evidence?.serviceStatus==='out-of-service'){if(merge&&shiftTrip)return;if(merge){toast('Indicatore FUORI SERVIZIO: nessuna fermata passeggeri');return}diagnostic='Trasferimento FUORI SERVIZIO, confermato dagli indicatori Academy. Navigazione stradale sul GPX.'}
 if(merge){if(!feed){toast('Prima importa il GTFS');return}const academyMatch=shiftTrip?null:academyGtfsMatches.get($('academyGtfsTrip').value);if(academyMatch?.reviewRequired&&!$('confirmStopProposal').checked){toast('Verifica e conferma la proposta di fermate prima di usarla');return}const gt=shiftTrip||academyMatch?.trip||selectedGTFS();if(!gt){toast('Seleziona una corsa GTFS corrispondente');return}const gtfsRoute=feed.routesById.get(gt.route_id);const num=normAcademyCode(gtfsRoute?.route_short_name||'');const officialNum=[...academyRouteCodes(chosen)].join(', ');if(gtfsRoute?._stopAuthority==='supplemental'){$('officialInfo').textContent='Le fermate MOM non sono utilizzate. Importa Busitalia come feed principale; le fermate comuni sono già nel suo GTFS.';toast('Fermate MOM escluse');return}if(!shiftTrip&&!academyMatch&&!gtfsFitsAcademyCode(chosen,gtfsRoute||{})){$('officialInfo').textContent=`Abbinamento bloccato: linea GTFS ${num} diversa dal GPX ${officialNum}. Seleziona la corsa corretta.`;toast('Linea GPX e GTFS non corrispondono');return}
 const candidates=academyMatch?.stops||(feed.timesByTrip.get(gt.trip_id)||[]).filter(x=>x.stop&&Number.isFinite(x.stop.lat)&&Number.isFinite(x.stop.lng));if(candidates.length<2){toast('Nessuna sequenza di fermate disponibile');return}const match=matchStopsStrict(candidates,points,dists);diagnostic=match.message;if(!match.ok){$('officialInfo').textContent=diagnostic;if(!shiftTrip)toast('Abbinamento non affidabile: navigazione fermate non abilitata');return}stops=candidates;offsets=match.offsets;trip={...gt,trip_headsign:academyMatch?.legs?.length>1?chosen.name:gt.trip_headsign};reliable=true}
-stopNavigation();current={trip,stops,points,dists,offsets,fallback:false,academy:chosen,reliable,stopProposal:merge&&!shiftTrip?academyGtfsMatches.get($('academyGtfsTrip').value):null};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastAlong=0;turns=[];roadGuidanceReady=loadRoadGuidance(chosen,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#0da2a5',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);fitWebBounds(lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length?stops.length+' fermate':chosen._evidence?.serviceStatus==='out-of-service'?'Fuori servizio':'Fermate non associate';$('navStatus').textContent='GPX Academy caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'GPX senza fermate';$('nextDetail').textContent=chosen._evidence?.serviceStatus==='out-of-service'?'Trasferimento: seguire il GPX ufficiale':merge?'GPS e simulazione disponibili':'Associa prima una corsa GTFS per gli annunci';$('nextDistance').textContent='—';$('demoBtn').disabled=false;$('startNav').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent='Verifica istruzioni stradali…';const evidence=chosen._evidence;const indicator=evidence?.indicatorRecords?.[0];const shift=evidence?.shiftMatches?.[0];if(indicator)diagnostic+=' Indicatore '+indicator.display+': '+indicator.fixed+' (pag. '+indicator.page+').';if(shift)diagnostic+=' Riscontro nei turni: '+shift.shift+', '+shift.departure+'–'+shift.arrival+', linea '+shift.line+' (pag. '+shift.page+').';if(evidence?.serviceStatus==='conflicting-indicator')diagnostic+=' Codici indicatore discordanti: verifica la corsa prima di confermare le fermate.';$('officialInfo').textContent=diagnostic;if(!shiftTrip)toast(merge?'GPX Academy e fermate GTFS associati':'Tracciato GPX Academy visualizzato');syncNativeRoutePreview();}
+stopNavigation();current={trip,stops,points,dists,offsets,fallback:false,academy:chosen,reliable,stopProposal:merge&&!shiftTrip?academyGtfsMatches.get($('academyGtfsTrip').value):null};nextStopIdx=0;lastSpokenStop=-1;lastSpokenTurn=-1;lastAlong=0;turns=[];roadGuidanceReady=loadRoadGuidance(chosen,dists);if(lineLayer)map.removeLayer(lineLayer);if(stopLayer)map.removeLayer(stopLayer);lineLayer=L.polyline(points,{color:'#0da2a5',weight:6,opacity:.9}).addTo(map);stopLayer=L.layerGroup();stops.forEach((s,i)=>L.circleMarker([s.stop.lat,s.stop.lng],{radius:6,color:'#fff',weight:2,fillColor:'#2362e7',fillOpacity:1}).bindPopup(`${i+1}. ${escapeHTML(s.stop.stop_name)}`).addTo(stopLayer));stopLayer.addTo(map);fitWebBounds(detourFocusBounds(chosen)||lineLayer.getBounds(),{padding:[55,55]});$('stopCount').textContent=stops.length?stops.length+' fermate':chosen._evidence?.serviceStatus==='out-of-service'?'Fuori servizio':'Fermate non associate';$('navStatus').textContent='GPX Academy caricato';$('nextName').textContent=stops[0]?.stop.stop_name||'GPX senza fermate';$('nextDetail').textContent=chosen._evidence?.serviceStatus==='out-of-service'?'Trasferimento: seguire il GPX ufficiale':merge?'GPS e simulazione disponibili':'Associa prima una corsa GTFS per gli annunci';$('nextDistance').textContent='—';$('demoBtn').disabled=false;$('startNav').disabled=false;renderStops();$('progressLabel').textContent='0 / '+stops.length+' fermate';$('turnHint').textContent='Verifica istruzioni stradali…';const evidence=chosen._evidence;const indicator=evidence?.indicatorRecords?.[0];const shift=evidence?.shiftMatches?.[0];if(indicator)diagnostic+=' Indicatore '+indicator.display+': '+indicator.fixed+' (pag. '+indicator.page+').';if(shift)diagnostic+=' Riscontro nei turni: '+shift.shift+', '+shift.departure+'–'+shift.arrival+', linea '+shift.line+' (pag. '+shift.page+').';if(evidence?.serviceStatus==='conflicting-indicator')diagnostic+=' Codici indicatore discordanti: verifica la corsa prima di confermare le fermate.';$('officialInfo').textContent=diagnostic;if(!shiftTrip)toast(merge?'GPX Academy e fermate GTFS associati':'Tracciato GPX Academy visualizzato');syncNativeRoutePreview();}
 function matchStopsStrict(stops,points,dists){return RouteStops.match(stops,points,dists)}
 $('showOfficial').addEventListener('click',()=>showAcademyRoute(false));$('mergeOfficial').addEventListener('click',()=>showAcademyRoute(true));
 
@@ -1719,7 +1722,7 @@ async function startGPS(simulated=false){
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
   enterNavigationView();
   nativeActive=true;
-  const ok=nativePost({type:'start',route,demo,demoSpeed:demo?demoSpeed():1,shiftTerminus:!!(shiftRun&&current?.academy?.id===shiftRun.routeId),voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
+  const ok=nativePost({type:'start',route,demo,demoSpeed:demo?demoSpeed():1,demoStartM:demo?demoStartM():0,shiftTerminus:!!(shiftRun&&current?.academy?.id===shiftRun.routeId),voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
   if(!ok){nativeActive=false;leaveNavigationView();toast('Impossibile avviare il GPS nativo');return}
   $('gpsStatus').textContent='GPS nativo in avvio…';
   setVoiceStatus(demo?'SIMULAZIONE · posizione virtuale':'Voce italiana nativa · mantieni l’app in primo piano');
@@ -1742,7 +1745,7 @@ async function startGPS(simulated=false){
  },{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
  $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
 }
-async function startDemo(){if(!current)return;primeSpeech();if(nativeMode){await startGPS(true);return}stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=0;lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700/demoSpeed());$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
+async function startDemo(){if(!current)return;primeSpeech();if(nativeMode){await startGPS(true);return}stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=demoStartM();lastAlong=simIndex;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700/demoSpeed());$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 // Native GTFS transfer: URLSession downloads the ZIP, then sends base64 chunks
 // over WKScriptMessageHandler. No fetch/XHR to a WebKit custom URL scheme.
 let nativeGtfsPending=null;
@@ -1950,7 +1953,9 @@ function todayISO(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1
 const SHIFT_SIM_SPEEDS=[1,2,5,10];
 let shiftSimSpeed=(()=>{try{const v=+localStorage.getItem('lineapilot-sim-speed');return SHIFT_SIM_SPEEDS.includes(v)?v:1}catch{return 1}})();
 let shiftClock=null;
-function demoSpeed(){return shiftRun?.sim?shiftSimSpeed:1}
+function demoSpeed(){return shiftRun?.sim||detourPreview?.sim?shiftSimSpeed:1}
+// "Simula deviazione" starts 1.5 km before the detour instead of at the terminus.
+function demoStartM(){const d=current?.academy?._detour;return !shiftRun?.sim&&detourPreview?.sim&&d?Math.max(0,(d.leaveAtM||0)-1500):0}
 function setShiftClock(minutes){shiftClock={base:minutes,at:Date.now()}}
 function setShiftSimSpeed(v){
  if(shiftClock)setShiftClock(shiftNow()); // keep the virtual time, change only the pace
@@ -2343,26 +2348,49 @@ function detourDate(iso){return String(iso||'').split('-').reverse().join('/')}
 function detourRoute(route,base){
  const key=route.id+'|'+route.communication;
  if(!detourRoutes.has(key))detourRoutes.set(key,{id:route.id,category:route.category,line:route.line,variant:route.variant,name:route.name,filename:route.filename,
-  points:route.points,_evidence:base?._evidence,_detour:{communication:route.communication,base:route.base,guidance:route.guidance||null,direction:route.direction,text:route.text}});
+  points:route.points,_evidence:base?._evidence,_detour:{communication:route.communication,base:route.base,guidance:route.guidance||null,direction:route.direction,text:route.text,leaveAtM:route.leaveAtM,rejoinAtM:route.rejoinAtM,baseLengthM:route.baseLengthM}});
  return detourRoutes.get(key);
 }
 function detourFor(base){
  if(!base||!deviazioniData||!globalThis.Deviazioni||base._detour)return null;
  const ctx=detourContext;
- const found=ctx?ctx.found:Deviazioni.forNow(deviazioniData,base.id,new Date());
+ if(ctx)detourPreview=null;
+ let found=ctx?ctx.found:null;
+ if(detourPreview?.base===base.id){
+  // "Vedi deviazione": the detour GPX at any hour, only to look at it or simulate it.
+  const route=(deviazioniData.routes||[]).find(r=>r.id===detourPreview.route);
+  const comm=route&&Deviazioni.communication(deviazioniData,route.communication);
+  if(route&&Deviazioni.usable(comm)){const w=Deviazioni.windows(comm),now=new Date();found={route,communication:comm,window:w.find(x=>x.to>now)||w.at(-1)||null}}
+  else detourPreview=null;
+ }else if(!ctx)found=Deviazioni.forNow(deviazioniData,base.id,new Date());
  if(!found)return null;
- const key=found.communication.number+'|'+base.id;
- return {...found,key,off:ctx?!!ctx.off:detourManualOff.has(key),shift:!!ctx,route:detourRoute(found.route,base)};
+ const key=found.communication.number+'|'+base.id,preview=detourPreview?.base===base.id;
+ return {...found,key,preview,off:preview?false:ctx?!!ctx.off:detourManualOff.has(key),shift:!!ctx,route:detourRoute(found.route,base)};
 }
+// Points of the detoured stretch (plus a little before and after), to zoom the maps on it.
+function detourFocus(route){
+ const d=route?._detour;if(!d||!Number.isFinite(d.leaveAtM))return null;
+ const pts=route.points,dist=shapeMetrics(pts.map(([lat,lng])=>({lat,lng}))),total=dist.at(-1);
+ const from=d.leaveAtM-400,to=total-((d.baseLengthM||total)-(d.rejoinAtM??total))+400;
+ const out=pts.filter((p,i)=>dist[i]>=from&&dist[i]<=to);
+ return out.length>1?out:null;
+}
+function detourFocusBounds(route){const f=detourFocus(route);return f&&globalThis.L?L.latLngBounds(f):null}
 function renderDetourBox(base,detour){
  const box=$('detourBox');if(!box)return;
  box.replaceChildren();box.hidden=!detour;box.classList.toggle('off',!!detour?.off);
  if(!detour)return;
  const c=detour.communication;
- box.append(shiftEl('strong','',detour.off?'Percorso normale al posto della deviazione temporanea':detourTitle(detour)));
+ box.append(shiftEl('strong','',detour.off?'Percorso normale al posto della deviazione temporanea':(detour.preview?'Anteprima · ':'')+detourTitle(detour)));
  box.append(shiftEl('small','',['Com. n.'+c.number+' del '+detourDate(c.date),detour.route._detour.direction,'valida '+Deviazioni.windowText(detour.window)].filter(Boolean).join(' · ')));
  if(!detour.off&&detour.route._detour.text)box.append(shiftEl('p','',detour.route._detour.text));
  if(!detour.off&&!detour.route._detour.guidance)box.append(shiftEl('small','detour-warn','Istruzioni vocali non disponibili sulla deviazione: segui la linea blu'));
+ if(detour.preview){
+  box.classList.add('preview');
+  if(!Deviazioni.forNow(deviazioniData,base.id,new Date()))box.append(shiftEl('small','detour-warn','Anteprima: adesso la deviazione non è in vigore.'));
+  box.append(shiftButton('Torna al percorso normale','shift-market-toggle',()=>{detourPreview=null;onAcademySelected()}));
+  return;
+ }
  if(detour.shift){box.append(shiftEl('small','','Per cambiare percorso usa l’elenco del turno'));return}
  box.append(shiftButton(detour.off?'Usa la deviazione':'Usa il percorso normale','shift-market-toggle',()=>{
   if(detour.off)detourManualOff.delete(detour.key);else detourManualOff.add(detour.key);
@@ -2407,9 +2435,27 @@ function renderDetourList(){
   for(const d of c.detours||[]){
    const r=(deviazioniData.routes||[]).find(x=>x.id===d.route);
    row.append(shiftEl('p','detour-dir',d.direction+': '+(r?.text||'')));
+   const base=r&&academy.find(x=>x.id===r.base);
+   if(base&&Deviazioni.usable(c)){
+    const actions=shiftEl('div','detour-actions');
+    actions.append(shiftButton('Vedi deviazione','detour-see',()=>showDetourPreview(r,base,false)),
+     shiftButton('Simula deviazione','detour-sim',()=>showDetourPreview(r,base,true)));
+    row.append(actions);
+   }
   }
+  if(Deviazioni.usable(c)&&(c.detours||[]).length)row.append(shiftSpeedPicker());
   box.append(row);
  }
+}
+// "Vedi deviazione" / "Simula deviazione": the detour GPX outside its hours too.
+function showDetourPreview(route,base,simulate){
+ if(shiftRun?.sim)endShift();
+ if(shiftRun){if(!confirm('Chiudere il turno in corso per vedere la deviazione?'))return;endShift()}
+ detourPreview={route:route.id,base:base.id,sim:simulate};
+ detourPreviewPicking=true;try{pickAcademyRoute(base,false)}finally{detourPreviewPicking=false}
+ if(current?.academy?.id!==route.id){toast('Deviazione non disponibile');return}
+ if(simulate){showWizardStep(2);startDemo();return}
+ ($('detourBox')||$('map')).scrollIntoView({block:'center',behavior:'smooth'});
 }
 async function loadDeviazioni(){
  let bundled=null;

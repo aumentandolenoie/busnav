@@ -237,7 +237,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         manager.pausesLocationUpdatesAutomatically = false
     }
 
-    func start(route: NativeRoute, voiceEnabled: Bool, turnsEnabled: Bool, simulated: Bool = false, simulationSpeed: Double = 1) {
+    func start(route: NativeRoute, voiceEnabled: Bool, turnsEnabled: Bool, simulated: Bool = false, simulationSpeed: Double = 1, simulationStart: Double = 0) {
         stop()
         isSimulating = simulated
         maxAlong = 0; arrivedAnnounced = false
@@ -275,7 +275,8 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
             }
         }
         if simulated {
-            var progress = 0.0
+            // "Simula deviazione" starts shortly before the detour.
+            var progress = max(0, min(simulationStart, geometry.distances.last!))
             // Same 14 m steps, taken more often at 2x/5x/10x.
             demoTimer = Timer.scheduledTimer(withTimeInterval:1 / simulationSpeed,repeats:true) { [weak self] timer in
                 guard let self, self.active, let tracker = self.tracker else { timer.invalidate(); return }

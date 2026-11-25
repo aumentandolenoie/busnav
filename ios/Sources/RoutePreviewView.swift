@@ -9,6 +9,8 @@ final class RoutePreviewView: UIView, MKMapViewDelegate, CLLocationManagerDelega
     private var waitingForPosition = false
     private let caption = UILabel()
     private var line: MKPolyline?
+    // Temporary detour: the preview opens zoomed on the detoured stretch.
+    private var focus: MKPolyline?
     private var pendingFit = false
     override init(frame: CGRect) {
         super.init(frame:frame)
@@ -32,10 +34,14 @@ final class RoutePreviewView: UIView, MKMapViewDelegate, CLLocationManagerDelega
     }
     required init?(coder:NSCoder) { fatalError("init(coder:) has not been implemented") }
     func show(_ raw:[String:Any]?) {
-        map.removeOverlays(map.overlays); map.removeAnnotations(map.annotations); line = nil
+        map.removeOverlays(map.overlays); map.removeAnnotations(map.annotations); line = nil; focus = nil
         guard let raw,let points = raw["points"] as? [[Double]],GPXTracker(points:points) != nil else { return }
         var coordinates = points.map { CLLocationCoordinate2D(latitude:$0[0],longitude:$0[1]) }
         let overlay = MKPolyline(coordinates:&coordinates,count:coordinates.count); line = overlay; map.addOverlay(overlay)
+        if let raw = raw["focus"] as? [[Double]], raw.count > 1, raw.allSatisfy({ $0.count == 2 && $0.allSatisfy(\.isFinite) }) {
+            var near = raw.map { CLLocationCoordinate2D(latitude:$0[0],longitude:$0[1]) }
+            focus = MKPolyline(coordinates:&near,count:near.count)
+        }
         let stops = raw["stopCoordinates"] as? [[Double]] ?? [],names = raw["stops"] as? [String] ?? []
         for (i,p) in stops.enumerated() where p.count == 2 && p.allSatisfy(\.isFinite) && abs(p[0]) <= 90 && abs(p[1]) <= 180 {
             let pin = MKPointAnnotation(); pin.coordinate = CLLocationCoordinate2D(latitude:p[0],longitude:p[1]); pin.title = names.indices.contains(i) ? names[i] : "Fermata"
@@ -44,7 +50,7 @@ final class RoutePreviewView: UIView, MKMapViewDelegate, CLLocationManagerDelega
         pendingFit = true; setNeedsLayout()
     }
     override func layoutSubviews() { super.layoutSubviews(); if pendingFit && bounds.width > 0 && bounds.height > 0 { pendingFit = false; fitRoute() } }
-    @objc private func fitRoute() { if let line { map.setVisibleMapRect(line.boundingMapRect,edgePadding:UIEdgeInsets(top:56,left:28,bottom:28,right:28),animated:false) } }
+    @objc private func fitRoute() { if let line = focus ?? line { map.setVisibleMapRect(line.boundingMapRect,edgePadding:UIEdgeInsets(top:56,left:28,bottom:28,right:28),animated:false) } }
     @objc private func centerGPS() {
         waitingForPosition = true
         switch gps.authorizationStatus {

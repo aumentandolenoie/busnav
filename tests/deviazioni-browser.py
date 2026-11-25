@@ -95,6 +95,27 @@ def run(engine):
             # Afternoon: no detour anywhere.
             page.evaluate("pickAcademyRoute(academy.find(r=>r.id===132),false)")
             assert page.evaluate("selectedOfficial.id") == 665132
+            # 16:00, outside the windows: "Vedi deviazione" shows the detour anyway, then back to normal.
+            page.clock.set_system_time('2026-11-25T16:00:00')
+            page.evaluate("renderDetourList()")
+            item = page.locator('#detourList details.detour-item.programmata')
+            item.locator('summary').click()
+            item.locator('.detour-see').first.click()
+            assert page.evaluate("current.academy.id") in (665132, 665135), page.evaluate("current.academy.id")
+            box = page.inner_text('#detourBox')
+            assert 'Anteprima' in box and 'non è in vigore' in box, box
+            page.screenshot(path=str(out / f'detour-preview-{engine}.png'), full_page=True)
+            page.click('#detourBox .shift-market-toggle')
+            assert page.evaluate("!current.academy._detour") and page.is_hidden('#detourBox')
+            # "Simula deviazione" at 5x starts shortly before the detour.
+            item.locator('.shift-speed button[data-speed="5"]').click()
+            item.locator('.detour-sim').first.click()
+            page.wait_for_function("!!simulation", timeout=5000)
+            assert page.evaluate("demoSpeed()") == 5
+            start = page.evaluate("demoStartM()")
+            leave = page.evaluate("current.academy._detour.leaveAtM")
+            assert leave - 1500 <= start <= leave or start == 0, (start, leave)
+            page.evaluate("stopNavigation()")
             assert not errors, errors
             browser.close()
     finally:

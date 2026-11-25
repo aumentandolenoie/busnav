@@ -7,7 +7,7 @@ import java.util.*;
 
 final class NavigationSession implements LocationListener {
     final MainActivity owner;final NativeRoute route;final GPXTracker tracker;final DriverView screen;
-    final boolean demo;private double demoProgress;double demoSpeed=1;boolean detectTerminus;private boolean arrivedAnnounced;private double maxAlong; // shift simulation pace: 1x, 2x, 5x, 10x
+    final boolean demo;double demoProgress;double demoSpeed=1;boolean detectTerminus;private boolean arrivedAnnounced;private double maxAlong; // shift simulation pace: 1x, 2x, 5x, 10x
    boolean active=true,voice,turnVoice,matched;int stopIndex;double along;
     private final Set<Integer> spokenCameras = new HashSet<>();
     private double chainedStopAfter = Double.NEGATIVE_INFINITY;
