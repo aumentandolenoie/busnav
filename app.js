@@ -2362,12 +2362,23 @@ function detourFor(base){
   const comm=route&&Deviazioni.communication(deviazioniData,route.communication);
   if(route&&Deviazioni.usable(comm)){const w=Deviazioni.windows(comm),now=new Date();found={route,communication:comm,window:w.find(x=>x.to>now)||w.at(-1)||null}}
   else detourPreview=null;
- }else if(!ctx)found=Deviazioni.forNow(deviazioniData,base.id,new Date());
+ }else if(!ctx)found=Deviazioni.forNow(deviazioniData,base.id,new Date(),timetableMinutes(base.id));
  if(!found)return null;
  const key=found.communication.number+'|'+base.id,preview=detourPreview?.base===base.id;
  return {...found,key,preview,off:preview?false:ctx?!!ctx.off:detourManualOff.has(key),shift:!!ctx,route:detourRoute(found.route,base)};
 }
 // Points of the detoured stretch (plus a little before and after), to zoom the maps on it.
+// Usual trip duration of an official GPX in the shifts (median), for manual trips.
+const timetableCache=new Map();
+function timetableMinutes(routeId){
+ if(!turniData?.days)return 0;
+ if(!timetableCache.has(routeId)){
+  const d=[];for(const day of Object.values(turniData.days))for(const sh of Object.values(day.shifts||{}))for(const l of sh.legs||[])
+   if(l.route===routeId&&l.dep&&l.arr){const m=(Turni.minutes(l.arr)-Turni.minutes(l.dep)+1440)%1440;if(m>0&&m<300)d.push(m)}
+  d.sort((a,b)=>a-b);timetableCache.set(routeId,d.length?d[d.length>>1]:0);
+ }
+ return timetableCache.get(routeId);
+}
 function detourFocus(route){
  const d=route?._detour;if(!d||!Number.isFinite(d.leaveAtM))return null;
  const pts=route.points,dist=shapeMetrics(pts.map(([lat,lng])=>({lat,lng}))),total=dist.at(-1);
@@ -2387,7 +2398,7 @@ function renderDetourBox(base,detour){
  if(!detour.off&&!detour.route._detour.guidance)box.append(shiftEl('small','detour-warn','Istruzioni vocali non disponibili sulla deviazione: segui la linea blu'));
  if(detour.preview){
   box.classList.add('preview');
-  if(!Deviazioni.forNow(deviazioniData,base.id,new Date()))box.append(shiftEl('small','detour-warn','Anteprima: adesso la deviazione non è in vigore.'));
+  if(!Deviazioni.forNow(deviazioniData,base.id,new Date(),timetableMinutes(base.id)))box.append(shiftEl('small','detour-warn','Anteprima: adesso la deviazione non è in vigore.'));
   box.append(shiftButton('Torna al percorso normale','shift-market-toggle',()=>{detourPreview=null;onAcademySelected()}));
   return;
  }
@@ -2476,4 +2487,6 @@ async function loadDeviazioni(){
  }catch(e){console.info('Deviazioni online non raggiungibili',e.message)}
 }
 const deviazioniReady=globalThis.Deviazioni?loadDeviazioni():Promise.resolve();
+// Timetable durations for manual trips: only needed while a detour is in force or planned.
+deviazioniReady.then(()=>{if(Deviazioni.list(deviazioniData).some(x=>x.state==='in-corso'||x.state==='programmata'))return loadTurni()}).catch(()=>{});
 setInterval(renderDetourList,5*60000);

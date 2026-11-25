@@ -29,8 +29,14 @@ test('trip on the detoured stretch inside a window uses the detour', () => {
   assert.equal(f.communication.number, 665);
 });
 
-test('19:50 from Padova reaches the closed stretch around 20:30: detour', () => {
-  assert.equal(D.forTrip(data, 135, at(25, '19:50'), at(25, '20:50')).route.id, 665135);
+test('detour only when the bus reaches the closure inside the window (±5 min)', () => {
+  // Padova → Aeroporto, 45 min: the detour starts 31/44 of the way, about 32 min after departure.
+  assert.equal(D.forTrip(data, 135, at(25, '19:42'), at(25, '20:27')), null); // there at 20:14
+  assert.equal(D.forTrip(data, 135, at(25, '19:30'), at(25, '20:15')), null); // P008, there at 20:02
+  assert.equal(D.forTrip(data, 135, at(25, '19:55'), at(25, '20:40')).route.id, 665135); // there at 20:27
+  // Aeroporto → Padova: the detour starts right after departure.
+  assert.equal(D.forTrip(data, 132, at(25, '19:50'), at(25, '20:35')), null);
+  assert.equal(D.forTrip(data, 132, at(25, '20:30'), at(25, '21:15')).route.id, 665132);
 });
 
 test('a trip ending before the window keeps the normal route', () => {
@@ -51,9 +57,12 @@ test('other GPX are untouched', () => {
   assert.equal(D.forTrip(data, 133, at(25, '21:00'), at(25, '22:00')), null);
 });
 
-test('manual trip from now', () => {
-  assert.equal(D.forNow(data, 135, at(26, '22:00')).route.id, 665135);
-  assert.equal(D.forNow(data, 135, at(26, '12:00')), null);
+test('manual trip from now, with the timetable duration', () => {
+  assert.equal(D.forNow(data, 135, at(26, '22:00'), 45).route.id, 665135);
+  assert.equal(D.forNow(data, 135, at(26, '12:00'), 45), null);
+  assert.equal(D.forNow(data, 135, at(25, '19:42'), 45), null);
+  assert.equal(D.forNow(data, 132, at(25, '19:42'), 45), null);
+  assert.equal(D.forNow(data, 132, at(25, '20:28'), 45).route.id, 665132);
 });
 
 test('shift rows after midnight belong to the next day', () => {

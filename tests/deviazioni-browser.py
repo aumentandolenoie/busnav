@@ -95,7 +95,15 @@ def run(engine):
             # Afternoon: no detour anywhere.
             page.evaluate("pickAcademyRoute(academy.find(r=>r.id===132),false)")
             assert page.evaluate("selectedOfficial.id") == 665132
-            # 16:00, outside the windows: "Vedi deviazione" shows the detour anyway, then back to normal.
+            # 19:42 from Padova reaches the raccordo around 20:16 (trip 45 min in the shifts): normal route.
+            page.clock.set_system_time('2026-11-25T19:42:00')
+            assert page.evaluate("timetableMinutes(135)") == 45
+            page.evaluate("pickAcademyRoute(academy.find(r=>r.id===135),false)")
+            assert page.evaluate("selectedOfficial.id") == 135
+            page.clock.set_system_time('2026-11-25T19:58:00')
+            page.evaluate("pickAcademyRoute(academy.find(r=>r.id===135),false)")
+            assert page.evaluate("selectedOfficial.id") == 665135
+                        # 16:00, outside the windows: "Vedi deviazione" shows the detour anyway, then back to normal.
             page.clock.set_system_time('2026-11-25T16:00:00')
             page.evaluate("renderDetourList()")
             item = page.locator('#detourList details.detour-item.programmata')

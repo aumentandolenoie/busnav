@@ -5,7 +5,7 @@
    and, through it, iOS and Android. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.Deviazioni=api})(typeof globalThis!=='undefined'?globalThis:this,function(){
  'use strict';
- const MARGIN_MIN=10;      // minutes added around the time on the detoured stretch
+ const MARGIN_MIN=5;       // tolerance around the window for the moment the bus reaches the detour
  const BUS_KMH=35;         // estimate of a manual trip's duration from the GPX length
  const INACTIVE=new Set(['sostituita','annullata']);
 
@@ -19,12 +19,12 @@
  }
  function usable(comm){return !!comm&&!INACTIVE.has(comm.status)}
  function communication(data,number){return (data?.communications||[]).find(c=>+c.number===+number)||null}
- /** When the bus is on the detoured stretch of a trip run from start to end (Dates). */
- function stretch(route,start,end){
-  const total=route.baseLengthM||0,span=end-start;
+ /** When the bus reaches the point where the detour leaves the official GPX, for a
+     trip run from start to end (Dates), in proportion to the distance. */
+ function reachAt(route,start,end){
+  const total=route.baseLengthM||0;
   const a=total>0?Math.max(0,Math.min(1,(route.leaveAtM||0)/total)):0;
-  const b=total>0?Math.max(a,Math.min(1,(route.rejoinAtM??total)/total)):1;
-  return {from:new Date(+start+span*a-MARGIN_MIN*60000),to:new Date(+start+span*b+MARGIN_MIN*60000)};
+  return new Date(+start+(end-start)*a);
  }
  /** Detour of an official GPX for a trip from start to end: {route, communication, window} or null. */
  function forTrip(data,baseId,start,end){
@@ -33,17 +33,19 @@
    if(+route.base!==+baseId)continue;
    const comm=communication(data,route.communication);
    if(!usable(comm))continue;
-   const s=stretch(route,start,end);
-   const window=windows(comm).find(w=>w.from<s.to&&w.to>s.from);
+   // The detour applies when the bus gets there while the road is closed (±5 minutes).
+   const t=+reachAt(route,start,end),m=MARGIN_MIN*60000;
+   const window=windows(comm).find(w=>+w.from-m<=t&&t<=+w.to+m);
    if(window)return {route,communication:comm,window};
   }
   return null;
  }
- /** Manual navigation starting now: the trip duration is estimated from the GPX length. */
- function forNow(data,baseId,now=new Date()){
+ /** Manual navigation starting now. Trip duration: from the timetable when known
+     (minutes), else estimated from the GPX length. */
+ function forNow(data,baseId,now=new Date(),tripMinutes=0){
   for(const route of data?.routes||[]){
    if(+route.base!==+baseId)continue;
-   const minutes=Math.max(20,(route.baseLengthM||0)/1000/BUS_KMH*60);
+   const minutes=tripMinutes>0?tripMinutes:Math.max(20,(route.baseLengthM||0)/1000/BUS_KMH*60);
    const found=forTrip({...data,routes:[route]},baseId,now,new Date(+now+minutes*60000));
    if(found)return found;
   }
@@ -98,5 +100,5 @@
   return p(date.getDate())+'/'+p(date.getMonth()+1)+' '+p(date.getHours())+':'+p(date.getMinutes());
  }
  function windowText(w){return w?fmt(w.from)+' → '+fmt(w.to):''}
- return {parse,windows,usable,communication,stretch,forTrip,forNow,legTimes,state,list,newer,windowText,MARGIN_MIN};
+ return {parse,windows,usable,communication,reachAt,forTrip,forNow,legTimes,state,list,newer,windowText,MARGIN_MIN};
 });
