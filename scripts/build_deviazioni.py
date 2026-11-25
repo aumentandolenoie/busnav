@@ -16,6 +16,7 @@ Road guidance comes from the same annotate_route() used for every official GPX.
 import argparse
 import json
 import math
+import re
 import pathlib
 import sys
 import unicodedata
@@ -226,9 +227,11 @@ def build_detour(source, detour, catalog, endpoint, ways, safety, report):
              'name': base['name'] + ' · deviazione Com. ' + str(source['number']),
              'filename': base['filename'] + ' (deviazione ' + str(source['number']) + ')', 'points': points}
     guidance, attempts = guidance_for(route, endpoint, safety)
+    if guidance:
+        row['roundaboutsBySign'] = sign_roundabouts(guidance, points, routed, maneuvers)
     row['guidance'] = 'none' if not guidance else ('complete' if guidance['coverage']['complete'] else f"partial {guidance['coverage']['percent']}%")
     if guidance:
-        row['turns'] = [[round(t['at']), t['text']] for t in guidance['turns']]
+        row['turns'] = [[round(t['at']), t['text']] for t in guidance['turns'] if t['at'] >= info['leaveAtM'] - 300]
         print('Manovre:', json.dumps(row['turns'], ensure_ascii=False, indent=1), flush=True)
     else:
         print('Nessuna istruzione stradale valida:', attempts[-3:], flush=True)
@@ -236,6 +239,30 @@ def build_detour(source, detour, catalog, endpoint, ways, safety, report):
             'direction': detour['direction'], 'text': detour['text'],
             'leaveAtM': info['leaveAtM'], 'rejoinAtM': info['rejoinAtM'], 'baseLengthM': info['baseLengthM'],
             'guidance': guidance}
+
+
+def sign_roundabouts(guidance, points, routed, maneuvers):
+    """On the detour, roundabouts are announced by the signposted exit ("verso
+    Forte Carpenedo", "per Via Triestina") instead of a count: communications name
+    the signs, and exit counts can differ from how the company counts them."""
+    dist = road.cumulative(points)
+    changed = []
+    for m in maneuvers:
+        text = m.get('instruction') or ''
+        match = re.search(r"prendi la \d+a uscita (verso|per) (.+?)\.?$", text)
+        if m.get('type') != 26 or not match:
+            continue
+        deviation, at = road.project(routed[m['begin_shape_index']], points, dist)
+        if deviation > 30:
+            continue
+        turn = min((t for t in guidance['turns'] if t['kind'] == 'roundabout'), key=lambda t: abs(t['at'] - at), default=None)
+        if not turn or abs(turn['at'] - at) > 80:
+            continue
+        target = re.sub(r'\s*/\s*', ', ', match.group(2)).strip()
+        new = (f"Alla rotonda, prendi l'uscita {match.group(1)} {target}")[:160]
+        changed.append([round(turn['at']), turn['text'], new])
+        turn['text'] = new
+    return changed
 
 
 def statuses(sources):
