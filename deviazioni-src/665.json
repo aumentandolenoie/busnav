@@ -1,0 +1,42 @@
+{
+  "number": 665,
+  "date": "2026-11-25",
+  "title": "Chiusura raccordo Marco Polo",
+  "lines": ["E015-V"],
+  "replaces": [656],
+  "relation": "Annulla e sostituisce Com. n.656 del 23.11.2026",
+  "summary": "Chiusura totale del raccordo Marco Polo (entrambe le direzioni) per lavori di manutenzione alla rete elettrica.",
+  "windowsText": "Dalle 20:30 alle 05:30 dei giorni dal 25 al 27 novembre 2026",
+  "windowsNote": "Letto come tre notti: 25→26, 26→27 e 27→28 novembre.",
+  "windows": [
+    {"from": "2026-11-25T20:30", "to": "2026-11-26T05:30"},
+    {"from": "2026-11-26T20:30", "to": "2026-11-27T05:30"},
+    {"from": "2026-11-27T20:30", "to": "2026-11-28T05:30"}
+  ],
+  "detours": [
+    {
+      "base": 135,
+      "direction": "Da Padova per Aeroporto",
+      "text": "Dalla tangenziale di Mestre uscire \"Mestre via Terraglio\". Alla rotatoria seconda uscita \"Mestre – Forte Carpenedo\". Uscire a \"Favaro Veneto Via San Donà\" e proseguire lungo la stessa. Alla rotatoria seconda uscita per via Triestina fino a Tessera; alla rotatoria svoltare a sinistra per l'aeroporto.",
+      "cut": {"from": 790, "to": 1149},
+      "closed": [930, 1045],
+      "via": [
+        {"street": "Via Martiri della Libertà", "near": [45.5095, 12.2557]},
+        {"street": "Via San Donà", "near": [45.5025, 12.2780]},
+        {"street": "Via Triestina", "near": [45.5030, 12.3070]}
+      ]
+    },
+    {
+      "base": 132,
+      "direction": "Da Aeroporto per Padova",
+      "text": "Alla rotatoria di via Galilei con via Triestina svoltare a sinistra. Alla rotatoria successiva prima uscita per via Triestina, poi via San Donà fino alla SR14: svoltare a destra, indicazioni \"Autostrade\". Alla rotatoria successiva indicazioni \"Autostrade\" e poi \"Milano\" per riprendere il normale percorso di linea.",
+      "cut": {"from": 0, "to": 436},
+      "closed": [165, 280],
+      "via": [
+        {"street": "Via Triestina", "near": [45.5030, 12.3070]},
+        {"street": "Via San Donà", "near": [45.5025, 12.2780]},
+        {"street": "Via Martiri della Libertà", "near": [45.5095, 12.2557]}
+      ]
+    }
+  ]
+}

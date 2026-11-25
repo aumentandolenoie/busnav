@@ -1,0 +1,77 @@
+name: Deviazioni temporanee
+# Builds deviazioni.json (detour GPX + road guidance) from deviazioni-src/*.json.
+# Small OSM cut around the affected official GPX: a few minutes, not the full graph.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['deviazioni-src/**', 'scripts/build_deviazioni.py', '.github/workflows/deviazioni.yml']
+permissions:
+  contents: write
+concurrency:
+  group: deviazioni
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
+          python3 -m pip install osmium pillow scipy
+      - name: OSM extract around the affected GPX
+        run: |
+          mkdir -p build/valhalla
+          BBOX=$(python3 - <<'EOF'
+          import json, pathlib
+          ids = {d['base'] for p in pathlib.Path('deviazioni-src').glob('*.json') for d in json.loads(p.read_text()).get('detours', [])}
+          pts = [p for r in json.load(open('official-routes.json')) if r['id'] in ids for p in r['points']] or [[45.4, 11.87]]
+          m = 0.06
+          print(f"{min(p[1] for p in pts)-m:.3f},{min(p[0] for p in pts)-m:.3f},{max(p[1] for p in pts)+m:.3f},{max(p[0] for p in pts)+m:.3f}")
+          EOF
+          )
+          echo "bbox $BBOX"
+          curl -fL --retry 3 --retry-delay 20 https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf -o build/source.osm.pbf \
+            || curl -fL --retry 3 https://download.geofabrik.de/europe/italy-latest.osm.pbf -o build/source.osm.pbf
+          osmium extract --bbox "$BBOX" --strategy complete_ways build/source.osm.pbf -o build/valhalla/area.osm.pbf
+          rm build/source.osm.pbf
+          ls -la build/valhalla
+      - name: Valhalla on the extract
+        run: |
+          docker run -d --name busnav-valhalla -p 127.0.0.1:8002:8002 \
+            -v "$PWD/build/valhalla:/custom_files" \
+            -e server_threads=2 -e build_elevation=False -e build_time_zones=False \
+            -e build_admins=False ghcr.io/valhalla/valhalla-scripted:latest
+          for attempt in $(seq 1 90); do
+            curl -sf http://127.0.0.1:8002/status >/dev/null && exit 0
+            docker inspect -f '{{.State.Running}}' busnav-valhalla | grep -q true || { docker logs --tail 100 busnav-valhalla; exit 1; }
+            sleep 10
+          done
+          docker logs --tail 100 busnav-valhalla; exit 1
+      - name: Build detours
+        run: |
+          python3 scripts/road_safety.py build/valhalla/area.osm.pbf build/road-safety.json
+          python3 scripts/build_deviazioni.py --endpoint http://127.0.0.1:8002 \
+            --pbf build/valhalla/area.osm.pbf --road-safety build/road-safety.json
+      - name: Publish deviazioni.json
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add deviazioni.json reports/deviazioni
+          git diff --cached --quiet && exit 0
+          git commit -m 'Publish temporary detours (deviazioni.json)'
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deviazioni
+          path: |
+            deviazioni.json
+            reports/deviazioni
+      - name: Valhalla logs
+        if: failure()
+        run: docker logs --tail 150 busnav-valhalla || true
