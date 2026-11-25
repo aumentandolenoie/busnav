@@ -62,71 +62,37 @@
   "routedFrom": 66,
   "routedTo": 569,
   "detourLengthM": 43142,
+  "roundaboutsBySign": [
+   [
+    34334,
+    "Alla rotonda, prendi la quarta uscita",
+    "Alla rotonda, prendi l'uscita verso Mestre centro, Venezia centro, Zona industriale, Forte Carpenedo"
+   ],
+   [
+    37406,
+    "Alla rotonda, prendi la terza uscita",
+    "Alla rotonda, prendi l'uscita per Via San Donà"
+   ],
+   [
+    41833,
+    "Alla rotonda, prendi la terza uscita",
+    "Alla rotonda, prendi l'uscita per Via Triestina, SS14"
+   ],
+   [
+    42320,
+    "Alla rotonda, prendi la prima uscita",
+    "Alla rotonda, prendi l'uscita verso aeroporto, parcheggi"
+   ]
+  ],
   "guidance": "complete",
   "turns": [
-   [
-    116,
-    "Svolta a destra."
-   ],
-   [
-    130,
-    "Alla rotonda, prendi la seconda uscita"
-   ],
-   [
-    499,
-    "Alla rotonda, prendi la prima uscita"
-   ],
-   [
-    792,
-    "Alla rotonda, prendi la terza uscita"
-   ],
-   [
-    1195,
-    "Alla rotonda, prendi la prima uscita"
-   ],
-   [
-    1597,
-    "Alla rotonda, prendi la seconda uscita"
-   ],
-   [
-    2021,
-    "Alla rotonda, prendi la quarta uscita"
-   ],
-   [
-    2657,
-    "Alla rotonda, prendi la quarta uscita"
-   ],
-   [
-    3961,
-    "Alla rotonda, prendi la prima uscita"
-   ],
-   [
-    4521,
-    "Mantieni la destra per imboccare Via delle Grazie."
-   ],
-   [
-    4570,
-    "Svolta a sinistra per rimanere su Via delle Grazie."
-   ],
-   [
-    4700,
-    "Prendi lo svincolo per sinistra."
-   ],
-   [
-    5052,
-    "Mantieni la destra per prendere A4 verso Venezia/ A13 Bologna."
-   ],
-   [
-    16617,
-    "Prendi l'uscita A57 Venezia per A57 verso VENEZIA."
-   ],
    [
     33034,
     "Prendi l'uscita Terraglio verso MESTRE via Teraglio/Ospedale."
    ],
    [
     34334,
-    "Alla rotonda, prendi la quarta uscita"
+    "Alla rotonda, prendi l'uscita verso Mestre centro, Venezia centro, Zona industriale, Forte Carpenedo"
    ],
    [
     37095,
@@ -134,7 +100,7 @@
    ],
    [
     37406,
-    "Alla rotonda, prendi la terza uscita"
+    "Alla rotonda, prendi l'uscita per Via San Donà"
    ],
    [
     39018,
@@ -142,11 +108,11 @@
    ],
    [
     41833,
-    "Alla rotonda, prendi la terza uscita"
+    "Alla rotonda, prendi l'uscita per Via Triestina, SS14"
    ],
    [
     42320,
-    "Alla rotonda, prendi la prima uscita"
+    "Alla rotonda, prendi l'uscita verso aeroporto, parcheggi"
    ],
    [
     42526,
@@ -229,27 +195,46 @@
   "routedFrom": 107,
   "routedTo": 535,
   "detourLengthM": 43749,
-  "guidance": "complete",
-  "turns": [
-   [
-    214,
-    "Mantieni la sinistra su Viale Luigi Broglio."
-   ],
-   [
-    414,
-    "Alla rotonda, prendi la terza uscita"
-   ],
+  "roundaboutsBySign": [
    [
     856,
-    "Alla rotonda, prendi la prima uscita"
+    "Alla rotonda, prendi la prima uscita",
+    "Alla rotonda, prendi l'uscita per Viale Galileo Galilei"
    ],
    [
     1063,
-    "Alla rotonda, prendi la terza uscita"
+    "Alla rotonda, prendi la terza uscita",
+    "Alla rotonda, prendi l'uscita verso MESTRE, VENEZIA"
    ],
    [
     1672,
-    "Alla rotonda, prendi la prima uscita"
+    "Alla rotonda, prendi la prima uscita",
+    "Alla rotonda, prendi l'uscita per Via Triestina"
+   ],
+   [
+    6034,
+    "Alla rotonda, prendi la prima uscita",
+    "Alla rotonda, prendi l'uscita per Via Martiri della Libertà"
+   ],
+   [
+    8787,
+    "Alla rotonda, prendi la prima uscita",
+    "Alla rotonda, prendi l'uscita per A57, Tangenziale di Mestre"
+   ]
+  ],
+  "guidance": "complete",
+  "turns": [
+   [
+    856,
+    "Alla rotonda, prendi l'uscita per Viale Galileo Galilei"
+   ],
+   [
+    1063,
+    "Alla rotonda, prendi l'uscita verso MESTRE, VENEZIA"
+   ],
+   [
+    1672,
+    "Alla rotonda, prendi l'uscita per Via Triestina"
    ],
    [
     4483,
@@ -261,11 +246,11 @@
    ],
    [
     6034,
-    "Alla rotonda, prendi la prima uscita"
+    "Alla rotonda, prendi l'uscita per Via Martiri della Libertà"
    ],
    [
     8787,
-    "Alla rotonda, prendi la prima uscita"
+    "Alla rotonda, prendi l'uscita per A57, Tangenziale di Mestre"
    ],
    [
     9104,
