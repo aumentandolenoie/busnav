@@ -1,0 +1,336 @@
+[
+ {
+  "id": 665135,
+  "base": 135,
+  "name": "1278 | Padova - Aeroporto Marco Polo",
+  "streets": [
+   "A57",
+   "E 55",
+   "Tangenziale di Mestre",
+   "A57",
+   "Tangenziale di Mestre",
+   "Via Martiri della Libertà",
+   "SR14",
+   "Via Martiri della Libertà",
+   "Via San Donà",
+   "Via Triestina",
+   "Viale Galileo Galilei",
+   "Arrivi"
+  ],
+  "order": [
+   {
+    "street": "Via Martiri della Libertà",
+    "found": true
+   },
+   {
+    "street": "Via San Donà",
+    "found": true
+   },
+   {
+    "street": "Via Triestina",
+    "found": true
+   }
+  ],
+  "uturns": [],
+  "closedClearanceM": 1054,
+  "instructions": [
+   "Guida verso nord su A57/E 55/Tangenziale di Mestre.",
+   "Prendi l'uscita Terraglio verso MESTRE via Teraglio/Ospedale.",
+   "Entra nella rotonda e prendi la 4a uscita verso Mestre centro/Venezia centro/Zona industriale/Forte Carpenedo.",
+   "Esci dalla rotonda verso Mestre centro/Venezia centro/Zona industriale/Forte Carpenedo.",
+   "Prendi l'uscita.",
+   "Entra nella rotonda e prendi la 3a uscita per Via San Donà.",
+   "Esci dalla rotatoria verso Via San Donà.",
+   "Svolta a sinistra su Via Triestina.",
+   "Entra nella rotonda e prendi la 3a uscita per Via Triestina/SS14.",
+   "Esci dalla rotatoria verso Via Triestina/SS14. Continua su Via Triestina.",
+   "Entra nella rotonda e prendi la 1a uscita verso aeroporto/parcheggi.",
+   "Esci dalla rotonda verso aeroporto/parcheggi.",
+   "Entra nella rotonda e prendi la 2a uscita.",
+   "Esci dalla rotatoria.",
+   "Entra nella rotonda e prendi la 2a uscita.",
+   "Esci dalla rotatoria.",
+   "Svolta a sinistra.",
+   "Mantieni la sinistra per imboccare Arrivi.",
+   "Mantieni la sinistra per rimanere su Arrivi.",
+   "Svolta a sinistra.",
+   "Sei arrivato a destinazione."
+  ],
+  "leaveAtM": 33151,
+  "rejoinAtM": 43133,
+  "baseLengthM": 43977,
+  "routedFrom": 66,
+  "routedTo": 569,
+  "detourLengthM": 43142,
+  "guidance": "complete",
+  "turns": [
+   [
+    116,
+    "Svolta a destra."
+   ],
+   [
+    130,
+    "Alla rotonda, prendi la seconda uscita"
+   ],
+   [
+    499,
+    "Alla rotonda, prendi la prima uscita"
+   ],
+   [
+    792,
+    "Alla rotonda, prendi la terza uscita"
+   ],
+   [
+    1195,
+    "Alla rotonda, prendi la prima uscita"
+   ],
+   [
+    1597,
+    "Alla rotonda, prendi la seconda uscita"
+   ],
+   [
+    2021,
+    "Alla rotonda, prendi la quarta uscita"
+   ],
+   [
+    2657,
+    "Alla rotonda, prendi la quarta uscita"
+   ],
+   [
+    3961,
+    "Alla rotonda, prendi la prima uscita"
+   ],
+   [
+    4521,
+    "Mantieni la destra per imboccare Via delle Grazie."
+   ],
+   [
+    4570,
+    "Svolta a sinistra per rimanere su Via delle Grazie."
+   ],
+   [
+    4700,
+    "Prendi lo svincolo per sinistra."
+   ],
+   [
+    5052,
+    "Mantieni la destra per prendere A4 verso Venezia/ A13 Bologna."
+   ],
+   [
+    16617,
+    "Prendi l'uscita A57 Venezia per A57 verso VENEZIA."
+   ],
+   [
+    33034,
+    "Prendi l'uscita Terraglio verso MESTRE via Teraglio/Ospedale."
+   ],
+   [
+    34334,
+    "Alla rotonda, prendi la quarta uscita"
+   ],
+   [
+    37095,
+    "Prendi l'uscita."
+   ],
+   [
+    37406,
+    "Alla rotonda, prendi la terza uscita"
+   ],
+   [
+    39018,
+    "Svolta a sinistra su Via Triestina."
+   ],
+   [
+    41833,
+    "Alla rotonda, prendi la terza uscita"
+   ],
+   [
+    42320,
+    "Alla rotonda, prendi la prima uscita"
+   ],
+   [
+    42526,
+    "Alla rotonda, prendi la seconda uscita"
+   ],
+   [
+    42821,
+    "Alla rotonda, prendi la seconda uscita"
+   ],
+   [
+    42895,
+    "Svolta a sinistra."
+   ],
+   [
+    42950,
+    "Mantieni la sinistra per imboccare Arrivi."
+   ],
+   [
+    42965,
+    "Mantieni la sinistra per rimanere su Arrivi."
+   ]
+  ]
+ },
+ {
+  "id": 665132,
+  "base": 132,
+  "name": "1026 | Aeroporto Marco Polo - Padova",
+  "streets": [
+   "Viale Luigi Broglio",
+   "Viale Galileo Galilei",
+   "Via Triestina",
+   "Via San Donà",
+   "Via Martiri della Libertà",
+   "SR14",
+   "A57",
+   "Tangenziale di Mestre",
+   "A57",
+   "E 55",
+   "Tangenziale di Mestre"
+  ],
+  "order": [
+   {
+    "street": "Via Triestina",
+    "found": true
+   },
+   {
+    "street": "Via San Donà",
+    "found": true
+   },
+   {
+    "street": "Via Martiri della Libertà",
+    "found": true
+   }
+  ],
+  "uturns": [],
+  "closedClearanceM": 957,
+  "instructions": [
+   "Guida verso nord.",
+   "Mantieni la sinistra su Viale Luigi Broglio.",
+   "Entra nella rotonda e prendi la 3a uscita.",
+   "Esci dalla rotatoria.",
+   "Entra nella rotonda e prendi la 1a uscita per Viale Galileo Galilei.",
+   "Esci dalla rotatoria verso Viale Galileo Galilei.",
+   "Entra nella rotonda e prendi la 3a uscita verso MESTRE/VENEZIA.",
+   "Esci dalla rotonda verso MESTRE/VENEZIA.",
+   "Entra nella rotonda e prendi la 1a uscita per Via Triestina.",
+   "Esci dalla rotatoria verso Via Triestina.",
+   "Svolta a sinistra per rimanere su Via Triestina.",
+   "Mantieni la destra per rimanere su Via Triestina.",
+   "Entra in Via San Donà e prendi la 1a uscita per Via Martiri della Libertà.",
+   "Esci dalla rotatoria verso Via Martiri della Libertà/SR14.",
+   "Entra nella rotonda e prendi la 1a uscita per A57/Tangenziale di Mestre.",
+   "Esci dalla rotatoria verso A57/Tangenziale di Mestre.",
+   "Mantieni la destra per prendere A13/A4 verso MESTRE/Porto/Terminal Fusina/BOLOGNA.",
+   "Sei arrivato a destinazione."
+  ],
+  "leaveAtM": 1099,
+  "rejoinAtM": 11318,
+  "baseLengthM": 45615,
+  "routedFrom": 107,
+  "routedTo": 535,
+  "detourLengthM": 43749,
+  "guidance": "complete",
+  "turns": [
+   [
+    214,
+    "Mantieni la sinistra su Viale Luigi Broglio."
+   ],
+   [
+    414,
+    "Alla rotonda, prendi la terza uscita"
+   ],
+   [
+    856,
+    "Alla rotonda, prendi la prima uscita"
+   ],
+   [
+    1063,
+    "Alla rotonda, prendi la terza uscita"
+   ],
+   [
+    1672,
+    "Alla rotonda, prendi la prima uscita"
+   ],
+   [
+    4483,
+    "Svolta a sinistra per rimanere su Via Triestina."
+   ],
+   [
+    4999,
+    "Mantieni la destra per rimanere su Via Triestina."
+   ],
+   [
+    6034,
+    "Alla rotonda, prendi la prima uscita"
+   ],
+   [
+    8787,
+    "Alla rotonda, prendi la prima uscita"
+   ],
+   [
+    9104,
+    "Mantieni la destra per rimanere su A57/Tangenziale di Mestre verso MESTRE/Porto/Terminal Fusina/BOLOGNA."
+   ],
+   [
+    24413,
+    "Mantieni la sinistra per prendere A4/E 70/Autostrada Serenissima verso Milano."
+   ],
+   [
+    36873,
+    "Prendi l'uscita Padova Est per A4 verso Padova Est."
+   ],
+   [
+    38063,
+    "Mantieni la destra verso Ponte di Brenta."
+   ],
+   [
+    38271,
+    "Prendi lo svincolo a sinistra verso Ponte di Brenta."
+   ],
+   [
+    38502,
+    "Mantieni la destra per imboccare Via Sergio Fraccalanza."
+   ],
+   [
+    39032,
+    "Mantieni la destra su Via San Marco."
+   ],
+   [
+    39842,
+    "Alla rotonda, prendi la seconda uscita"
+   ],
+   [
+    40029,
+    "Mantieni la sinistra per rimanere su Via San Marco."
+   ],
+   [
+    41004,
+    "Alla rotonda, prendi la seconda uscita"
+   ],
+   [
+    41657,
+    "Alla rotonda, prendi la seconda uscita"
+   ],
+   [
+    42203,
+    "Alla rotonda, prendi la seconda uscita"
+   ],
+   [
+    42620,
+    "Alla rotonda, prendi la seconda uscita"
+   ],
+   [
+    43014,
+    "Alla rotonda, prendi la prima uscita"
+   ],
+   [
+    43312,
+    "Alla rotonda, prendi la quarta uscita"
+   ],
+   [
+    43674,
+    "Alla rotonda, prendi la prima uscita"
+   ]
+  ]
+ }
+]
