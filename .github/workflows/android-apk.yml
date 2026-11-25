@@ -132,7 +132,7 @@ jobs:
             python3 -c "from pathlib import Path; files=[Path('build/android-native-navigation.png'),Path('build/android-native-large-text.png')]; assert all(p.stat().st_size>1000 and p.read_bytes().startswith(bytes([137,80,78,71,13,10,26,10])) for p in files)"
 
       - name: Pubblica APK come prerelease
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -146,7 +146,7 @@ jobs:
             --prerelease --target main
 
       - name: Preserve native Android layout previews
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         run: |
           mkdir -p reports/layout-previews
           cp build/android-native-navigation.png build/android-native-large-text.png reports/layout-previews/
