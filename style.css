@@ -361,3 +361,12 @@ body.navigating .toast.show{position:absolute;z-index:760;inset:auto;left:calc(v
 .detour-actions .detour-sim{background:#5e3fbf;border-color:#5e3fbf;color:#fff}
 .detour-item .shift-speed{margin-top:2px}
 .detour-box.preview{background:#fff4f1;border-style:dashed}
+/* Drive screen: switch between detour and normal GPX */
+.drive-switch{flex:none;height:44px;min-height:44px;margin-left:6px;padding:0 12px;border:1px solid #f08a6c;border-radius:12px;background:#ffe6e0;color:#8a1f00;font-size:15px;font-weight:700;box-shadow:none}
+.drive-switch[hidden]{display:none}
+.drive-switch-prompt{left:12px;right:12px;top:calc(var(--safe-top) + 150px);display:flex;flex-direction:column;gap:8px;padding:14px;background:#fff;color:#000;border:2px solid #f08a6c;z-index:30}
+.drive-switch-prompt[hidden]{display:none}
+.drive-switch-prompt strong{color:#8a1f00;font-size:18px}.drive-switch-prompt p{margin:0;font-size:16px;line-height:1.35}
+.drive-switch-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.drive-switch-actions button{min-height:52px;border-radius:12px;font-size:15px;font-weight:700;border:1px solid #d1d1d6;background:#f2f2f7;color:#1c1c1e;box-shadow:none}
+.drive-switch-actions #driveSwitchChange{background:#c2410c;border-color:#c2410c;color:#fff}

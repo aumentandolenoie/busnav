@@ -188,10 +188,12 @@ public final class MainActivity extends Activity {
             NativeRoute route=new NativeRoute(body.getJSONObject("route"));route.tickets=TicketData.resolve(this,body.getJSONObject("route").optJSONObject("tickets"),route.ticketRoute);endNavigation(false);
             ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.clearFocus();
             previewLocation.cancel();configureVoice(body);previewMap.pause();preview.setVisibility(View.INVISIBLE);web.setVisibility(View.INVISIBLE);
-            session=new NavigationSession(this,route,body.optBoolean("voice",true),body.optBoolean("turnVoice",true),body.optBoolean("demo",false));session.demoSpeed=Math.max(1,Math.min(10,body.optDouble("demoSpeed",1)));session.demoProgress=Math.max(0,body.optDouble("demoStartM",0));session.detectTerminus=body.optBoolean("shiftTerminus",false);
+            session=new NavigationSession(this,route,body.optBoolean("voice",true),body.optBoolean("turnVoice",true),body.optBoolean("demo",false));session.demoSpeed=Math.max(1,Math.min(10,body.optDouble("demoSpeed",1)));session.demoProgress=Math.max(0,body.optDouble("demoStartM",0));session.detectTerminus=body.optBoolean("shiftTerminus",false);JSONObject alt=body.optJSONObject("alternative");if(alt!=null){session.altPromptAt=alt.isNull("promptAt")?Double.NaN:alt.optDouble("promptAt",Double.NaN);session.altVoice=alt.isNull("voice")?null:alt.optString("voice",null);session.screen.setAlternative(alt);}
             root.addView(session.screen,new FrameLayout.LayoutParams(-1,-1));getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);session.screen.nativeMap.start();session.resume();
         }catch(Exception e){error("Percorso nativo non valido: "+e.getMessage());}
     }
+    /** Drive screen asks for the other GPX (detour ↔ normal): the web layer starts it again. */
+    void requestRouteSwitch(){JSONObject d=new JSONObject();try{android.location.Location f=session!=null?session.screen.currentFix():null;if(f!=null){d.put("lat",f.getLatitude());d.put("lng",f.getLongitude());}}catch(org.json.JSONException ignored){}send("switchRoute",d);}
     void endNavigation(){endNavigation(true);}
     private void endNavigation(boolean notify){
         if(session!=null){session.screen.dismissTickets();session.stop();root.removeView(session.screen);session.screen.nativeMap.destroy();session=null;}

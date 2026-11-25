@@ -199,6 +199,12 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     /// Shift mode: detect the terminus here, so it works with the screen locked too.
     var detectTerminus = false
     var onArrived: (() -> Void)?
+    /// Detour ↔ normal GPX: where the two part (metres). Asked once, about 700 m before,
+    /// only with a fix matched on the GPX.
+    var alternativePromptAt: Double?
+    var alternativeVoice: String?
+    var onAlternativePrompt: (() -> Void)?
+    private var alternativeAsked = false
     private var maxAlong = 0.0
     private var arrivedAnnounced = false
     private var lastOffRouteAlert = Date.distantPast
@@ -240,7 +246,7 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
     func start(route: NativeRoute, voiceEnabled: Bool, turnsEnabled: Bool, simulated: Bool = false, simulationSpeed: Double = 1, simulationStart: Double = 0) {
         stop()
         isSimulating = simulated
-        maxAlong = 0; arrivedAnnounced = false
+        maxAlong = 0; arrivedAnnounced = false; alternativeAsked = false
         self.route = route
         self.voiceEnabled = voiceEnabled
         self.turnsEnabled = turnsEnabled
@@ -408,6 +414,11 @@ final class NativeNavigation: NSObject, CLLocationManagerDelegate, AVSpeechSynth
         onStatus?("GPS ±\(Int(location.horizontalAccuracy)) m · GPX ufficiale")
         along = hit.along
         maxAlong = max(maxAlong, along)
+        if let at = alternativePromptAt, !alternativeAsked, along >= at - 700, along < at - 60, hit.distance < 60 {
+            alternativeAsked = true
+            if voiceEnabled, let text = alternativeVoice { _ = enqueueCue("alternative") { _ in text } }
+            onAlternativePrompt?()
+        }
         // End of the GPX reached after driving most of it (start and end of a circular
         // line are the same place): announce it and tell the shift.
         if detectTerminus, !arrivedAnnounced, let total = tracker?.distances.last, total > 0,

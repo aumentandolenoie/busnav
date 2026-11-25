@@ -37,6 +37,9 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     var onEnd: (() -> Void)?
     var onVoiceToggle: ((Bool) -> Void)?
     var onRepeat: (() -> Void)?
+    /// Lines with a detour: "⇄ Percorso normale" / "⇄ Deviazione" in the bottom bar.
+    var alternativeTitle: String?
+    var onSwitchRoute: (() -> Void)?
     private var voice = true
     private let simulated: Bool
     // Our own position marker (real GPS and simulation alike): a blue navigation
@@ -105,7 +108,21 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         let center = UIButton(type:.system); center.setImage(UIImage(systemName:"location.fill"),for:.normal); center.accessibilityLabel = "Centra GPS"; center.accessibilityIdentifier = "recenter"; touchTarget(center); center.addTarget(self,action:#selector(recenter),for:.touchUpInside)
         let compass = MKCompassButton(mapView:map); compass.compassVisibility = .visible
         compass.accessibilityLabel = "Orienta a nord"; compass.accessibilityIdentifier = "compass"; touchTarget(compass)
-        let buttons = UIStackView(arrangedSubviews:[end,UIView(),sound,center]); buttons.spacing = 4; buttons.alignment = .center
+        var footer: [UIView] = [end]
+        if let alternativeTitle {
+            var config = UIButton.Configuration.tinted()
+            config.title = "⇄ " + alternativeTitle
+            config.baseForegroundColor = UIColor(red:0.54,green:0.12,blue:0,alpha:1)
+            config.baseBackgroundColor = UIColor(red:0.94,green:0.54,blue:0.42,alpha:1)
+            config.cornerStyle = .medium
+            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { var a = $0; a.font = .systemFont(ofSize:15,weight:.bold); return a }
+            let swap = UIButton(configuration: config)
+            swap.accessibilityIdentifier = "switchRoute"; swap.accessibilityLabel = "Passa a: " + alternativeTitle
+            touchTarget(swap, width: 44)
+            swap.addTarget(self, action: #selector(switchRoute), for: .touchUpInside)
+            footer.append(swap)
+        }
+        let buttons = UIStackView(arrangedSubviews:footer + [UIView(),sound,center]); buttons.spacing = 4; buttons.alignment = .center
         end.setContentCompressionResistancePriority(.required,for:.horizontal)
         let attribution = UILabel(); attribution.text = "GPX Academy · manovre © OpenStreetMap contributors"; attribution.font = .systemFont(ofSize:10); attribution.textColor = .secondaryLabel; attribution.numberOfLines = 2
         roadStatus.font = UIFont.preferredFont(forTextStyle: .footnote)
@@ -435,6 +452,21 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     }
     @objc private func recenter() { following = true; updateCamera() }
     @objc private func repeatCue() { onRepeat?() }
+    @objc private func switchRoute() { onSwitchRoute?() }
+
+    /// Near the point where detour and normal GPX part: which one to follow.
+    /// No answer within a minute: the current GPX stays.
+    func askAlternative(title: String, question: String, stay: String, change: String) {
+        guard presentedViewController == nil, viewIfLoaded?.window != nil else { return }
+        let alert = UIAlertController(title: title, message: question, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: stay, style: .cancel))
+        alert.addAction(UIAlertAction(title: change, style: .default) { [weak self] _ in self?.onSwitchRoute?() })
+        present(alert, animated: true)
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak alert] in
+            if let alert, alert.presentingViewController != nil { alert.dismiss(animated: true) }
+        }
+    }
     @objc private func toggleVoice(_ sender:UIButton) { voice.toggle(); sender.setImage(UIImage(systemName:voice ? "speaker.wave.2.fill" : "speaker.slash.fill"),for:.normal); onVoiceToggle?(voice) }
     @objc private func finish() { onEnd?(); dismiss(animated:true) }
     @objc private func toggleTicketSheet() {

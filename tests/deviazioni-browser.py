@@ -124,6 +124,34 @@ def run(engine):
             leave = page.evaluate("current.academy._detour.leaveAtM")
             assert leave - 1500 <= start <= leave or start == 0, (start, leave)
             page.evaluate("stopNavigation()")
+            # During navigation: button and, before the detour point, the question.
+            page.evaluate("pickAcademyRoute(academy.find(r=>r.id===135),false)")
+            assert page.evaluate("current.academy.id") == 135
+            page.evaluate("startDemo()")
+            page.wait_for_function("!!simulation&&!document.getElementById('driveSwitch').hidden", timeout=10000)
+            assert 'Deviazione' in page.inner_text('#driveSwitch')
+            page.evaluate("simIndex=currentAlt.promptAt-760")
+            page.wait_for_selector('#driveSwitchPrompt:not([hidden])', timeout=20000)
+            assert 'Passa alla deviazione' in page.inner_text('#driveSwitchPrompt')
+            page.screenshot(path=str(out / f'detour-prompt-{engine}.png'))
+            before = page.evaluate("simIndex")
+            page.click('#driveSwitchChange')
+            page.wait_for_function("!!simulation&&current.academy.id===665135", timeout=10000)
+            after = page.evaluate("simIndex")
+            assert abs(after - before) < 300, (before, after)
+            assert 'Percorso normale' in page.inner_text('#driveSwitch')
+            page.click('#driveSwitch')
+            page.wait_for_function("!!simulation&&current.academy.id===135", timeout=10000)
+            page.evaluate("stopNavigation()")
+            # Market-day detours: the same switch between the normal and the market GPX.
+            market = page.evaluate("""(()=>{for(const d of Object.values(turniData.days))for(const sh of Object.values(d.shifts))for(const l of sh.legs)for(const m of l.market||[])
+              if(academy.find(r=>r.id===m.normal)&&academy.find(r=>r.id===m.route)&&!(deviazioniData.routes||[]).some(r=>r.base===m.normal)){
+               pickAcademyRoute(academy.find(r=>r.id===m.normal),false);const a=routeAlternative();
+               return {normal:m.normal,route:m.route,kind:a?.kind,target:a?.target?.id,promptAt:a?.promptAt,length:current.dists.at(-1)}}
+              return null})()""")
+            assert market and market['kind'] == 'market' and market['target'] == market['route'], market
+            assert market['promptAt'] is None or 0 <= market['promptAt'] < market['length'], market
+            print('market', market)
             assert not errors, errors
             browser.close()
     finally:

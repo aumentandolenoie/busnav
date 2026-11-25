@@ -7,7 +7,7 @@ import java.util.*;
 
 final class NavigationSession implements LocationListener {
     final MainActivity owner;final NativeRoute route;final GPXTracker tracker;final DriverView screen;
-    final boolean demo;double demoProgress;double demoSpeed=1;boolean detectTerminus;private boolean arrivedAnnounced;private double maxAlong; // shift simulation pace: 1x, 2x, 5x, 10x
+    final boolean demo;double demoProgress;double altPromptAt=Double.NaN;String altVoice;private boolean altAsked;double demoSpeed=1;boolean detectTerminus;private boolean arrivedAnnounced;private double maxAlong; // shift simulation pace: 1x, 2x, 5x, 10x
    boolean active=true,voice,turnVoice,matched;int stopIndex;double along;
     private final Set<Integer> spokenCameras = new HashSet<>();
     private double chainedStopAfter = Double.NEGATIVE_INFINITY;
@@ -42,6 +42,8 @@ final class NavigationSession implements LocationListener {
         double speed=p.hasSpeed()?Math.max(0,p.getSpeed()):0;double[] point={p.getLatitude(),p.getLongitude()};GPXTracker.Hit hit=tracker.update(point,speed,p.getElapsedRealtimeNanos()/1e9,p.getAccuracy());
         if(hit==null){matched=false;double distance=tracker.project(point).distance;screen.location(p,false,along);screen.progress(along,stopIndex,false,distance);screen.message(distance>85?"Fuori percorso · segui il GPX ufficiale":"GPS in riallineamento · annunci sospesi");if(distance>85&&SystemClock.elapsedRealtime()-lastOffRoute>45000){if(voice){cues.clear();enqueueCue("offroute",null,left->"Sei fuori dal percorso ufficiale. Controlla la posizione sul GPX.");}lastOffRoute=SystemClock.elapsedRealtime();}return;}
         matched=true;along=hit.along;maxAlong=Math.max(maxAlong,along);
+        // Detour ↔ normal GPX: asked once, about 700 m before the point where they part.
+        if(!Double.isNaN(altPromptAt)&&!altAsked&&along>=altPromptAt-700&&along<altPromptAt-60&&hit.distance<60){altAsked=true;final String said=altVoice;if(voice&&said!=null)enqueueCue("alternative",null,left->said);screen.askAlternative();}
         // Shift mode: terminus = end of the GPX after driving most of it; works with the screen off.
         if(detectTerminus&&!arrivedAnnounced&&along>=tracker.total()-50&&hit.distance<60&&maxAlong>=Math.min(tracker.total()*.5,tracker.total()-200)){
             arrivedAnnounced=true;

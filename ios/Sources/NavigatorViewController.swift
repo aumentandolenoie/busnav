@@ -106,6 +106,19 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             }
             screen.onVoiceToggle = { [weak self] enabled in self?.navigation.voiceEnabled = enabled }
             screen.onRepeat = { [weak self] in self?.navigation.repeatInstruction() }
+            // Detour ↔ normal GPX: the web layer picks the other GPX and starts it again.
+            let alternative = body["alternative"] as? [String: Any]
+            screen.alternativeTitle = alternative?["button"] as? String
+            screen.onSwitchRoute = { [weak self] in self?.requestRouteSwitch() }
+            navigation.alternativePromptAt = alternative?["promptAt"] as? Double
+            navigation.alternativeVoice = alternative?["voice"] as? String
+            navigation.onAlternativePrompt = { [weak screen] in
+                guard let screen, let alternative else { return }
+                screen.askAlternative(title: alternative["title"] as? String ?? "Deviazione",
+                                      question: alternative["question"] as? String ?? "",
+                                      stay: alternative["stay"] as? String ?? "Resta",
+                                      change: alternative["change"] as? String ?? "Cambia")
+            }
             drive = screen
             UIApplication.shared.isIdleTimerDisabled = true
             presentDrive(screen) { [weak self] in
@@ -275,6 +288,12 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
                 self.deliver(event: "releases", data: ["releases": json])
             }
         }.resume()
+    }
+
+    private func requestRouteSwitch() {
+        var data: [String: Any] = [:]
+        if let c = lastLocation?.coordinate { data["lat"] = c.latitude; data["lng"] = c.longitude }
+        deliver(event: "switchRoute", data: data)
     }
 
     private func deliverLocation(_ location: CLLocation) {

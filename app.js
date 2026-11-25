@@ -19,6 +19,7 @@ window.lineaPilotNativeReceive=(type,data)=>{
  if(type==='updateError'){$('updateStatus').textContent='Verifica aggiornamenti non riuscita: '+(data?.message||'Errore rete');return}
  if(!nativeActive)return;
  if(type==='arrived'){if(shiftRun)shiftArrived(4000);return}
+ if(type==='switchRoute'){switchRouteAlternative(data);return}
  if(type==='location'&&data&&Number.isFinite(data.lat)&&Number.isFinite(data.lng)){
   // Native drive screen, stop progression and speech share one GPXTracker.
   realGpsFix={lat:data.lat,lng:data.lng};realGpsFixAt=Date.now();
@@ -524,6 +525,7 @@ function enterNavigationView(){
  $('driveView').hidden=false;
  driveNorthUp=false;$('driveCompass').setAttribute('aria-pressed','false');
  renderDriveVoiceButton();
+ refreshRouteSwitch();
  const verified=turns.some(t=>t.verifiedRoad);
  setDriveTurn('Attesa GPS',verified?'Segui il percorso ufficiale':'Manovre stradali non disponibili','up');
  setDriveStop(current?.stops?.[0]?.stop?.stop_name||'Solo percorso GPX','');
@@ -1598,7 +1600,7 @@ function updateRoadSafety(along,accuracy,deviation,speed){
    {key:'camera:'+index,target:camera.at,build:left=>left===null||left<15?null:'Tra circa '+speechDistance(left)+', '+title+'.'}))
   spokenRoadCameras.add(index);
 }
-function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){
+function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHeading=null){lastNavPoint=p;
  if(!current)return;
  const {points,dists,offsets,stops}=current;
  if(!isDemo&&accuracy>110){voicePositionOk=false;hideRoadSafety();setDriveTurn('Annunci sospesi','Verifica posizione GPS','warning');$('gpsStatus').textContent='GPS poco preciso ±'+Math.round(accuracy)+' m';return}
@@ -1634,6 +1636,7 @@ function updatePosition(p,accuracy=0,reportedSpeed=null,isDemo=false,reportedHea
  lastAlong=Math.max(lastAlong,along-30);
  splitWebRoute(along);
  shiftTrack(along,near.d);
+ switchPromptCheck(along,near.d);
  // Queued cues use this position to recompute their distance when they are read.
  voiceAlong=along;voicePositionOk=near.d<100;
  updateNavigationHeading(points,dists,along);
@@ -1694,7 +1697,7 @@ function stopNavigation(){
  $('gpsStatus').textContent='GPS inattivo';
 }
 async function startGPS(simulated=false){
- const demo=simulated===true;
+ const demo=simulated===true;navDemo=demo;
  if(!current?.academy){toast('Seleziona un GPX ufficiale');return}
  primeSpeech(); // still inside the tap: Safari needs it before the await below
  const selection=current;
@@ -1722,7 +1725,7 @@ async function startGPS(simulated=false){
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
   enterNavigationView();
   nativeActive=true;
-  const ok=nativePost({type:'start',route,demo,demoSpeed:demo?demoSpeed():1,demoStartM:demo?demoStartM():0,shiftTerminus:!!(shiftRun&&current?.academy?.id===shiftRun.routeId),voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
+  const ok=nativePost({type:'start',route,demo,demoSpeed:demo?demoSpeed():1,demoStartM:takeDemoStart(demo),alternative:nativeAlternative(),shiftTerminus:!!(shiftRun&&current?.academy?.id===shiftRun.routeId),voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
   if(!ok){nativeActive=false;leaveNavigationView();toast('Impossibile avviare il GPS nativo');return}
   $('gpsStatus').textContent='GPS nativo in avvio…';
   setVoiceStatus(demo?'SIMULAZIONE · posizione virtuale':'Voce italiana nativa · mantieni l’app in primo piano');
@@ -1745,7 +1748,7 @@ async function startGPS(simulated=false){
  },{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
  $('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;
 }
-async function startDemo(){if(!current)return;primeSpeech();if(nativeMode){await startGPS(true);return}stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=demoStartM();lastAlong=simIndex;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700/demoSpeed());$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
+async function startDemo(){if(!current)return;primeSpeech();if(nativeMode){await startGPS(true);return}stopNavigation();setupVoice();enterNavigationView();activateNavigationVoice();simIndex=takeDemoStart(true);lastAlong=simIndex;navDemo=true;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();const dist=current.dists.at(-1);const advance=Math.max(12,Math.min(40,dist/180));function tick(){const point=pointAt(current.points,current.dists,simIndex);updatePosition(point,0,null,true);simIndex+=advance;if(simIndex>dist+90){stopNavigation();$('navStatus').textContent='Simulazione completata';toast('Simulazione completata')}}tick();simulation=setInterval(tick,700/demoSpeed());$('stopNav').disabled=false;$('startNav').disabled=true;$('demoBtn').disabled=true;toast('Simulazione attiva: non è la tua posizione reale');}
 // Native GTFS transfer: URLSession downloads the ZIP, then sends base64 chunks
 // over WKScriptMessageHandler. No fetch/XHR to a WebKit custom URL scheme.
 let nativeGtfsPending=null;
@@ -1813,6 +1816,9 @@ document.addEventListener('visibilitychange',()=>{
  }
 });
 $('driveRepeat').addEventListener('click',repeatNavigationInstruction);
+$('driveSwitch').addEventListener('click',()=>switchRouteAlternative(null));
+$('driveSwitchChange').addEventListener('click',()=>switchRouteAlternative(null));
+$('driveSwitchStay').addEventListener('click',hideSwitchPrompt);
 $('driveRecenter').addEventListener('click',recenterOnRealGPS);
 $('driveCompass').addEventListener('click',()=>{driveNorthUp=!driveNorthUp;$('driveCompass').setAttribute('aria-pressed',String(driveNorthUp));$('driveCompass').setAttribute('aria-label',driveNorthUp?'Orienta nella direzione di marcia':'Orienta a nord');applyDriveHeading()});
 $('driveVoiceToggle').addEventListener('click',()=>{
@@ -1955,7 +1961,7 @@ let shiftSimSpeed=(()=>{try{const v=+localStorage.getItem('lineapilot-sim-speed'
 let shiftClock=null;
 function demoSpeed(){return shiftRun?.sim||detourPreview?.sim?shiftSimSpeed:1}
 // "Simula deviazione" starts 1.5 km before the detour instead of at the terminus.
-function demoStartM(){const d=current?.academy?._detour;return !shiftRun?.sim&&detourPreview?.sim&&d?Math.max(0,(d.leaveAtM||0)-1500):0}
+function demoStartM(){if(resumeSimPoint&&current?.points?.length)return Math.max(0,nearestOnShape(resumeSimPoint,current.points,current.dists).along-40);const d=current?.academy?._detour;return !shiftRun?.sim&&detourPreview?.sim&&d?Math.max(0,(d.leaveAtM||0)-1500):0}
 function setShiftClock(minutes){shiftClock={base:minutes,at:Date.now()}}
 function setShiftSimSpeed(v){
  if(shiftClock)setShiftClock(shiftNow()); // keep the virtual time, change only the pace
@@ -2490,3 +2496,128 @@ const deviazioniReady=globalThis.Deviazioni?loadDeviazioni():Promise.resolve();
 // Timetable durations for manual trips: only needed while a detour is in force or planned.
 deviazioniReady.then(()=>{if(Deviazioni.list(deviazioniData).some(x=>x.state==='in-corso'||x.state==='programmata'))return loadTurni()}).catch(()=>{});
 setInterval(renderDetourList,5*60000);
+
+// ---- Cambio percorso durante la navigazione (deviazione ↔ percorso normale) ----
+// On lines with a temporary detour (communications) or a market-day detour, a button in
+// the drive screen switches between the two GPX on the spot. About 700 m before the point
+// where the two GPX part, a sheet asks which one to follow (only with a reliable GPS fix on
+// the GPX). Navigation restarts on the other GPX from the current position.
+let navDemo=false,resumeSimPoint=null,switchPrompted=false,switchPromptTimer=null,currentAlt=null,lastNavPoint=null;const divergenceCache=new Map();
+function takeDemoStart(demo){const v=demo?demoStartM():0;resumeSimPoint=null;return v}
+// Market detours from the shifts: normal GPX ↔ market GPX (same trip, same weekday when known).
+function marketPartner(routeId){
+ if(!turniData?.days)return null;
+ const today=new Date().getDay(),shift=shiftRun&&currentShift(),leg=shift?.legs?.[shiftRun.index];
+ const entries=[];
+ const scan=legs=>{for(const l of legs||[])for(const m of l.market||[])if(m.normal===routeId||m.route===routeId)entries.push(m)};
+ if(leg)scan([leg]);
+ if(!entries.length)for(const day of Object.values(turniData.days))for(const sh of Object.values(day.shifts||{}))scan(sh.legs);
+ if(!entries.length)return null;
+ const pick=entries.find(m=>m.weekday===today)||entries[0];
+ const onMarket=pick.route===routeId,other=onMarket?pick.normal:pick.route;
+ const route=academy.find(r=>r.id===other);
+ return route?{route,onMarket,market:pick}:null;
+}
+// Where two GPX part (metres along the first), or null when they never do.
+function divergenceAlong(a,b){
+ if(!a?.length||!b?.length)return null;
+ const pa=a.map(([lat,lng])=>({lat,lng})),pb=b.map(([lat,lng])=>({lat,lng}));
+ const da=shapeMetrics(pa),db=shapeMetrics(pb);
+ let j=0;
+ for(let i=0;i<pa.length;i++){
+  const near=nearestOnShape(pa[i],pb,db,Math.max(0,j-3),Math.min(pb.length-1,j+400));
+  if(near.d>40)return i>0?da[i-1]:0;
+  j=near.idx;
+ }
+ return null;
+}
+function routeAlternative(){
+ const route=current?.academy;if(!route)return null;
+ const baseId=route._detour?route._detour.base:route.id;
+ if(deviazioniData&&globalThis.Deviazioni){
+  const det=(deviazioniData.routes||[]).find(r=>+r.base===+baseId&&['in-corso','programmata'].includes(Deviazioni.state(Deviazioni.communication(deviazioniData,r.communication))));
+  if(det){
+   const comm=Deviazioni.communication(deviazioniData,det.communication),onDetour=!!route._detour;
+   return {kind:'detour',onDetour,promptAt:det.leaveAtM,det,comm,
+    button:onDetour?'Percorso normale':'Deviazione',
+    title:'Deviazione Com. n.'+comm.number,
+    question:onDetour?'Tra poco inizia la deviazione. Continui sulla deviazione o passi al percorso normale?':'Tra poco c’è il punto della deviazione. Resti sul percorso normale o passi alla deviazione?',
+    stay:onDetour?'Continua sulla deviazione':'Resta sul normale',change:onDetour?'Passa al percorso normale':'Passa alla deviazione'};
+  }
+ }
+ if(!turniData){loadTurni()?.then?.(()=>refreshRouteSwitch()).catch?.(()=>{});return null}
+ const market=marketPartner(route.id);
+ if(market){
+  const key=route.id+'>'+market.route.id;
+  if(!divergenceCache.has(key))divergenceCache.set(key,divergenceAlong(route.points,market.route.points));
+  const promptAt=divergenceCache.get(key);
+  return {kind:'market',onDetour:market.onMarket,promptAt,target:market.route,
+   button:market.onMarket?'Percorso normale':'Deviazione mercatale',
+   title:'Deviazione mercatale',
+   question:market.onMarket?'Tra poco inizia la deviazione mercatale. Continui sulla deviazione o passi al percorso normale?':'Tra poco c’è il punto della deviazione mercatale. Resti sul percorso normale o passi alla deviazione?',
+   stay:market.onMarket?'Continua sulla deviazione':'Resta sul normale',change:market.onMarket?'Passa al percorso normale':'Passa alla deviazione'};
+ }
+ return null;
+}
+// Sent with 'start' to iOS/Android: button label and, when reliable, where to ask.
+function nativeAlternative(){
+ const alt=routeAlternative();if(!alt)return null;
+ const ask=Number.isFinite(alt.promptAt)&&alt.promptAt>300;
+ return {button:alt.button,title:alt.title,question:alt.question,stay:alt.stay,change:alt.change,promptAt:ask?alt.promptAt:null,
+  voice:alt.onDetour?'Tra poco inizia la deviazione. Scegli sullo schermo se continuare.':'Tra poco c’è il punto della deviazione. Scegli sullo schermo il percorso.'};
+}
+function refreshRouteSwitch(){
+ const button=$('driveSwitch');if(!button)return;
+ const alt=currentAlt=routeAlternative();
+ button.hidden=!alt;if(alt){button.textContent='⇄ '+alt.button;button.setAttribute('aria-label','Passa a: '+alt.button)}
+ switchPrompted=false;hideSwitchPrompt();
+}
+function hideSwitchPrompt(){clearTimeout(switchPromptTimer);const p=$('driveSwitchPrompt');if(p)p.hidden=true}
+// Web navigation: the question about 700 m before the two GPX part, once per trip.
+function switchPromptCheck(along,distance){
+ if(switchPrompted||nativeActive||!Number.isFinite(along)||!(distance<60))return;
+ const alt=currentAlt;
+ if(!alt||!Number.isFinite(alt.promptAt)||alt.promptAt<=300)return;
+ if(along<alt.promptAt-700||along>alt.promptAt-60)return;
+ switchPrompted=true;
+ const p=$('driveSwitchPrompt');if(!p)return;
+ $('driveSwitchTitle').textContent=alt.title;$('driveSwitchQuestion').textContent=alt.question;
+ $('driveSwitchStay').textContent=alt.stay;$('driveSwitchChange').textContent=alt.change;
+ p.hidden=false;
+ try{navigator.vibrate?.([120,80,120])}catch{}
+ if($('voiceToggle').checked&&'speechSynthesis'in window){try{const u=new SpeechSynthesisUtterance(alt.onDetour?'Tra poco inizia la deviazione. Scegli sullo schermo se continuare.':'Tra poco c’è il punto della deviazione. Scegli sullo schermo il percorso.');u.lang='it-IT';speechSynthesis.speak(u)}catch{}}
+ // No answer: the current GPX stays.
+ switchPromptTimer=setTimeout(hideSwitchPrompt,60000);
+}
+// Switch to the other GPX and go on from where the bus is (or the simulated bus).
+function switchRouteAlternative(data){
+ const alt=routeAlternative();if(!alt||!current)return;
+ hideSwitchPrompt();
+ const demo=navDemo;
+ let point=data&&Number.isFinite(data.lat)&&Number.isFinite(data.lng)?{lat:data.lat,lng:data.lng}:null;
+ if(!point&&simulation)point=pointAt(current.points,current.dists,simIndex);
+ if(!point&&lastNavPoint)point=lastNavPoint;
+ const shift=shiftRun&&currentShift(),leg=shift?.legs?.[shiftRun.index];
+ const trip=current.stops?.length?current.trip:null;
+ // The running navigation is replaced, not ended: no 'stop' to the native screen.
+ if(simulation){clearInterval(simulation);simulation=null}
+ if(watcher!==null){navigator.geolocation.clearWatch(watcher);watcher=null}
+ nativeActive=false;
+ if(alt.kind==='detour'){
+  const base=academy.find(r=>r.id===(current.academy._detour?.base??current.academy.id));if(!base)return;
+  const toDetour=!alt.onDetour,comm=alt.comm;
+  const w=Deviazioni.windows(comm),now=new Date();
+  detourContext={found:toDetour?{route:alt.det,communication:comm,window:w.find(x=>x.to>now)||w.at(-1)||null}:null,off:false};
+  try{pickAcademyRoute(base,false)}finally{detourContext=null}
+  if(leg){const k=Turni.legKey(leg)+'|detour';if(toDetour)delete shiftChoices[k];else shiftChoices[k]='normal';saveShiftChoices()}
+ }else{
+  detourContext={found:null,off:false};
+  try{pickAcademyRoute(alt.target,false)}finally{detourContext=null}
+  if(leg)toggleShiftMarket(leg,alt.onDetour);
+ }
+ if(shiftRun){shiftRun.routeId=current?.academy?.id;saveShiftRun();shiftAlong=0}
+ if(trip&&current)showAcademyRoute(true,trip);
+ toast(alt.onDetour?'Percorso normale':'Deviazione attiva');
+ showWizardStep(2);
+ if(demo){resumeSimPoint=point;startDemo()}else startGPS();
+}

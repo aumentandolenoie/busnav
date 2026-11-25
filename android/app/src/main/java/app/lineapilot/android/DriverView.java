@@ -15,6 +15,7 @@ final class DriverView extends FrameLayout {
     final TextView distance,instruction,stopName,stopDistance,status;final ImageView symbol;
     private final TextView roadStatus,speedSign;
     private final ImageButton north;
+    private LinearLayout controls;
     /** Bottom-left, mirroring the speed sign: on-board ticket calculator (null without data). */
     private final ImageButton ticket;
     private TicketDialog tickets;
@@ -45,7 +46,7 @@ final class DriverView extends FrameLayout {
         info.addView(roadStatus);
         status=label(c,"GPX ufficiale · GPS in primo piano",13,Color.DKGRAY,false);status.setMaxLines(2);info.addView(status);info.addView(label(c,"GPX Academy · manovre © OpenStreetMap contributors",10,Color.GRAY,false));
         bottomText.addView(info);bottom.addView(bottomText,new LinearLayout.LayoutParams(-1,-2));
-        LinearLayout controls=new LinearLayout(c);controls.setGravity(Gravity.CENTER_VERTICAL);controls.setPadding(0,dp(8),0,0);
+        controls=new LinearLayout(c);controls.setGravity(Gravity.CENTER_VERTICAL);controls.setPadding(0,dp(8),0,0);
         Button end=button(c,"Termina","Termina navigazione","nav-end",c::endNavigation);end.setTextColor(Color.rgb(235,60,60));controls.addView(end,new LinearLayout.LayoutParams(-2,dp(48)));
         View spacer=new View(c);controls.addView(spacer,new LinearLayout.LayoutParams(0,1,1));
         ImageButton sound=iconButton(c,s.voice?"sound":"muted",Color.rgb(0,122,255),"Attiva o disattiva annunci","nav-sound",null);sound.setOnClickListener(v->{s.voice=!s.voice;if(!s.voice)c.stopNativeSpeech();sound.setImageDrawable(new NavigationIcon(s.voice?"sound":"muted",Color.rgb(0,122,255)));});controls.addView(sound,new LinearLayout.LayoutParams(dp(48),dp(48)));
@@ -82,6 +83,30 @@ final class DriverView extends FrameLayout {
     }
 
     /** A dialog over the driving screen: the session, GPS and voice keep running. */
+    /** Lines with a detour: "⇄ Percorso normale" / "⇄ Deviazione" next to Termina. */
+    void setAlternative(org.json.JSONObject a){
+        if(a==null||a.optString("button","").isEmpty())return;
+        MainActivity c=(MainActivity)getContext();
+        Button swap=button(c,"⇄ "+a.optString("button"),"Passa a: "+a.optString("button"),"nav-switch",c::requestRouteSwitch);
+        swap.setTextColor(Color.rgb(138,31,0));swap.setAllCaps(false);swap.setTypeface(Typeface.DEFAULT_BOLD);
+        GradientDrawable bg=new GradientDrawable();bg.setColor(Color.rgb(255,230,224));bg.setStroke(dp(1),Color.rgb(240,138,108));bg.setCornerRadius(dp(12));swap.setBackground(bg);
+        swap.setPadding(dp(10),0,dp(10),0);
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-2,dp(44));lp.setMargins(dp(6),0,0,0);
+        controls.addView(swap,1,lp);
+        alternative=a;
+    }
+    private org.json.JSONObject alternative;
+    /** Near the point where detour and normal GPX part: which one to follow (no answer: stays). */
+    void askAlternative(){
+        org.json.JSONObject a=alternative;if(a==null||!isAttachedToWindow())return;
+        MainActivity c=(MainActivity)getContext();
+        android.app.AlertDialog d=new android.app.AlertDialog.Builder(c).setTitle(a.optString("title","Deviazione")).setMessage(a.optString("question",""))
+            .setNegativeButton(a.optString("stay","Resta"),null).setPositiveButton(a.optString("change","Cambia"),(x,w)->c.requestRouteSwitch()).create();
+        d.show();
+        try{performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);}catch(RuntimeException ignored){}
+        postDelayed(()->{if(d.isShowing())d.dismiss();},60000);
+    }
+    Location currentFix(){return lastFix;}
     private void openTickets(MainActivity c){
         if(tickets!=null&&tickets.isShowing())return;
         tickets=new TicketDialog(c,session.route.tickets);
