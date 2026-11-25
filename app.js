@@ -188,6 +188,11 @@ const TURNI_URL='turni.json';
 let turniData=null,turniPromise=null,shiftShown=null,shiftRun=null,shiftSheetState=null,shiftTimer=null,shiftAlong=0,shiftArrivedFor=null;
 const shiftChoices=(()=>{try{return JSON.parse(localStorage.getItem('lineapilot-shift-choices')||'{}')||{}}catch{return {}}})();
 let roadGuidanceLoadId=0,roadGuidanceReady=Promise.resolve();
+// Temporary detours from company communications (deviazioni.json, see deviazioni.js and
+// "Deviazioni temporanee" at the end of this file). The copy published online on GitHub
+// is used when newer than the bundled one, so a new communication needs no app update.
+const DEVIAZIONI_URL='deviazioni.json',DEVIAZIONI_REMOTE='https://raw.githubusercontent.com/aumentandolenoie/busnav/main/deviazioni.json';
+let deviazioniData=null,detourContext=null;const detourManualOff=new Set(),detourRoutes=new Map();
 function academyFingerprint(points){
  let h=2166136261;
  for(const point of points){
@@ -258,7 +263,9 @@ async function loadRoadGuidance(chosen,dists){
  try{
   const url='./road-guidance/'+encodeURIComponent(id)+'.json';
   let data;
-  if(nativeMode){
+  // A detour GPX carries its own instructions (built with the same validation).
+  if(chosen._detour){data=chosen._detour.guidance;if(!data)return}
+  else if(nativeMode){
    data=await new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();xhr.open('GET',url,true);
     xhr.onload=()=>{if(xhr.status!==0&&(xhr.status<200||xhr.status>=300)){reject(Error('HTTP '+xhr.status));return}
@@ -1113,6 +1120,7 @@ $('academyGtfsTrip').addEventListener('change',()=>{
 function onAcademySelected(){
  stopNavigation();roadGuidanceLoadId++;
  current=null;turns=[];
+ renderDetourBox(null,null);
  resetRouteSplit();
  if(lineLayer){map.removeLayer(lineLayer);lineLayer=null}
  if(stopLayer){map.removeLayer(stopLayer);stopLayer=null}
@@ -1126,6 +1134,10 @@ function onAcademySelected(){
  selectedOfficial=academy.find(r=>String(r.id)===$('academyRoute').value&&r.category===cat&&academyGroupName(r)===line)||null;
  $('showOfficial').disabled=!selectedOfficial;
  resetAcademyGtfs();
+ // Temporary detour in force for this GPX (communication from the company).
+ const detour=detourFor(selectedOfficial);
+ renderDetourBox(selectedOfficial,detour);
+ if(detour&&!detour.off)selectedOfficial=detour.route;
  if(selectedOfficial){$('officialInfo').textContent=selectedOfficial.category+', linea '+selectedOfficial.line+', variante '+(selectedOfficial.variant||'—')+': '+selectedOfficial.name+'. Puoi avviare il GPS direttamente su questo GPX.';showAcademyRoute(false);}
  else $('officialInfo').textContent='Scegli categoria, linea e percorso effettivo.';
 }
@@ -2073,6 +2085,8 @@ function renderShift(){
     const days=[...new Set(leg.market.map(m=>m.day.toLowerCase()))].join(' e ');
     body.append(shiftEl('small','shift-source','Il '+days+': deviazione mercatale scelta in automatico'));
    }
+   const detourBox=shiftDetourBox(leg,shift,()=>renderShift());
+   if(detourBox)body.append(detourBox);
    if(states[i]==='missing')body.append(shiftEl('small','shift-missing','Nessun GPX trovato per questa corsa: la guidi senza navigazione'));
    else if(!(plan.market&&!plan.marketOff)){
     const label=shiftEl('label','shift-choice');
@@ -2145,10 +2159,14 @@ function startShiftLeg(index){
  const plan=shiftPlan(leg,shift);
  const notes=[];
  if(plan.market&&!plan.marketOff)notes.push(shiftMarketText(plan.market)+': GPX '+route.id+' (percorso normale dall’elenco del turno)');
+ const detour=shiftDetour(leg,shift);
+ if(detour&&!detour.off)notes.push(detourTitle(detour)+' (percorso normale dall’elenco del turno)');
  closeShiftSheet();
  try{document.activeElement?.blur?.()}catch{}
- shiftRun.routeId=route.id;saveShiftRun();
- pickAcademyRoute(route,false);
+ // The shift decides the detour from the trip's own times, not from the clock.
+ detourContext={found:detour,off:!!detour?.off};
+ try{pickAcademyRoute(route,false)}finally{detourContext=null}
+ shiftRun.routeId=current?.academy?.id??route.id;saveShiftRun();
  // Stops of this very trip (GTFS, same line and departure): announced like an associated trip.
  const gtfsTrip=leg.kind==='service'?shiftGtfsTrip(leg):null;
  if(gtfsTrip)showAcademyRoute(true,gtfsTrip);
@@ -2211,6 +2229,8 @@ function shiftNextCard(shift,next){
   m.append(shiftButton(plan.marketOff?'Usa la deviazione mercatale':'Usa il percorso normale','shift-market-toggle',()=>{toggleShiftMarket(leg,!plan.marketOff);openShiftSheet(shiftSheetState)}));
   card.append(m);
  }
+ const detourBox=shiftDetourBox(leg,shift,()=>openShiftSheet(shiftSheetState));
+ if(detourBox)card.append(detourBox);
  if(leg.note)card.append(shiftEl('span','shift-note','Nota: '+leg.note));
  return card;
 }
@@ -2278,7 +2298,7 @@ function shiftReadyText(){
  if(!shift||current?.academy?.id!==shiftRun.routeId)return '';
  const leg=shift.legs[shiftRun.index],trips=shift.legs.filter(Turni.driven),pos=trips.indexOf(leg)+1;
  const plan=shiftPlan(leg,shift);
- return (shiftRun.sim?'Simulazione '+shiftSimSpeed+'x · ':'')+'Turno '+shift.code+' · corsa '+pos+' di '+trips.length+' · partenza '+leg.dep+(plan.market&&!plan.marketOff?' · '+shiftMarketText(plan.market):'');
+ return (shiftRun.sim?'Simulazione '+shiftSimSpeed+'x · ':'')+'Turno '+shift.code+' · corsa '+pos+' di '+trips.length+' · partenza '+leg.dep+(plan.market&&!plan.marketOff?' · '+shiftMarketText(plan.market):'')+(current?.academy?._detour?' · '+detourTitle({communication:Deviazioni.communication(deviazioniData,current.academy._detour.communication)}):'');
 }
 fillShiftDays();
 function setShiftDate(iso){if(![...$('shiftDay').options].some(o=>o.value===iso))$('shiftDay').add(asOption(iso,iso.split('-').reverse().join('/')));$('shiftDay').value=iso}
@@ -2310,3 +2330,104 @@ function offerShiftResume(){
 }
 $('shiftSearch').value='';
 offerShiftResume();
+
+// ---- Deviazioni temporanee ----
+// A detour GPX (deviazioni.json) is used instead of an official GPX only while a window
+// of its communication overlaps the time the bus is on the detoured stretch: for a shift
+// trip from the times in the shift, for a manual trip from now. A communication cancelled
+// or replaced by a later one is never used. The normal route stays one tap away.
+function detourCached(){try{return JSON.parse(localStorage.getItem('lineapilot-deviazioni')||'null')}catch{return null}}
+function detourTitle(found){const c=found?.communication;return c?'Deviazione temporanea · Com. n.'+c.number+(c.title?' · '+c.title:''):'Deviazione temporanea'}
+function detourDate(iso){return String(iso||'').split('-').reverse().join('/')}
+// deviazioni.json route → object shaped like an official GPX (same line, own id).
+function detourRoute(route,base){
+ const key=route.id+'|'+route.communication;
+ if(!detourRoutes.has(key))detourRoutes.set(key,{id:route.id,category:route.category,line:route.line,variant:route.variant,name:route.name,filename:route.filename,
+  points:route.points,_evidence:base?._evidence,_detour:{communication:route.communication,base:route.base,guidance:route.guidance||null,direction:route.direction,text:route.text}});
+ return detourRoutes.get(key);
+}
+function detourFor(base){
+ if(!base||!deviazioniData||!globalThis.Deviazioni||base._detour)return null;
+ const ctx=detourContext;
+ const found=ctx?ctx.found:Deviazioni.forNow(deviazioniData,base.id,new Date());
+ if(!found)return null;
+ const key=found.communication.number+'|'+base.id;
+ return {...found,key,off:ctx?!!ctx.off:detourManualOff.has(key),shift:!!ctx,route:detourRoute(found.route,base)};
+}
+function renderDetourBox(base,detour){
+ const box=$('detourBox');if(!box)return;
+ box.replaceChildren();box.hidden=!detour;box.classList.toggle('off',!!detour?.off);
+ if(!detour)return;
+ const c=detour.communication;
+ box.append(shiftEl('strong','',detour.off?'Percorso normale al posto della deviazione temporanea':detourTitle(detour)));
+ box.append(shiftEl('small','',['Com. n.'+c.number+' del '+detourDate(c.date),detour.route._detour.direction,'valida '+Deviazioni.windowText(detour.window)].filter(Boolean).join(' · ')));
+ if(!detour.off&&detour.route._detour.text)box.append(shiftEl('p','',detour.route._detour.text));
+ if(!detour.off&&!detour.route._detour.guidance)box.append(shiftEl('small','detour-warn','Istruzioni vocali non disponibili sulla deviazione: segui la linea blu'));
+ if(detour.shift){box.append(shiftEl('small','','Per cambiare percorso usa l’elenco del turno'));return}
+ box.append(shiftButton(detour.off?'Usa la deviazione':'Usa il percorso normale','shift-market-toggle',()=>{
+  if(detour.off)detourManualOff.delete(detour.key);else detourManualOff.add(detour.key);
+  onAcademySelected();
+ }));
+}
+// Shift trip: the detour from the trip's own departure and arrival on the shift's date.
+function shiftDetour(leg,shift=shiftShown){
+ if(!deviazioniData||!globalThis.Deviazioni||!Turni.driven(leg))return null;
+ const base=shiftPlan(leg,shift).route;if(base===null)return null;
+ const t=Deviazioni.legTimes(shiftDateOf(shift),leg.dep,leg.arr,shift?.legs?.[0]?.dep);if(!t)return null;
+ const found=Deviazioni.forTrip(deviazioniData,base,t.start,t.end);
+ return found?{...found,off:shiftChoices[Turni.legKey(leg)+'|detour']==='normal'}:null;
+}
+function shiftDetourBox(leg,shift,rerender){
+ const found=shiftDetour(leg,shift);if(!found)return null;
+ const box=shiftEl('div','shift-market detour'+(found.off?' off':''));
+ box.append(shiftEl('strong','',found.off?'Percorso normale al posto della deviazione temporanea':detourTitle(found)));
+ box.append(shiftEl('small','',(found.route.direction?found.route.direction+' · ':'')+'valida '+Deviazioni.windowText(found.window)));
+ box.append(shiftButton(found.off?'Usa la deviazione':'Usa il percorso normale','shift-market-toggle',()=>{
+  const k=Turni.legKey(leg)+'|detour';if(found.off)delete shiftChoices[k];else shiftChoices[k]='normal';saveShiftChoices();rerender();
+ }));
+ return box;
+}
+// List of communications in force, planned or just replaced (step 1).
+function renderDetourList(){
+ const box=$('detourList');if(!box||!globalThis.Deviazioni)return;
+ const items=Deviazioni.list(deviazioniData,new Date());
+ box.replaceChildren();box.hidden=!items.length;
+ if(!items.length)return;
+ const head=shiftEl('div','detour-list-head');head.append(shiftEl('strong','','Deviazioni temporanee'));box.append(head);
+ const label={'in-corso':'In corso',programmata:'Programmata',conclusa:'Conclusa',sostituita:'Sostituita',annullata:'Annullata'};
+ for(const item of items){
+  const c=item.communication,row=shiftEl('details','detour-item '+item.state);
+  const sum=document.createElement('summary');
+  sum.append(shiftEl('span','chip',label[item.state]||item.state),shiftEl('strong','','Com. n.'+c.number+' · '+(c.title||'')),shiftEl('small','',(c.lines||[]).join(', ')+(item.next?' · '+Deviazioni.windowText(item.next):'')));
+  row.append(sum);
+  if(c.replacedBy)row.append(shiftEl('p','','Annullata e sostituita dalla Com. n.'+c.replacedBy+': non viene più usata.'));
+  if(c.relation)row.append(shiftEl('p','',c.relation+'.'));
+  if(c.summary)row.append(shiftEl('p','',c.summary));
+  if(c.windowsText)row.append(shiftEl('p','','Validità: '+c.windowsText+(c.windowsNote?' ('+c.windowsNote+')':'')));
+  for(const d of c.detours||[]){
+   const r=(deviazioniData.routes||[]).find(x=>x.id===d.route);
+   row.append(shiftEl('p','detour-dir',d.direction+': '+(r?.text||'')));
+  }
+  box.append(row);
+ }
+}
+async function loadDeviazioni(){
+ let bundled=null;
+ try{bundled=await loadJSONLocal(DEVIAZIONI_URL)}catch(e){console.info('Deviazioni locali non disponibili',e.message)}
+ deviazioniData=Deviazioni.newer(bundled,detourCached());
+ renderDetourList();
+ try{
+  const response=await fetch(DEVIAZIONI_REMOTE+'?t='+Date.now(),{cache:'no-store'});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const remote=await response.json();
+  if(Deviazioni.newer(deviazioniData,remote)===remote&&remote.updatedAt!==deviazioniData?.updatedAt){
+   deviazioniData=remote;detourRoutes.clear();
+   try{localStorage.setItem('lineapilot-deviazioni',JSON.stringify(remote))}catch{}
+   renderDetourList();
+   if(!nativeActive&&!watcher&&!simulation&&selectedOfficial&&$('academyRoute').value)onAcademySelected();
+   if(shiftShown)renderShift();
+  }
+ }catch(e){console.info('Deviazioni online non raggiungibili',e.message)}
+}
+const deviazioniReady=globalThis.Deviazioni?loadDeviazioni():Promise.resolve();
+setInterval(renderDetourList,5*60000);

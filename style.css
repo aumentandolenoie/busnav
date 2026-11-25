@@ -338,3 +338,21 @@ body.navigating .toast.show{position:absolute;z-index:760;inset:auto;left:calc(v
 .shift-resume-go{min-height:44px;padding:0 16px;border:0;border-radius:12px;background:#0064d2;color:#fff;font-weight:800}
 .shift-resume-drop{min-height:44px;padding:0 12px;border:0;border-radius:12px;background:#fff;color:#c4261d;font-weight:700}
 .shift-resume-go:hover:not(:disabled){background:#0058b9}.shift-resume-drop:hover:not(:disabled){background:#f2f2f7}
+/* Deviazioni temporanee (communications): red-orange, distinct from market days */
+.shift-market.detour{background:#ffe6e0;border-color:#f08a6c}.shift-market.detour strong{color:#8a1f00}
+.shift-market.detour.off{background:#ececf0;border-color:#d1d1d6}.shift-market.detour.off strong{color:#3a3a3f}
+.detour-box{display:flex;flex-direction:column;gap:6px;margin:10px 0;padding:10px 12px;border-radius:12px;background:#ffe6e0;border:1px solid #f08a6c}
+.detour-box[hidden]{display:none}
+.detour-box strong{color:#8a1f00;font-size:15px}.detour-box small{color:#5a1500}.detour-box p{margin:0;color:#3a1000;font-size:14px;line-height:1.35}
+.detour-box.off{background:#ececf0;border-color:#d1d1d6}.detour-box.off strong{color:#3a3a3f}
+.detour-box .detour-warn{font-weight:700}
+.detour-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding:10px 12px;border-radius:14px;background:#fff4f1;border:1px solid #f3b4a3}
+.detour-list[hidden]{display:none}
+.detour-list-head strong{color:#8a1f00;font-size:15px}
+.detour-item summary{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;cursor:pointer;min-height:44px;list-style:none}
+.detour-item summary::-webkit-details-marker{display:none}
+.detour-item summary strong{font-size:14px;color:#1c1c1e}.detour-item summary small{flex-basis:100%;color:#5a5a60}
+.detour-item .chip{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:#8a1f00;color:#fff}
+.detour-item.programmata .chip{background:#b35900}.detour-item.sostituita .chip,.detour-item.annullata .chip,.detour-item.conclusa .chip{background:#8e8e93}
+.detour-item.sostituita summary strong,.detour-item.annullata summary strong{text-decoration:line-through;color:#6c6c70}
+.detour-item p{margin:4px 0;font-size:13px;line-height:1.35;color:#3a3a3f}
