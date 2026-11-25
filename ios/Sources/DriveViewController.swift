@@ -118,7 +118,18 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
             config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { var a = $0; a.font = .systemFont(ofSize:15,weight:.bold); return a }
             let swap = UIButton(configuration: config)
             swap.accessibilityIdentifier = "switchRoute"; swap.accessibilityLabel = "Passa a: " + alternativeTitle
-            touchTarget(swap, width: 44)
+            // Width from the title (one line): a fixed 44 pt squeezed it into a column of letters.
+            config.titleLineBreakMode = .byTruncatingTail
+            config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10)
+            swap.configuration = config
+            swap.titleLabel?.numberOfLines = 1
+            swap.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                swap.heightAnchor.constraint(equalToConstant: 44),
+                swap.widthAnchor.constraint(greaterThanOrEqualToConstant: 44)
+            ])
+            swap.setContentHuggingPriority(.required, for: .horizontal)
+            swap.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
             swap.addTarget(self, action: #selector(switchRoute), for: .touchUpInside)
             footer.append(swap)
         }
