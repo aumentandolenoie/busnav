@@ -32,7 +32,7 @@
    }
   ],
   "uturns": [],
-  "closedClearanceM": 1054,
+  "closedClearanceM": 1031,
   "instructions": [
    "Guida verso nord su A57/E 55/Tangenziale di Mestre.",
    "Prendi l'uscita Terraglio verso MESTRE via Teraglio/Ospedale.",
@@ -56,30 +56,30 @@
    "Svolta a sinistra.",
    "Sei arrivato a destinazione."
   ],
-  "leaveAtM": 33151,
-  "rejoinAtM": 43133,
+  "leaveAtM": 33094,
+  "rejoinAtM": 43142,
   "baseLengthM": 43977,
-  "routedFrom": 66,
-  "routedTo": 569,
-  "detourLengthM": 43142,
+  "routedFrom": 61,
+  "routedTo": 575,
+  "detourLengthM": 43128,
   "roundaboutsBySign": [
    [
-    34334,
+    34318,
     "Alla rotonda, prendi la quarta uscita",
     "Alla rotonda, prendi l'uscita verso Mestre centro, Venezia centro, Zona industriale, Forte Carpenedo"
    ],
    [
-    37406,
+    37391,
     "Alla rotonda, prendi la terza uscita",
     "Alla rotonda, prendi l'uscita per Via San Donà"
    ],
    [
-    41833,
+    41818,
     "Alla rotonda, prendi la terza uscita",
     "Alla rotonda, prendi l'uscita per Via Triestina, SS14"
    ],
    [
-    42320,
+    42306,
     "Alla rotonda, prendi la prima uscita",
     "Alla rotonda, prendi l'uscita verso aeroporto, parcheggi"
    ]
@@ -91,47 +91,47 @@
     "Prendi l'uscita Terraglio verso MESTRE via Teraglio/Ospedale."
    ],
    [
-    34334,
+    34318,
     "Alla rotonda, prendi l'uscita verso Mestre centro, Venezia centro, Zona industriale, Forte Carpenedo"
    ],
    [
-    37095,
+    37080,
     "Prendi l'uscita."
    ],
    [
-    37406,
+    37391,
     "Alla rotonda, prendi l'uscita per Via San Donà"
    ],
    [
-    39018,
+    39003,
     "Svolta a sinistra su Via Triestina."
    ],
    [
-    41833,
+    41818,
     "Alla rotonda, prendi l'uscita per Via Triestina, SS14"
    ],
    [
-    42320,
+    42306,
     "Alla rotonda, prendi l'uscita verso aeroporto, parcheggi"
    ],
    [
-    42526,
+    42512,
     "Alla rotonda, prendi la seconda uscita"
    ],
    [
-    42821,
+    42807,
     "Alla rotonda, prendi la seconda uscita"
    ],
    [
-    42895,
+    42881,
     "Svolta a sinistra."
    ],
    [
-    42950,
+    42936,
     "Mantieni la sinistra per imboccare Arrivi."
    ],
    [
-    42965,
+    42951,
     "Mantieni la sinistra per rimanere su Arrivi."
    ]
   ]
@@ -189,12 +189,12 @@
    "Mantieni la destra per prendere A13/A4 verso MESTRE/Porto/Terminal Fusina/BOLOGNA.",
    "Sei arrivato a destinazione."
   ],
-  "leaveAtM": 1099,
-  "rejoinAtM": 11318,
+  "leaveAtM": 1094,
+  "rejoinAtM": 11390,
   "baseLengthM": 45615,
-  "routedFrom": 107,
-  "routedTo": 535,
-  "detourLengthM": 43749,
+  "routedFrom": 102,
+  "routedTo": 542,
+  "detourLengthM": 43723,
   "roundaboutsBySign": [
    [
     856,
@@ -207,17 +207,17 @@
     "Alla rotonda, prendi l'uscita verso MESTRE, VENEZIA"
    ],
    [
-    1672,
+    1667,
     "Alla rotonda, prendi la prima uscita",
     "Alla rotonda, prendi l'uscita per Via Triestina"
    ],
    [
-    6034,
+    6029,
     "Alla rotonda, prendi la prima uscita",
     "Alla rotonda, prendi l'uscita per Via Martiri della Libertà"
    ],
    [
-    8787,
+    8782,
     "Alla rotonda, prendi la prima uscita",
     "Alla rotonda, prendi l'uscita per A57, Tangenziale di Mestre"
    ]
@@ -233,87 +233,87 @@
     "Alla rotonda, prendi l'uscita verso MESTRE, VENEZIA"
    ],
    [
-    1672,
+    1667,
     "Alla rotonda, prendi l'uscita per Via Triestina"
    ],
    [
-    4483,
+    4478,
     "Svolta a sinistra per rimanere su Via Triestina."
    ],
    [
-    4999,
+    4994,
     "Mantieni la destra per rimanere su Via Triestina."
    ],
    [
-    6034,
+    6029,
     "Alla rotonda, prendi l'uscita per Via Martiri della Libertà"
    ],
    [
-    8787,
+    8782,
     "Alla rotonda, prendi l'uscita per A57, Tangenziale di Mestre"
    ],
    [
-    9104,
+    9099,
     "Mantieni la destra per rimanere su A57/Tangenziale di Mestre verso MESTRE/Porto/Terminal Fusina/BOLOGNA."
    ],
    [
-    24413,
+    24387,
     "Mantieni la sinistra per prendere A4/E 70/Autostrada Serenissima verso Milano."
    ],
    [
-    36873,
+    36847,
     "Prendi l'uscita Padova Est per A4 verso Padova Est."
    ],
    [
-    38063,
+    38037,
     "Mantieni la destra verso Ponte di Brenta."
    ],
    [
-    38271,
+    38245,
     "Prendi lo svincolo a sinistra verso Ponte di Brenta."
    ],
    [
-    38502,
+    38476,
     "Mantieni la destra per imboccare Via Sergio Fraccalanza."
    ],
    [
-    39032,
+    39006,
     "Mantieni la destra su Via San Marco."
    ],
    [
-    39842,
+    39816,
     "Alla rotonda, prendi la seconda uscita"
    ],
    [
-    40029,
+    40003,
     "Mantieni la sinistra per rimanere su Via San Marco."
    ],
    [
-    41004,
+    40978,
     "Alla rotonda, prendi la seconda uscita"
    ],
    [
-    41657,
+    41631,
     "Alla rotonda, prendi la seconda uscita"
    ],
    [
-    42203,
+    42177,
     "Alla rotonda, prendi la seconda uscita"
    ],
    [
-    42620,
+    42594,
     "Alla rotonda, prendi la seconda uscita"
    ],
    [
-    43014,
+    42988,
     "Alla rotonda, prendi la prima uscita"
    ],
    [
-    43312,
+    43286,
     "Alla rotonda, prendi la quarta uscita"
    ],
    [
-    43674,
+    43648,
     "Alla rotonda, prendi la prima uscita"
    ]
   ]
