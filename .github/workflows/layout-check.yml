@@ -2,7 +2,7 @@ name: iPhone web layout checks
 on:
   workflow_dispatch:
   push:
-    paths: ['style.css', 'index.html', 'app.js', 'tickets.js', 'corsie.js', 'turni.js', 'turni.json', 'deviazioni.js', 'deviazioni.json', 'fares/**', 'tests/layout-browser.py', 'tests/safari-voice-browser.py', 'tests/shift-browser.py', 'tests/deviazioni-browser.py', '.github/workflows/layout-check.yml']
+    paths: ['style.css', 'index.html', 'app.js', 'tickets.js', 'corsie.js', 'turni.js', 'turni.json', 'deviazioni.js', 'deviazioni.json', 'fares/**', 'tests/layout-browser.py', 'tests/safari-voice-browser.py', 'tests/shift-browser.py', 'tests/deviazioni-browser.py', 'tests/shift-stops-browser.py', '.github/workflows/layout-check.yml']
 permissions:
   contents: write
 jobs:
@@ -19,6 +19,7 @@ jobs:
       # Shift mode: search a shift, terminus, pause and resume (WebKit + Chromium).
       - run: python3 tests/shift-browser.py
       - run: python3 tests/deviazioni-browser.py
+      - run: python3 tests/shift-stops-browser.py
       - name: Save browser screenshots without Actions artifact storage
         if: always()
         env:

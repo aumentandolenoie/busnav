@@ -2012,20 +2012,28 @@ function shiftInfoText(leg){
 }
 // The GTFS trip of a shift row: same line (E013V, E013…) leaving at the same minute;
 // with several (different calendars) the one arriving at the shift's arrival time.
-function shiftGtfsTrip(leg){
+function shiftGtfsTrip(leg,route=shiftRoute(leg)){
  if(!feed||!leg?.line)return null;
  const hhmm=v=>String(v||'').slice(0,5).replace(/^(\d):/,'0$1:');
  const lines=new Set([leg.line,leg.line.replace(/[VZ]$/,'')].map(x=>x.toUpperCase()));
- const found=[];
+ const all=[];
  for(const r of feed.routes){
   if(!lines.has(String(r.route_short_name||'').toUpperCase())||r._stopAuthority==='supplemental')continue;
-  for(const t of feed.tripsByRoute.get(r.route_id)||[]){
-   const times=feed.timesByTrip.get(t.trip_id)||[];
-   if(hhmm(times[0]?.departure)===leg.dep)found.push({trip:t,times});
-  }
+  for(const t of feed.tripsByRoute.get(r.route_id)||[])all.push({trip:t,times:feed.timesByTrip.get(t.trip_id)||[]});
  }
- if(!found.length)return null;
- return (found.find(f=>hhmm(f.times.at(-1)?.arrival)===leg.arr)||found[0]).trip;
+ const found=all.filter(f=>hhmm(f.times[0]?.departure)===leg.dep);
+ if(found.length)return (found.find(f=>hhmm(f.times.at(-1)?.arrival)===leg.arr)||found[0]).trip;
+ // No trip at exactly that time (the GTFS can list it a few minutes off, or not list that
+ // run): the trip of the same line that starts and ends where this GPX does, closest in
+ // time. Its stops are then checked against the GPX like any associated trip.
+ const pts=route?.points;if(!pts?.length)return null;
+ const start={lat:pts[0][0],lng:pts[0][1]},end={lat:pts.at(-1)[0],lng:pts.at(-1)[1]};
+ const minutes=t=>{const m=/^(\d+):(\d\d)/.exec(String(t||''));return m?+m[1]*60+ +m[2]:null};
+ const want=minutes(leg.dep);
+ const fits=all.filter(f=>{const a=f.times[0]?.stop,b=f.times.at(-1)?.stop;return f.times.length>1&&a&&b&&metres(a,start)<500&&metres(b,end)<500})
+  .map(f=>({...f,gap:Math.abs((minutes(f.times[0].departure)??9999)-want)}))
+  .sort((x,y)=>x.gap-y.gap||y.times.length-x.times.length);
+ return fits[0]?.trip||null;
 }
 // Several GPX fit a trip: the GTFS trip leaving at that time tells which one passes by its stops.
 function shiftResolveWithGtfs(shift){
@@ -2179,7 +2187,7 @@ function startShiftLeg(index){
  try{pickAcademyRoute(route,false)}finally{detourContext=null}
  shiftRun.routeId=current?.academy?.id??route.id;saveShiftRun();
  // Stops of this very trip (GTFS, same line and departure): announced like an associated trip.
- const gtfsTrip=leg.kind==='service'?shiftGtfsTrip(leg):null;
+ const gtfsTrip=leg.kind==='service'?shiftGtfsTrip(leg,route):null;
  if(gtfsTrip)showAcademyRoute(true,gtfsTrip);
  const stopCount=current?.stops?.length||0;
  shiftRun.stops=stopCount;
