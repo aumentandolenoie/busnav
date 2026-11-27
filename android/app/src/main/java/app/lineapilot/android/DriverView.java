@@ -16,6 +16,9 @@ final class DriverView extends FrameLayout {
     private final TextView roadStatus,speedSign;
     private final ImageButton north;
     private LinearLayout controls;
+    private TextView routeInfo;
+    /** "408 MIRANO · Corsia 5": route indicator and bay next to "PROSSIMA FERMATA". */
+    void setRouteInfo(String text){if(routeInfo==null)return;boolean show=text!=null&&!text.isEmpty();routeInfo.setText(show?text:"");routeInfo.setVisibility(show?View.VISIBLE:View.GONE);}
     /** Bottom-left, mirroring the speed sign: on-board ticket calculator (null without data). */
     private final ImageButton ticket;
     private TicketDialog tickets;
@@ -38,7 +41,7 @@ final class DriverView extends FrameLayout {
         ImageButton repeat=iconButton(c,"sound",Color.WHITE,"Ripeti indicazione","nav-repeat",()->s.repeat());top.addView(repeat,new LinearLayout.LayoutParams(dp(48),dp(48)));
         LayoutParams tp=new LayoutParams(-1,-2,Gravity.TOP);tp.setMargins(dp(12),dp(8),dp(12),0);addView(top,tp);
         bottom=card(c,Color.rgb(250,250,252));bottom.setOrientation(LinearLayout.VERTICAL);bottomText=new BoundedScroll(c);
-        LinearLayout info=column(c);info.addView(label(c,"PROSSIMA FERMATA",12,Color.GRAY,true));stopName=label(c,s.route.stops.length>0?s.route.stops[0]:"Solo percorso GPX",24,Color.BLACK,true);stopName.setMaxLines(2);stopName.setEllipsize(android.text.TextUtils.TruncateAt.END);info.addView(stopName);
+        LinearLayout info=column(c);LinearLayout header=new LinearLayout(c);header.setOrientation(LinearLayout.HORIZONTAL);header.setGravity(Gravity.CENTER_VERTICAL);header.addView(label(c,"PROSSIMA FERMATA",12,Color.GRAY,true));routeInfo=label(c,"",13,Color.rgb(0,122,255),true);routeInfo.setGravity(Gravity.END);routeInfo.setSingleLine(true);routeInfo.setEllipsize(android.text.TextUtils.TruncateAt.END);routeInfo.setVisibility(View.GONE);LinearLayout.LayoutParams rip=new LinearLayout.LayoutParams(0,-2,1);rip.setMargins(dp(8),0,0,0);header.addView(routeInfo,rip);info.addView(header);stopName=label(c,s.route.stops.length>0?s.route.stops[0]:"Solo percorso GPX",24,Color.BLACK,true);stopName.setMaxLines(2);stopName.setEllipsize(android.text.TextUtils.TruncateAt.END);info.addView(stopName);
         stopDistance=label(c,"",19,Color.rgb(0,122,255),true);info.addView(stopDistance);
         roadStatus=label(c,"",13,Color.DKGRAY,true);
         roadStatus.setMaxLines(2);

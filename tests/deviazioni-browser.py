@@ -130,6 +130,10 @@ def run(engine):
             page.evaluate("startDemo()")
             page.wait_for_function("!!simulation&&!document.getElementById('driveSwitch').hidden", timeout=10000)
             assert 'Deviazione' in page.inner_text('#driveSwitch')
+            # Route indicator and bay, small next to "Prossima fermata".
+            info = page.inner_text('#driveRouteInfo')
+            assert info and page.evaluate("routeIndicator(current.academy)") in info, info
+            page.screenshot(path=str(out / f'drive-route-info-{engine}.png'))
             page.evaluate("simIndex=currentAlt.promptAt-760")
             page.wait_for_selector('#driveSwitchPrompt:not([hidden])', timeout=20000)
             assert 'Passa alla deviazione' in page.inner_text('#driveSwitchPrompt')

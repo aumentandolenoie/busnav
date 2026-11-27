@@ -370,3 +370,11 @@ body.navigating .toast.show{position:absolute;z-index:760;inset:auto;left:calc(v
 .drive-switch-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .drive-switch-actions button{min-height:52px;border-radius:12px;font-size:15px;font-weight:700;border:1px solid #d1d1d6;background:#f2f2f7;color:#1c1c1e;box-shadow:none}
 .drive-switch-actions #driveSwitchChange{background:#c2410c;border-color:#c2410c;color:#fff}
+
+/* Indicatore di percorso e corsia: small, next to "Prossima fermata" while driving */
+.drive-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.drive-route-info{font-size:13px;font-weight:700;color:#007aff;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.drive-route-info[hidden]{display:none}
+.shift-indicator{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:2px 0}
+.shift-indicator b{font-size:17px;padding:2px 8px;border-radius:6px;background:#111;color:#ffb000;font-family:ui-monospace,Menlo,monospace;letter-spacing:.5px}
+.shift-indicator span{font-weight:700;color:#007aff}

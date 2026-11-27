@@ -40,6 +40,8 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
     /// Lines with a detour: "⇄ Percorso normale" / "⇄ Deviazione" in the bottom bar.
     var alternativeTitle: String?
     var onSwitchRoute: (() -> Void)?
+    /// "408 MIRANO · Corsia 5": route indicator and bay, small next to "PROSSIMA FERMATA".
+    var routeInfo: String?
     private var voice = true
     private let simulated: Bool
     // Our own position marker (real GPS and simulation alike): a blue navigation
@@ -140,7 +142,13 @@ final class DriveViewController: UIViewController, MKMapViewDelegate, UIGestureR
         roadStatus.numberOfLines = 2
         roadStatus.textColor = .label
         roadStatus.isHidden = true
-        let bottom = UIStackView(arrangedSubviews:[label,stopName,stopDistance,roadStatus,status,attribution]); bottom.axis = .vertical; bottom.spacing = 8
+        let info = UILabel(); info.text = routeInfo; info.isHidden = (routeInfo ?? "").isEmpty
+        info.font = .systemFont(ofSize:13,weight:.bold); info.textColor = .systemBlue; info.textAlignment = .right
+        info.lineBreakMode = .byTruncatingTail; info.accessibilityIdentifier = "routeInfo"
+        info.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.required, for: .horizontal)
+        let header = UIStackView(arrangedSubviews:[label,info]); header.spacing = 8; header.alignment = .firstBaseline
+        let bottom = UIStackView(arrangedSubviews:[header,stopName,stopDistance,roadStatus,status,attribution]); bottom.axis = .vertical; bottom.spacing = 8
         bottomPanel = panel(bottom,dark:false,footer:buttons); bottomPanel.accessibilityIdentifier = "stopPanel"; view.addSubview(bottomPanel); view.addSubview(compass)
         let safe = view.safeAreaLayoutGuide
         speedSign.translatesAutoresizingMaskIntoConstraints = false

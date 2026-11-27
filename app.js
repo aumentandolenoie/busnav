@@ -526,6 +526,7 @@ function enterNavigationView(){
  driveNorthUp=false;$('driveCompass').setAttribute('aria-pressed','false');
  renderDriveVoiceButton();
  refreshRouteSwitch();
+ const info=routeInfoText(current?.academy);$('driveRouteInfo').textContent=info;$('driveRouteInfo').hidden=!info;
  const verified=turns.some(t=>t.verifiedRoad);
  setDriveTurn('Attesa GPS',verified?'Segui il percorso ufficiale':'Manovre stradali non disponibili','up');
  setDriveStop(current?.stops?.[0]?.stop?.stop_name||'Solo percorso GPX','');
@@ -1725,7 +1726,7 @@ async function startGPS(simulated=false){
   setupVoice();lastAlong=0;lastSpokenStop=-1;lastSpokenTurn=-1;nextStopIdx=0;renderStops();
   enterNavigationView();
   nativeActive=true;
-  const ok=nativePost({type:'start',route,demo,demoSpeed:demo?demoSpeed():1,demoStartM:takeDemoStart(demo),alternative:nativeAlternative(),shiftTerminus:!!(shiftRun&&current?.academy?.id===shiftRun.routeId),voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
+  const ok=nativePost({type:'start',route,demo,demoSpeed:demo?demoSpeed():1,demoStartM:takeDemoStart(demo),alternative:nativeAlternative(),routeInfo:routeInfoText(current?.academy),shiftTerminus:!!(shiftRun&&current?.academy?.id===shiftRun.routeId),voice:$('voiceToggle').checked,turnVoice:$('turnToggle').checked,voiceId:voicePreferences.id,rate:voicePreferences.rate});
   if(!ok){nativeActive=false;leaveNavigationView();toast('Impossibile avviare il GPS nativo');return}
   $('gpsStatus').textContent='GPS nativo in avvio…';
   setVoiceStatus(demo?'SIMULAZIONE · posizione virtuale':'Voce italiana nativa · mantieni l’app in primo piano');
@@ -2240,7 +2241,9 @@ function shiftNextCard(shift,next){
  const wait=Turni.minutes(leg.dep)-shiftNow();
  card.append(shiftEl('small','','PROSSIMA CORSA'+(wait>0?' · tra '+Turni.duration(wait):'')));
  card.append(shiftEl('strong','',leg.dep+' '+shiftTitle(leg.desc)));
- card.append(shiftEl('span','',[route?'GPX '+route.id:'GPX da scegliere',shiftCorsia(leg,route),'arrivo '+leg.arr].filter(Boolean).join(' · ')));
+ const indicator=route?routeIndicator(route):'';
+ if(indicator||shiftCorsia(leg,route)){const badge=shiftEl('div','shift-indicator');if(indicator)badge.append(shiftEl('b','',indicator));const c=shiftCorsia(leg,route);if(c)badge.append(shiftEl('span','',c));card.append(badge)}
+ card.append(shiftEl('span','',[route?'GPX '+route.id:'GPX da scegliere','arrivo '+leg.arr].filter(Boolean).join(' · ')));
  const plan=shiftPlan(leg,shift);
  if(plan.market){
   const m=shiftEl('div','shift-market'+(plan.marketOff?' off':''));
@@ -2628,4 +2631,18 @@ function switchRouteAlternative(data){
  toast(alt.onDetour?'Percorso normale':'Deviazione attiva');
  showWizardStep(2);
  if(demo){resumeSimPoint=point;startDemo()}else startGPS();
+}
+
+// ---- Indicatore di percorso e corsia ----
+// Shown small during navigation (next to "Prossima fermata") and in the terminus sheet
+// for the next trip: "408 MIRANO · Corsia 5".
+function routeIndicator(route){
+ const i=route?._evidence?.indicatorRecords?.[0];
+ if(!i||i.outOfService)return route?._evidence?.serviceStatus==='out-of-service'?'FUORI SERVIZIO':'';
+ return [i.display||i.code,i.fixed].filter(Boolean).join(' ').trim();
+}
+function routeInfoText(route){
+ if(!route)return '';
+ const corsia=globalThis.Corsie?Corsie.label(route,ticketData):'';
+ return [routeIndicator(route),corsia].filter(Boolean).join(' · ');
 }

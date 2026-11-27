@@ -109,6 +109,7 @@ final class NavigatorViewController: UIViewController, WKScriptMessageHandler {
             // Detour ↔ normal GPX: the web layer picks the other GPX and starts it again.
             let alternative = body["alternative"] as? [String: Any]
             screen.alternativeTitle = alternative?["button"] as? String
+            screen.routeInfo = body["routeInfo"] as? String
             screen.onSwitchRoute = { [weak self] in self?.requestRouteSwitch() }
             navigation.alternativePromptAt = alternative?["promptAt"] as? Double
             navigation.alternativeVoice = alternative?["voice"] as? String
