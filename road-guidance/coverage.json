@@ -1,6 +1,6 @@
 {
   "validatorSHA256": "a5471eca79b32892fe59809394f8b5777ef229196031e12e37bb1d1071ef5e5d",
-  "generatedAt": "2026-11-20T20:39:26.758012+00:00",
+  "generatedAt": "2026-11-28T11:07:31.559375+00:00",
   "speedLimitPolicy": 3,
   "gpxSHA256": "b5c61a889e57434930c24bff695436f52e701b70ce745c00dd6bd7e11b85e9c6",
   "routes": [
@@ -2131,7 +2131,7 @@
         "percent": 71.7,
         "metresByTier": {
           "sign": 2227,
-          "mapped": 4607,
+          "mapped": 4606,
           "legal": 6874
         }
       },
@@ -8548,11 +8548,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 53.9,
+        "percent": 53.6,
         "metresByTier": {
           "sign": 3089,
-          "mapped": 20114,
-          "legal": 2160
+          "mapped": 20050,
+          "legal": 2071
         }
       },
       "hasSpeedLimits": true,
@@ -14306,7 +14306,7 @@
         "percent": 89.8,
         "metresByTier": {
           "sign": 343,
-          "mapped": 18326,
+          "mapped": 18328,
           "legal": 0
         }
       },
@@ -14344,7 +14344,7 @@
         "percent": 82.3,
         "metresByTier": {
           "sign": 374,
-          "mapped": 18338,
+          "mapped": 18339,
           "legal": 0
         }
       },
@@ -33621,11 +33621,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 62.6,
+        "percent": 61.9,
         "metresByTier": {
           "sign": 3666,
-          "mapped": 16901,
-          "legal": 11037
+          "mapped": 16619,
+          "legal": 10948
         }
       },
       "hasSpeedLimits": true,
@@ -33735,11 +33735,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 43.4,
+        "percent": 43.0,
         "metresByTier": {
           "sign": 1885,
-          "mapped": 7623,
-          "legal": 2760
+          "mapped": 7605,
+          "legal": 2671
         }
       },
       "hasSpeedLimits": true,
@@ -33773,11 +33773,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 40.8,
+        "percent": 40.3,
         "metresByTier": {
           "sign": 1937,
-          "mapped": 7217,
-          "legal": 2790
+          "mapped": 7171,
+          "legal": 2701
         }
       },
       "hasSpeedLimits": true,
@@ -33811,11 +33811,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 30.5,
+        "percent": 30.6,
         "metresByTier": {
           "sign": 1398,
           "mapped": 6004,
-          "legal": 1766
+          "legal": 1797
         }
       },
       "hasSpeedLimits": true,
@@ -34203,11 +34203,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 55.4,
+        "percent": 55.6,
         "metresByTier": {
           "sign": 1415,
           "mapped": 3979,
-          "legal": 2778
+          "legal": 2809
         }
       },
       "hasSpeedLimits": true,
@@ -34241,11 +34241,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 28.8,
+        "percent": 28.9,
         "metresByTier": {
           "sign": 1485,
           "mapped": 5760,
-          "legal": 1320
+          "legal": 1352
         }
       },
       "hasSpeedLimits": true,
@@ -34275,20 +34275,20 @@
         {
           "strategy": "whole-default",
           "accepted": true,
-          "turns": 55
+          "turns": 54
         }
       ],
       "speedLimitCoverage": {
-        "percent": 23.1,
+        "percent": 23.3,
         "metresByTier": {
           "sign": 1485,
-          "mapped": 5721,
-          "legal": 1315
+          "mapped": 5770,
+          "legal": 1365
         }
       },
       "hasSpeedLimits": true,
       "status": "validated",
-      "turns": 55,
+      "turns": 54,
       "coverage": {
         "complete": true,
         "coveredM": 36918.9,
@@ -34321,7 +34321,7 @@
         "metresByTier": {
           "sign": 1399,
           "mapped": 6178,
-          "legal": 1766
+          "legal": 1798
         }
       },
       "hasSpeedLimits": true,
@@ -34355,11 +34355,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 39.3,
+        "percent": 39.4,
         "metresByTier": {
           "sign": 1398,
           "mapped": 6044,
-          "legal": 3521
+          "legal": 3551
         }
       },
       "hasSpeedLimits": true,
@@ -34397,7 +34397,7 @@
         "metresByTier": {
           "sign": 1485,
           "mapped": 5675,
-          "legal": 3313
+          "legal": 3305
         }
       },
       "hasSpeedLimits": true,
@@ -34881,11 +34881,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 40.5,
+        "percent": 40.6,
         "metresByTier": {
           "sign": 1996,
           "mapped": 8010,
-          "legal": 3044
+          "legal": 3076
         }
       },
       "hasSpeedLimits": true,
@@ -34932,11 +34932,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 54.9,
+        "percent": 53.6,
         "metresByTier": {
           "sign": 1849,
-          "mapped": 6472,
-          "legal": 5255
+          "mapped": 6236,
+          "legal": 5166
         }
       },
       "hasSpeedLimits": true,
@@ -35046,11 +35046,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 53.3,
+        "percent": 53.5,
         "metresByTier": {
           "sign": 1204,
           "mapped": 3927,
-          "legal": 2784
+          "legal": 2816
         }
       },
       "hasSpeedLimits": true,
@@ -35084,11 +35084,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 45.2,
+        "percent": 45.4,
         "metresByTier": {
           "sign": 1205,
           "mapped": 3507,
-          "legal": 2058
+          "legal": 2090
         }
       },
       "hasSpeedLimits": true,
@@ -36329,7 +36329,7 @@
         {
           "strategy": "window-119-150-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=246.8m matched=45.1m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=246.8m matched=0.0m"
         },
         {
           "strategy": "window-119-143-precise-strict",
@@ -36339,7 +36339,7 @@
         {
           "strategy": "window-119-143-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=187.9m matched=45.1m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=187.9m matched=0.0m"
         },
         {
           "strategy": "window-119-140-precise-strict",
@@ -36349,7 +36349,7 @@
         {
           "strategy": "window-119-140-default-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=127.9m matched=45.1m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=127.9m matched=0.0m"
         },
         {
           "strategy": "window-132-143-precise-strict",
@@ -36594,7 +36594,7 @@
         {
           "strategy": "window-299-309-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=210.0m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=210.0m matched=37.4m"
         },
         {
           "strategy": "window-299-309-default-strict",
@@ -36604,7 +36604,7 @@
         {
           "strategy": "window-299-308-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=150.1m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=150.1m matched=37.4m"
         },
         {
           "strategy": "window-299-308-default-strict",
@@ -36624,7 +36624,7 @@
         {
           "strategy": "window-301-310-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=286.3m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=286.3m matched=37.4m"
         },
         {
           "strategy": "window-301-310-default-strict",
@@ -36634,7 +36634,7 @@
         {
           "strategy": "window-301-309-precise-strict",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=166.3m matched=0.0m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=166.3m matched=37.4m"
         },
         {
           "strategy": "window-301-309-default-strict",
@@ -41600,11 +41600,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 30.5,
+        "percent": 30.6,
         "metresByTier": {
           "sign": 1397,
           "mapped": 6123,
-          "legal": 1766
+          "legal": 1798
         }
       },
       "hasSpeedLimits": true,
@@ -41790,11 +41790,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 42.8,
+        "percent": 42.9,
         "metresByTier": {
           "sign": 1398,
           "mapped": 6524,
-          "legal": 4169
+          "legal": 4200
         }
       },
       "hasSpeedLimits": true,
@@ -41900,12 +41900,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=30125.7m matched=14738.3m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=30125.7m matched=14738.4m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=30125.7m matched=14738.3m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=30125.7m matched=14738.4m"
         },
         {
           "strategy": "window-0-150-precise",
@@ -42114,11 +42114,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 28.9,
+        "percent": 29.0,
         "metresByTier": {
           "sign": 1783,
           "mapped": 6800,
-          "legal": 1863
+          "legal": 1933
         }
       },
       "hasSpeedLimits": true,
@@ -42157,12 +42157,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=27593.7m matched=14738.3m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=27593.7m matched=14738.4m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=27593.7m matched=14738.3m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=27593.7m matched=14738.4m"
         },
         {
           "strategy": "window-0-172-precise",
@@ -42366,11 +42366,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 39.1,
+        "percent": 39.2,
         "metresByTier": {
           "sign": 1813,
           "mapped": 6823,
-          "legal": 4059
+          "legal": 4122
         }
       },
       "hasSpeedLimits": true,
@@ -50269,11 +50269,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 31.6,
+        "percent": 30.8,
         "metresByTier": {
           "sign": 0,
-          "mapped": 2745,
-          "legal": 2303
+          "mapped": 2727,
+          "legal": 2215
         }
       },
       "hasSpeedLimits": true,
@@ -50316,10 +50316,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 31.3,
+        "percent": 31.1,
         "metresByTier": {
           "sign": 182,
-          "mapped": 2723,
+          "mapped": 2705,
           "legal": 882
         }
       },
@@ -50354,11 +50354,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 31.1,
+        "percent": 30.3,
         "metresByTier": {
           "sign": 0,
-          "mapped": 2669,
-          "legal": 1210
+          "mapped": 2651,
+          "legal": 1121
         }
       },
       "hasSpeedLimits": true,
@@ -50447,11 +50447,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 29.1,
+        "percent": 26.9,
         "metresByTier": {
           "sign": 182,
-          "mapped": 4165,
-          "legal": 1054
+          "mapped": 3902,
+          "legal": 877
         }
       },
       "hasSpeedLimits": true,
@@ -50485,11 +50485,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 32.1,
+        "percent": 28.9,
         "metresByTier": {
           "sign": 0,
-          "mapped": 2731,
-          "legal": 746
+          "mapped": 2470,
+          "legal": 657
         }
       },
       "hasSpeedLimits": true,
@@ -50561,11 +50561,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 47.2,
+        "percent": 46.0,
         "metresByTier": {
           "sign": 102,
-          "mapped": 4741,
-          "legal": 1018
+          "mapped": 4676,
+          "legal": 927
         }
       },
       "hasSpeedLimits": true,
@@ -50599,11 +50599,11 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 35.1,
+        "percent": 32.4,
         "metresByTier": {
           "sign": 0,
-          "mapped": 3431,
-          "legal": 684
+          "mapped": 3195,
+          "legal": 595
         }
       },
       "hasSpeedLimits": true,
@@ -57687,12 +57687,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=17090.3m matched=11783.2m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=17090.3m matched=11783.0m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=17090.3m matched=11152.6m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=17090.3m matched=11152.4m"
         },
         {
           "strategy": "window-0-136-precise",
@@ -58127,12 +58127,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=18360.7m matched=11783.2m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=18360.7m matched=11783.0m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=18360.7m matched=11152.6m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=18360.7m matched=11152.4m"
         },
         {
           "strategy": "window-0-133-precise",
@@ -60271,12 +60271,12 @@
         {
           "strategy": "whole-default",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=12043.2m matched=10824.5m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=12043.2m matched=10824.3m"
         },
         {
           "strategy": "whole-precise",
           "accepted": false,
-          "reason": "Road shape length differs from obligatory Academy GPX: official=12043.2m matched=10195.8m"
+          "reason": "Road shape length differs from obligatory Academy GPX: official=12043.2m matched=10195.6m"
         },
         {
           "strategy": "window-0-113-precise",
@@ -68620,10 +68620,10 @@
         }
       ],
       "speedLimitCoverage": {
-        "percent": 53.9,
+        "percent": 53.7,
         "metresByTier": {
           "sign": 182,
-          "mapped": 5120,
+          "mapped": 5102,
           "legal": 457
         }
       },
@@ -69861,15 +69861,15 @@
   ],
   "roadSafety": {
     "limitRoutes": 959,
-    "cameraRoutes": 488,
-    "speed": 936,
+    "cameraRoutes": 489,
+    "speed": 937,
     "redLight": 156,
     "routeKm": 19817.7,
-    "limitKm": 9717.6,
+    "limitKm": 9715.5,
     "limitKmByTier": {
       "sign": 1262.9,
-      "mapped": 5829.4,
-      "legal": 2808.4
+      "mapped": 5827.9,
+      "legal": 2807.8
     }
   },
   "validated": 829,
