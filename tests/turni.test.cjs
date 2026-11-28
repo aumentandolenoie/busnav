@@ -9,7 +9,7 @@ const ids=new Set(catalog.map(r=>r.id));
 
 test('shift PDFs read again: every shift and row of feriale and sabato',()=>{
  const docs=Object.fromEntries(data.documents.filter(d=>d.rows).map(d=>[d.day,d]));
- assert.equal(docs.weekday.validFrom,'02/11/2026');assert.equal(docs.weekday.shifts,298);assert.equal(docs.weekday.rows,3505);
+ assert.equal(docs.weekday.validFrom,'02/11/2026');assert.equal(docs.holiday.validFrom,'08/11/2026');assert.equal(docs.holiday.shifts,23);assert.equal(docs.holiday.rows,229);assert.equal(docs.weekday.shifts,298);assert.equal(docs.weekday.rows,3505);
  assert.equal(docs.saturday.shifts,254);assert.equal(docs.saturday.rows,2851);
  assert.equal(Object.keys(data.days.weekday.shifts).length,298);
  assert.equal(Object.keys(data.days.saturday.shifts).length,254);
