@@ -128,6 +128,16 @@ def main():
     # Days whose PDF has not been read again keep the legs of the Academy PDFs.
     read_days = {d['day'] for d in documents}
     old = [l for l in evidence['shiftLegs'] if l['day'] not in read_days]
+    # The Academy reading of those PDFs sometimes shifted the "Trasf." of a depot row onto
+    # the passenger trip below it (festivo P001 10:45 "Padova - Turri", line M, came out as a
+    # transfer, so the trip was not driven). In the PDFs read again, "Trasf." never comes with
+    # a line and a passenger description: there such a row is a trip.
+    for l in old:
+        desc = (l['description'] or '').upper()
+        if (l['type'] or '').strip().startswith('Trasf') and clean_line(l['line']) and desc.strip() \
+                and not re.search(r'DEPOSITO|\bDEP\b|DEP\.', desc):
+            l['type'] = '-'
+            l['typeFixed'] = 'Trasf. letto sulla riga sbagliata'
     legs = legs + old
     documents = documents + [{'name': d['name'], 'day': next((l['day'] for l in old if l['document'] == d['name']), None),
                               'validFrom': next((l['validFrom'] for l in old if l['document'] == d['name']), None), 'reread': False}

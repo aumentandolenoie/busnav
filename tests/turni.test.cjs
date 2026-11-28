@@ -95,3 +95,17 @@ test('GTFS stops pick the GPX that passes by them',()=>{
  assert.equal(Turni.pickByStops([5,7],stops,dist),7);
  assert.equal(Turni.pickByStops([5,6],stops,dist),null);
 });
+
+test('festivo: trips misread as transfers in the Academy reading are driven (P001 Padova - Turri)', () => {
+  const data = require('../turni.json');
+  const legs = data.days.holiday.shifts.P001.legs;
+  const out = legs.find(l => l.dep === '10:45');
+  assert.equal(out.kind, 'service');
+  assert.equal(out.route, 733);
+  // No passenger trip with a line is left as a transfer on any day.
+  for (const [day, d] of Object.entries(data.days))
+    for (const [code, s] of Object.entries(d.shifts))
+      for (const l of s.legs)
+        if (l.kind === 'transfer' && l.line && /^(PADOVA|Padova) - /.test(l.desc || '') && !/DEPOSITO/i.test(l.desc))
+          assert.fail(`${day} ${code} ${l.dep} ${l.desc}`);
+});
